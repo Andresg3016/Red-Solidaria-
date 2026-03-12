@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Red Solidaria - Donaciones</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Stripe Payment Elements -->
+<script src="https://js.stripe.com/v3/"></script>
+
+<style>
+
+body{
+background: linear-gradient(135deg,#1e52ff 0%,#63ff5e98 70%,#b7ebb8 90%);
+min-height:100vh;
+padding:20px 0;
+}
+
+.donacion-container{
+background:#fffef5;
+border-radius:20px;
+box-shadow:0 20px 50px rgba(0,0,0,0.15);
+padding:45px;
+max-width:1200px;
+margin:auto;
+border:3px solid #f5c518;
+}
+
+.donacion-card{
+background:#fff;
+border-radius:15px;
+box-shadow:0 5px 20px rgba(0,0,0,0.1);
+padding:25px;
+margin-bottom:25px;
+border-left:5px solid;
+transition:0.3s;
+}
+
+.donacion-card:hover{
+transform:translateY(-5px);
+}
+
+.ropa{border-left-color:#ff6b6b;}
+.alimentos{border-left-color:#51cf66;}
+.medicamentos{border-left-color:#339af0;}
+.otros{border-left-color:#fcc419;}
+
+.badge-ropa{background:#ff6b6b;color:white;}
+.badge-alimentos{background:#51cf66;color:white;}
+.badge-medicamentos{background:#339af0;color:white;}
+.badge-otros{background:#fcc419;color:#333;}
+
+.donacion-form{
+background:#f8f9fa;
+border-radius:10px;
+padding:20px;
+margin-top:15px;
+}
+
+.btn-guardar{
+background:#28a745;
+border:none;
+color:white;
+font-weight:700;
+padding:10px 20px;
+border-radius:8px;
+}
+
+.btn-nueva-donacion{
+background:#28a745;
+border:none;
+color:white;
+font-weight:700;
+padding:10px 25px;
+border-radius:10px;
+}
+
+.btn-pagar{
+background:#0070ba;
+border:none;
+color:white;
+font-weight:700;
+padding:12px 30px;
+border-radius:8px;
+margin-top:15px;
+}
+
+.btn-pagar:hover{
+background:#00517a;
+}
+
+.btn-paypal{
+background:#ffc439;
+border:none;
+color:#111;
+font-weight:700;
+padding:12px 30px;
+border-radius:8px;
+margin-top:15px;
+}
+
+.btn-paypal:hover{
+background:#f0b90f;
+}
+
+.btn-nequi{
+background:#00a651;
+border:none;
+color:white;
+font-weight:700;
+padding:12px 30px;
+border-radius:8px;
+margin-top:15px;
+}
+
+.btn-nequi:hover{
+background:#008a42;
+}
+
+.btn-daviplata{
+background:#00a651;
+border:none;
+color:white;
+font-weight:700;
+padding:12px 30px;
+border-radius:8px;
+margin-top:15px;
+}
+
+.btn-daviplata:hover{
+background:#008a42;
+}
+
+.mensaje-emergente{
+position:fixed;
+top:20px;
+right:20px;
+background:#28a745;
+color:white;
+padding:15px 25px;
+border-radius:10px;
+display:none;
+z-index:9999;
+}
+
+.mensaje-emergente.show{
+display:block;
+}
+
+.pasarela-pagos{
+background:#f0f8ff;
+border-radius:10px;
+padding:20px;
+margin-top:15px;
+border:2px solid #0070ba;
+}
+
+.pasarela-pagos h4{
+color:#0070ba;
+margin-bottom:15px;
+}
+
+.pago-oculto{
+display:none;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- Barra de navegación -->
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+
+     <!-- LOGO DEL PROYECTO (NO SE MODIFICA) -->
+<a href="index.html" class="d-flex align-items-center text-decoration-none">
+  <img src="img/logo.jpeg" alt="Logo" height="80" class="me-3"/>
+</a>
+
+<!-- BOTONES DONANTE AL LADO DEL LOGO -->
+<div class="d-flex gap-2">
+
+  <a href="donar.html" class="btn btn-outline-primary">
+    🎁 Donar
+  </a>
+
+  <a href="mis_donaciones.html" class="btn btn-outline-success">
+    📦 Mis Donaciones
+  </a>
+
+</div>  
+
+      <!-- PERFIL DONANTE -->
+      <ul class="navbar-nav ms-auto">
+
+        <li class="nav-item dropdown">
+
+          <button
+            class="btn btn-outline-dark dropdown-toggle"
+            data-bs-toggle="dropdown"
+          >
+            👤 Donante
+          </button>
+
+          <ul class="dropdown-menu dropdown-menu-end">
+
+            <li>
+              <a class="dropdown-item" href="perfil_admin.html">
+                👤 Ver perfil
+              </a>
+            </li>
+
+            <li>
+              <a class="dropdown-item" href="editar_perfil.html">
+                ✏️ Editar perfil
+              </a>
+            </li>
+
+            <li><hr class="dropdown-divider"></li>
+
+            <li>
+              <button class="dropdown-item text-danger" onclick="cerrarSesion()">
+                🚪 Cerrar sesión
+              </button>
+            </li>
+
+          </ul>
+
+        </li>
+
+      </ul>
+
+    </div>
+    </div> <!-- termina el admin-container -->
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+function cerrarSesion(){
+
+if(confirm("¿Seguro que deseas cerrar sesión?")){
+
+window.location.href="iniciarSesion.html"
+
+}
+
+}
+</script>
+
+</body>
+</html>
+  </div>
+</nav>
+
+<!-- MENSAJE -->
+<div id="mensajeEmergente" class="mensaje-emergente">
+<strong>✅</strong> <span id="mensajeTexto">Donación guardada exitosamente</span>
+</div>
+
+<div class="donacion-container">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+<h2>📦 Donaciones Donante</h2>
+<button class="btn-nueva-donacion">+ Nueva Donación</button>
+</div>
+
+<p class="text-center text-muted mb-4">
+Red Solidaria - "Ayuda a Transformar Vidas con tus Donaciones"
+</p>
+
+<!-- ROPA -->
+<div class="donacion-card ropa">
+
+<div class="d-flex justify-content-between mb-3">
+<h3>👕 Ropa</h3>
+<span class="badge badge-ropa">Ropa</span>
+</div>
+
+<div class="donacion-form">
+
+<form id="formRopa" onsubmit="guardarDonacion(event,'Ropa')">
+
+<div class="row g-3">
+
+<div class="col-md-3">
+<label class="form-label">Tipo</label>
+<select class="form-select" name="tipo" required>
+<option value="">Seleccionar</option>
+<option value="Hombre">Hombre</option>
+<option value="Mujer">Mujer</option>
+<option value="Niño">Niño</option>
+</select>
+</div>
+
+<div class="col-md-3">
+<label class="form-label">Color</label>
+<input type="text" class="form-control" name="color" required>
+</div>
+
+<div class="col-md-3">
+<label class="form-label">Talla</label>
+<select class="form-select" name="talla" required>
+<option value="">Seleccionar</option>
+<option value="S">S</option>
+<option value="M">M</option>
+<option value="L">L</option>
+<option value="XL">XL</option>
+</select>
+</div>
+
+<div class="col-md-3">
+<label class="form-label">Unidades</label>
+<input type="number" class="form-control" name="unidades" min="1" required>
+</div>
+
+<div class="col-12">
+<button class="btn-guardar">💾 Guardar Donación</button>
+</div>
+
+</div>
+</form>
+
+</div>
+</div>
+
+<!-- ALIMENTOS -->
+<div class="donacion-card alimentos">
+
+<div class="d-flex justify-content-between mb-3">
+<h3>🍎 Alimentos</h3>
+<span class="badge badge-alimentos">Alimentos</span>
+</div>
+
+<div class="donacion-form">
+
+<form id="formAlimentos" onsubmit="guardarDonacion(event,'Alimentos')">
+
+<div class="row g-3">
+
+<div class="col-md-3">
+<label class="form-label">Tipo</label>
+<select class="form-select" name="tipo" required>
+<option value="">Seleccionar</option>
+<option value="Fruta">Fruta</option>
+<option value="Verdura">Verdura</option>
+<option value="Granos">Granos</option>
+</select>
+</div>
+
+<div class="col-md-3">
+<label class="form-label">Estado</label>
+<select class="form-select" name="estado" required>
+<option value="">Seleccionar</option>
+<option value="Fresco">Fresco</option>
+<option value="Congelado">Congelado</option>
+<option value="Enlatado">Enlatado</option>
+</select>
+</div>
+
+<div class="col-md-3">
+<label class="form-label">Unidades</label>
+<input type="number" class="form-control" name="unidades" min="1" required>
+</div>
+
+<div class="col-md-3">
+<label class="form-label">Fecha</label>
+<input type="date" class="form-control" name="fecha" required>
+</div>
+
+<div class="col-12">
+<button class="btn-guardar">💾 Guardar Donación</button>
+</div>
+
+</div>
+</form>
+
+</div>
+</div>
+
+<!-- MEDICAMENTOS -->
+<div class="donacion-card medicamentos">
+
+<div class="d-flex justify-content-between mb-3">
+<h3>💊 Medicamentos</h3>
+<span class="badge badge-medicamentos">Medicamentos</span>
+</div>
+
+<div class="donacion-form">
+
+<form id="formMedicamentos" onsubmit="guardarDonacion(event,'Medicamentos')">
+
+<div class="row g-3">
+
+<div class="col-md-3">
+<label class="form-label">Nombre</label>
+<input type="text" class="form-control" name="nombre" required>
+</div>
+
+<div class="col-md-3">
+<label class="form-label">Vencimiento</label>
+<input type="date" class="form-control" name="vencimiento" required>
+</div>
+
+<div class="col-md-3">
+<label class="form-label">Unidades</label>
+<input type="number" class="form-control" name="unidades" min="1" required>
+</div>
+
+<div class="col-md-3">
+<label class="form-label">Estado</label>
+<select class="form-select" name="estado" required>
+<option value="">Seleccionar</option>
+<option value="Nuevo">Nuevo</option>
+<option value="Abierto">Abierto</option>
+<option value="Sellado">Sellado</option>
+</select>
+</div>
+
+<div class="col-12">
+<button class="btn-guardar">💾 Guardar Donación</button>
+</div>
+
+</div>
+</form>
+
+</div>
+</div>
+
+<!-- OTROS -->
+<div class="donacion-card otros">
+
+<div class="d-flex justify-content-between mb-3">
+<h3>📦 Otros</h3>
+<span class="badge badge-otros">Otros</span>
+</div>
+
+<div class="donacion-form">
+
+<form id="formOtros" onsubmit="guardarDonacion(event,'Otros')">
+
+<div class="row g-3">
+
+<div class="col-md-3">
+<label class="form-label">Objeto</label>
+<input type="text" class="form-control" name="objeto" placeholder="Ej: Colchón" required>
+</div>
+
+<div class="col-md-3">
+<label class="form-label">Estado</label>
+<select class="form-select" name="estado" required>
+<option value="">Seleccionar</option>
+<option value="Nuevo">Nuevo</option>
+<option value="Usado">Usado</option>
+</select>
+</div>
+
+<div class="col-md-3">
+<label class="form-label">Cantidad</label>
+<input type="number" class="form-control" name="cantidad" min="1" required>
+</div>
+
+<div class="col-md-3">
+<label class="form-label">Color</label>
+<input type="text" class="form-control" name="color">
+</div>
+
+<div class="col-12">
+<button class="btn-guardar">💾 Guardar Donación</button>
+</div>
+
+</div>
+</form>
+
+</div>
+</div>
+
+<!-- PASARELA DE PAGOS -->
+<div class="donacion-card" style="border-left-color: #0070ba;">
+  <div class="d-flex justify-content-between mb-3">
+    <h3>💳 Donación Económica</h3>
+    <span class="badge badge-otros" style="background:#0070ba;">Pago</span>
+  </div>
+  
+  <div class="pasarela-pagos">
+    <h4>💰 Realiza una Donación Económica</h4>
+    <p class="text-muted">Selecciona el monto de tu donación económica</p>
+    
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Monto ($)</label>
+        <input type="number" id="montoDonacion" class="form-control" placeholder="Ej: 50" min="1" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Método de Pago</label>
+        <select id="metodoPago" class="form-select">
+          <option value="tarjeta">Tarjeta de Crédito/Débito</option>
+          <option value="paypal">PayPal</option>
+          <option value="nequi">Nequi</option>
+          <option value="daviplata">Daviplata</option>
+          <option value="transferencia">Transferencia Bancaria</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Frecuencia</label>
+        <select id="frecuencia" class="form-select">
+          <option value="unico">Única</option>
+          <option value="mensual">Mensual</option>
+          <option value="anual">Anual</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="mt-3">
+      <button class="btn-pagar" onclick="procesarPago('tarjeta')">
+        💳 Pagar con Tarjeta
+      </button>
+      <button class="btn-paypal" onclick="procesarPago('paypal')">
+        🅿️ Pagar con PayPal
+      </button>
+      <button class="btn-nequi" onclick="procesarPago('nequi')">
+        📱 Pagar con Nequi
+      </button>
+      <button class="btn-daviplata" onclick="procesarPago('daviplata')">
+        💳 Pagar con Daviplata
+      </button>
+    </div>
+    
+    <!-- Elemento de Stripe (oculto) -->
+    <div id="payment-element" class="pago-oculto"></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+
+// Configuración de Stripe (reemplaza con tu clave pública)
+const stripe = Stripe('TU_CLAVE_PUBLICA_STRIPE_AQUI');
+const elements = stripe.elements

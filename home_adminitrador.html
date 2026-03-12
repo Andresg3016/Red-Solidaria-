@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Red Solidaria - Panel de Administrador</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Stripe Payment Elements -->
+<script src="https://js.stripe.com/v3/"></script>
+
+<style>
+
+body{
+background: linear-gradient(135deg,#1e52ff 0%,#63ff5e98 70%,#b7ebb8 90%);
+min-height:100vh;
+padding:20px 0;
+}
+
+.admin-container{
+background:#fffef5;
+border-radius:20px;
+box-shadow:0 20px 50px rgba(0,0,0,0.15);
+padding:45px;
+max-width:1400px;
+margin:auto;
+border:3px solid #f5c518;
+}
+
+/* Header del Dashboard */
+.dashboard-header{
+background: linear-gradient(135deg,#1e52ff,#63ff5e);
+color:white;
+border-radius:15px;
+padding:30px;
+margin-bottom:30px;
+}
+
+.dashboard-header h1{
+font-size:32px;
+margin-bottom:10px;
+}
+
+.dashboard-header p{
+font-size:16px;
+opacity:0.9;
+}
+
+/* Tarjetas de Estadísticas */
+.stats-card{
+background:white;
+border-radius:15px;
+padding:25px;
+box-shadow:0 5px 20px rgba(0,0,0,0.1);
+margin-bottom:20px;
+border-left:5px solid;
+transition:0.3s;
+}
+
+.stats-card:hover{
+transform:translateY(-5px);
+}
+
+.stats-card.donantes{border-left-color:#ff6b6b;}
+.stats-card.fundaciones{border-left-color:#51cf66;}
+.stats-card.donaciones{border-left-color:#339af0;}
+.stats-card.ayudas{border-left-color:#fcc419;}
+.stats-card.pagos{border-left-color:#0070ba;}
+.stats-card.validaciones{border-left-color:#ffc107;}
+
+.stats-card h3{
+font-size:36px;
+margin-bottom:5px;
+}
+
+.stats-card p{
+font-size:14px;
+color:#666;
+margin-bottom:0;
+}
+
+.stats-card .icon{
+font-size:40px;
+margin-bottom:10px;
+}
+
+/* Secciones de Gestión */
+.gestion-section{
+background:white;
+border-radius:15px;
+padding:25px;
+box-shadow:0 5px 20px rgba(0,0,0,0.1);
+margin-bottom:25px;
+}
+
+.gestion-section h3{
+color:#333;
+margin-bottom:20px;
+border-bottom:2px solid #f5c518;
+padding-bottom:10px;
+}
+
+/* Botones de Acción */
+.btn-gestion{
+background:#0070ba;
+border:none;
+color:white;
+font-weight:700;
+padding:10px 20px;
+border-radius:8px;
+margin-right:10px;
+margin-bottom:10px;
+}
+
+.btn-gestion:hover{
+background:#00517a;
+}
+
+.btn-gestion.verde{
+background:#28a745;
+}
+
+.btn-gestion.verde:hover{
+background:#218838;
+}
+
+.btn-gestion.amarillo{
+background:#ffc107;
+color:#333;
+}
+
+.btn-gestion.amarillo:hover{
+background:#e0a800;
+}
+
+.btn-gestion.rojo{
+background:#dc3545;
+}
+
+.btn-gestion.rojo:hover{
+background:#c82333;
+}
+
+/* Tablas */
+.table-container{
+background:#f8f9fa;
+border-radius:10px;
+padding:20px;
+margin-top:15px;
+}
+
+.table{
+margin-bottom:0;
+}
+
+.table th{
+background:#0070ba;
+color:white;
+}
+
+.table td{
+vertical-align:middle;
+}
+
+/* Badges de Estado */
+.badge-estado{
+padding:5px 12px;
+border-radius:20px;
+font-size:12px;
+font-weight:600;
+}
+
+.badge-activo{
+background:#28a745;
+color:white;
+}
+
+.badge-pendiente{
+background:#ffc107;
+color:#333;
+}
+
+.badge-rechazado{
+background:#dc3545;
+color:white;
+}
+
+.badge-validado{
+background:#17a2b8;
+color:white;
+}
+
+/* Mensaje emergente */
+.mensaje-emergente{
+position:fixed;
+top:20px;
+right:20px;
+background:#28a745;
+color:white;
+padding:15px 25px;
+border-radius:10px;
+display:none;
+z-index:9999;
+}
+
+.mensaje-emergente.show{
+display:block;
+}
+
+/* Barra de navegación */
+.navbar{
+margin-bottom:20px;
+}
+
+/* Pestañas */
+.nav-tabs{
+border-bottom:2px solid #f5c518;
+margin-bottom:20px;
+}
+
+.nav-tabs .nav-link{
+color:#333;
+font-weight:600;
+padding:12px 25px;
+border:none;
+border-radius:10px 10px 0 0;
+transition:all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover{
+background:rgba(245,197,24,0.1);
+color:#f5c518;
+}
+
+.nav-tabs .nav-link.active{
+background:#f5c518;
+color:white;
+border:none;
+}
+
+.tab-content{
+display:none;
+}
+
+.tab-content.active{
+display:block;
+}
+
+/* Botón de cerrar sesión */
+.btn-logout{
+background:#dc3545;
+border:none;
+color:white;
+font-weight:700;
+padding:8px 20px;
+border-radius:8px;
+}
+
+.btn-logout:hover{
+background:#c82333;
+}
+
+/* Tarjetas de Donaciones */
+.donacion-card{
+background:#fff;
+border-radius:15px;
+box-shadow:0 5px 20px rgba(0,0,0,0.1);
+padding:25px;
+margin-bottom:25px;
+border-left:5px solid;
+transition:0.3s;
+}
+
+.donacion-card:hover{
+transform:translateY(-5px);
+}
+
+.donacion-card.donante{border-left-color:#ff6b6b;}
+.donacion-card.fundacion{border-left-color:#51cf66;}
+
+.donacion-card h3{
+color:#333;
+margin-bottom:15px;
+}
+
+.donacion-card .info-item{
+margin-bottom:10px;
+font-size:15px;
+}
+
+.donacion-card .info-item strong{
+color:#555;
+}
+
+.donacion-card .info-item span{
+color:#333;
+}
+
+/* Pasarela de Pagos */
+.pasarela-pagos{
+background:#f0f8ff;
+border-radius:10px;
+padding:20px;
+margin-top:15px;
+border:2px solid #0070ba;
+}
+
+.pasarela-pagos h4{
+color:#0070ba;
+margin-bottom:15px;
+}
+
+.pago-oculto{
+display:none;
+}
+
+/* Botones de pago */
+.btn-pagar{
+background:#0070ba;
+border:none;
+color:white;
+font-weight:700;
+padding:12px 30px;
+border-radius:8px;
+margin-top:15px;
+}
+
+.btn-pagar:hover{
+background:#00517a;
+}
+
+.btn-paypal{
+background:#ffc439;
+border:none;
+color:#111;
+font-weight:700;
+padding:12px 30px;
+border-radius:8px;
+margin-top:15px;
+}
+
+.btn-paypal:hover{
+background:#f0b90f;
+}
+
+.btn-nequi{
+background:#00a651;
+border:none;
+color:white;
+font-weight:700;
+padding:12px 30px;
+border-radius:8px;
+margin-top:15px;
+}
+
+.btn-nequi:hover{
+background:#008a42;
+}
+
+.btn-daviplata{
+background:#00a651;
+border:none;
+color:white;
+font-weight:700;
+padding:12px 30px;
+border-radius:8px;
+margin-top:15px;
+}
+
+.btn-daviplata:hover{
+background:#008a42;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- Barra de navegación -->
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+
+    <!-- LOGO (NO SE MODIFICA) -->
+    <a href="index.html" class="d-flex align-items-center text-decoration-none">
+      <img src="img/logo.jpeg" alt="Logo" height="80" class="me-3" />
+    </a>
+
+    <!-- BOTONES ADMIN AL LADO DEL LOGO -->
+    <div class="d-flex gap-2">
+      <a href="panel_admin.html" class="btn btn-outline-primary">
+        📊 Panel Admin
+      </a>
+
+      <a href="gestion_usuarios.html" class="btn btn-outline-success">
+        👥 Usuarios
+      </a>
+    </div>
+
+    <!-- Botón hamburguesa -->
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarSupportedContent"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+      <!-- MENÚ PRINCIPAL -->
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-4">
+
+        <li class="nav-item">
+          <a class="nav-link active" href="donaciones.html">Donaciones</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link active" href="donaciones_enviadas.html">
+            Donaciones Enviadas
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link active" href="donaciones-fundacion.html">
+            Fundaciones
+          </a>
+        </li>
+
+      </ul>
+
+      <!-- PERFIL ADMIN -->
+      <ul class="navbar-nav ms-auto">
+
+        <li class="nav-item dropdown">
+
+          <button
+            class="btn btn-outline-dark dropdown-toggle"
+            data-bs-toggle="dropdown"
+          >
+            👤 Administrador
+          </button>
+
+          <ul class="dropdown-menu dropdown-menu-end">
+
+            <li>
+              <a class="dropdown-item" href="perfil_admin.html">
+                👤 Ver perfil
+              </a>
+            </li>
+
+            <li>
+              <a class="dropdown-item" href="editar_perfil.html">
+                ✏️ Editar perfil
+              </a>
+            </li>
+
+            <li><hr class="dropdown-divider"></li>
+
+            <li>
+              <button class="dropdown-item text-danger" onclick="cerrarSesion()">
+                🚪 Cerrar sesión
+              </button>
+            </li>
+
+          </ul>
+
+        </li>
+
+      </ul>
+
+    </div>
+    </div> <!-- termina el admin-container -->
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+function cerrarSesion(){
+
+if(confirm("¿Seguro que deseas cerrar sesión?")){
+
+window.location.href="iniciarSesion.html"
+
+}
+
+}
+</script>
+
+</body>
+</html>
+  </div>
+</nav>
+<!-- MENSAJE -->
+<div id="mensajeEmergente" class="mensaje-emergente">
+<strong>✅</strong> <span id="mensajeTexto">Acción realizada exitosamente</span>
+</div>
+
+<div class="admin-container">
+
+<!-- Header del Dashboard -->
+<div class="dashboard-header">
+  <h1>👨‍💼 Panel de Administrador</h1>
+  <p>Red Solidaria - "Gestión Integral de Ayudas y Donaciones"</p>
+</div>
+
+<!-- Estadísticas Principales -->
+<div class="row">
+  <div class="col-md-2">
+    <div class="stats-card donantes">
+      <div class="icon">👤</div>
+      <h3>1,245</h3>
+      <p>Donantes</p>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="stats-card fundaciones">
+      <div class="icon">🏛️</div>
+      <h3>87</h3>
+      <p>Fundaciones</p>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="stats-card donaciones">
+      <div class="icon">📦</div>
+      <h3>3,567</h3>
+      <p>Donaciones</p>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="stats-card ayudas">
+      <div class="icon">💰</div>
+      <h3>$2.5M</h3>
+      <p>Donaciones Económicas</p>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="stats-card pagos">
+      <div class="icon">💳</div>
+      <h3>456</h3>
+      <p>Pagos</p>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="stats-card validaciones">
+      <div class="icon">✅</div>
+      <h3>23</h3>
+      <p>Pendientes</p>
+    </div>
+  </div>
+</div>
+
+<!-- Pestañas de Navegación -->
+<ul class="nav nav-tabs" id="adminTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="donaciones-tab" data-bs-toggle="tab" data-bs-target="#donaciones" type="button" role="tab">
+      📦 Donaciones
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="donantes-tab" data-bs-toggle="tab" data-bs-target="#donantes" type="button" role="tab">
+      👥 Donantes
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="fundaciones-tab" data-bs-toggle="tab" data-bs-target="#fundaciones" type="button" role="tab">
+      🏛️ Fundaciones
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="pagos-tab" data-bs-toggle="tab" data-bs-target="#pagos" type="button" role="tab">
+      💳 Pagos
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="validaciones-tab" data-bs-toggle="tab" data-bs-target="#validaciones" type="button" role="tab">
+      ✅ Validaciones
+    </button>
+  </li>
+</ul>
+
+<!-- Contenido de las Pestañas -->
+<div class="tab-content" id="adminTabContent">
+  
+  <!-- Pestaña: Donaciones -->
+  <div class="tab-pane fade show active" id="donaciones" role="tabpanel">
+    <div class="gestion-section">
+      <h3>📦 Gestión de Donaciones</h3>
+      
+      <div class="d-flex mb-3">
+        <button class="btn-gestion" onclick="mostrarMensaje('Filtrando donaciones...')">
+          🔍 Filtrar
+        </button>
+        <button class="btn-gestion verde" onclick="mostrarMensaje('Exportando datos...')">
+          📥 Exportar
+        </button>
+        <button class="btn-gestion amarillo" onclick="mostrarMensaje('Buscando...')">
+          📊 Estadísticas
+        </button>
+      </div>
+      
+      <div class="table-container">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tipo</th>
+              <th>Donante</th>
+              <th>Categoría</th>
+              <th>Unidades</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>001</td>
+              <td>Donante</td>
+              <td>Juan Pérez</td>
+              <td>Ropa</td>
+              <td>15</td>
+              <td>2024-01-15</td>
+              <td><span class="badge-estado badge-activo">Activo</span></td>
+              <td>
+                <button class="btn-gestion" style="padding:5px 10px
+             

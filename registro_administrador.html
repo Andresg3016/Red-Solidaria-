@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Administrador - Red Solidaria</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg,#1e52ff 0%,#63ff5e98 70%,#b7ebb8 90%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .registro-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+        .form-title {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .form-icon {
+            font-size: 3rem;
+            color: #667eea;
+            text-align: center;
+            display: block;
+            margin-bottom: 20px;
+        }
+        .btn-registro {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .btn-registro:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+        }
+        .password-toggle {
+            cursor: pointer;
+        }
+        .link-login {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div>
+
+<div class="registro-container">
+    <span class="form-icon">🏢</span>
+    <h2 class="form-title">Registro de Administrador</h2>
+    <p class="text-center text-muted mb-4"><strong>Red Solidaria - Gestión de Donaciones</strong> </p>
+    
+    <form class="row g-3" action="procesar_registro.php" method="POST">
+        
+        <div class="col-12">
+            <label for="nombreCompleto" class="form-label">Nombre Completo <span class="text-danger">*</span></label>
+            <div class="input-group">
+                <span class="input-group-text bg-light">
+                    👤
+                </span>
+                <input type="text" class="form-control" id="nombreCompleto" name="nombre_completo" placeholder="Ingrese su nombre completo" required>
+            </div>
+        </div>
+        
+        <div class="col-12">
+            <label for="emailRegistro" class="form-label">Correo Electrónico <span class="text-danger">*</span></label>
+            <div class="input-group">
+                <span class="input-group-text bg-light">✉️</span>
+                <input type="email" class="form-control" id="emailRegistro" name="email_registro" placeholder="nombre@ejemplo.com" required>
+            </div>
+            <div class="form-text">Use un correo institucional o corporativo.</div>
+        </div>
+        
+        <div class="col-12">
+            <label for="telefono" class="form-label">Teléfono <span class="text-danger">*</span></label>
+            <div class="input-group">
+                <span class="input-group-text bg-light">📱</span>
+                <input type="tel" class="form-control" id="telefono" name="telefono" placeholder="+57 300 000 0000" required>
+            </div>
+        </div>
+        
+        <div class="col-12">
+            <label for="organizacion" class="form-label">Organización o Institución <span class="text-danger">*</span></label>
+            <div class="input-group">
+                <span class="input-group-text bg-light">🏢</span>
+                <input type="text" class="form-control" id="organizacion" name="organizacion" placeholder="Nombre de la organización" required>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <label for="cargo" class="form-label">Cargo <span class="text-danger">*</span></label>
+            <div class="input-group">
+                <span class="input-group-text bg-light">💼</span>
+                <input type="text" class="form-control" id="cargo" name="cargo" placeholder="Cargo que ocupa" required>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <label for="rol" class="form-label">Rol <span class="text-danger">*</span></label>
+            <select class="form-select" id="rol" name="rol" required>
+                <option value="" selected disabled>Seleccionar...</option>
+                <option value="super_admin">Superadministrador</option>
+                <option value="admin_red_solidaria">Administrador Red Solidaria</option>
+            </select>
+        </div>
+        
+        <div class="col-12">
+            <label for="inputPassword2" class="form-label">Contraseña <span class="text-danger">*</span></label>
+            <div class="input-group">
+                <span class="input-group-text bg-light">🔒</span>
+                <input type="password" class="form-control" id="inputPassword2" name="password" placeholder="Mínimo 8 caracteres" required minlength="8">
+                <button class="btn btn-outline-secondary password-toggle" type="button" onclick="togglePassword('inputPassword2')">👁</button>
+            </div>
+            <div class="form-text">La contraseña debe tener al menos 8 caracteres.</div>
+        </div>
+        
+        <div class="col-12">
+            <label for="confirmarPassword" class="form-label">Confirmar Contraseña <span class="text-danger">*</span></label>
+            <div class="input-group">
+                <span class="input-group-text bg-light">🔒</span>
+                <input type="password" class="form-control" id="confirmarPassword" name="confirmar_password" placeholder="Repita la contraseña" required>
+                <button class="btn btn-outline-secondary password-toggle" type="button" onclick="togglePassword('confirmarPassword')">👁</button>
+            </div>
+        </div>
+        
+        <div class="col-12">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="terminos" name="terminos" required>
+                <label class="form-check-label" for="terminos">
+                    Acepto los <a href="#">Términos y Condiciones</a> y la <a href="#">Política de Privacidad</a>
+                </label>
+            </div>
+        </div>
+        
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary btn-registro w-100 py-2">
+                Registrar Administrador
+            </button>
+        </div>
+
+</form>
+
+</div>
+
+
+
+</body>
+</html>
