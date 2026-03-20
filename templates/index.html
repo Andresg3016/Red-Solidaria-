@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Red Solidaria</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+
+    <link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}}" />
+  </head>
+
+  <body>
+    <header class="header">
+      <div class="logo">
+        <a href="{{ url_for('inicio') }}"><img src="{{url_for('static', filename='img/logo.jpeg')}}" alt="Logo Red Solidaria" /></a>
+      </div>
+
+      <input type="checkbox" id="menu-toggle" />
+
+      <label for="menu-toggle" class="menu-icon">☰</label>
+
+      <nav class="nav">
+        <ul class="nav-links">
+          <li><a href="#">¡Dona Ahora!</a></li>
+          <li><a href="#">Projects</a></li>
+          <li><a href="#">About us</a></li>
+          <li class="mobile-btn">
+            <a href="{{ url_for('login') }}" class="btn-link">Iniciar Sesión</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <div class="container text-center mt-5">
+      <div class="card shadow p-4">
+        <h1 class="display-4 fw-bold">Conecta donantes con fundaciones</h1>
+        <p class="lead text-bg">
+          Red Solidaria es una plataforma que permite donar ropa, alimentos y
+          medicamentos a fundaciones que realmente lo necesitan.
+        </p>
+      </div>
+    </div>
+    <!--Carrousel-->
+    <div class="container mt-5">
+        <div class="carousel-wrapper shadow-lg rounded overflow-hidden">
+
+            <div id="carouselExampleAutoplaying" class="carousel slide" data-bs-ride="carousel">
+
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <img src="{{url_for('static', filename='img/donacion1.png')}}" class="d-block w-100 carousel-img" alt="imagen1">
+                    </div>
+
+                    <div class="carousel-item">
+                        <img src="{{url_for('static', filename='img/donacion2.png')}}" class="d-block w-100 carousel-img" alt="imagen2">
+                    </div>
+
+                    <div class="carousel-item">
+                        <img src="{{url_for('static', filename='img/donacion2.png')}}" class="d-block w-100 carousel-img" alt="imagen3">
+                    </div>
+                </div>
+
+                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+
+                <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+  </body>
+ <footer>
+    <div class="container mt-5">
+  <div class="card shadow-sm p-4">
+
+    <h2 class="text-center mb-4">¿Cómo funciona?</h2>
+
+      <div class="row text-center">
+
+        <div class="col-md-4">
+          <h4>1️⃣ Regístrate</h4>
+          <p class="lead text-bg">Crea una cuenta como donante o fundación.</p>
+        </div>
+
+        <div class="col-md-4">
+          <h4>2️⃣ Publica o busca</h4>
+          <p class="lead text-bg">Los donantes publican donaciones y las fundaciones pueden solicitarlas.</p>
+        </div>
+
+        <div class="col-md-4">
+          <h4>3️⃣ Conecta y ayuda</h4>
+          <p class="lead text-bg">Las fundaciones aceptan donaciones y coordinan la entrega.</p>
+        </div>
+
+      </div>
+
+  </div>
+</div>
+
+
+<!-- CTA -->
+<div class="container text-center mt-5">
+  <div class="card shadow p-4">
+
+    <h2>¿Quieres ayudar?</h2>
+
+    <p class="lead text-bg">
+      Tu donación puede cambiar la vida de muchas personas.
+    </p>
+
+    <a href="formularioDonador.html" class="btn btn-success btn-lg w-30 mx-auto d-block">
+      Comenzar a donar
+    </a>
+
+  </div>
+</div>
+    
+</body>
+
+<!-- FOOTER -->
+<footer class="bg-dark text-white text-center p-4 mt-5">
+  <p>© 2026 Red Solidaria</p>
+  <p>Conectando solidaridad con quienes más lo necesitan</p>
+</footer>
+
+
+</html>
+
