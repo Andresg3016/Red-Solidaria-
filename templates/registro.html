@@ -1,11 +1,227 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Red Solidaria</title>
+    <title>Red Solidaria - Registro</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}}" />
+
+    <!-- FUENTE -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200;400;700&display=swap" rel="stylesheet">
+
+    <style>
+        *{
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Nunito", sans-serif;
+        }
+
+        body{
+            background: linear-gradient(150deg, rgb(0, 112, 211), rgb(78, 220, 123));
+            height: 100vh;
+        }
+
+        /* HEADER */
+        .header{
+            background-color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 85px;
+            padding: 5px 10%;
+            position: relative;
+        }
+
+
+        .logo img{
+            height: 60px;
+        }
+
+        .nav-links{
+            list-style: none;
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a{
+            font-weight: 700;
+            text-decoration: none;
+            color: black;
+        }
+
+        .btn-link{
+            background-color: rgb(0, 112, 211);
+            color: white !important;
+            padding: 8px 18px;
+            border-radius: 20px;
+        }
+
+        /* FORMULARIO */
+        .formulario {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0px 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .formulario h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .formulario h3 {
+            margin-top: 15px;
+            color: rgb(0, 112, 211);
+        }
+
+        .formulario label {
+            display: block;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+
+        .formulario input,
+        .formulario select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .formulario button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 10px;
+            border: none;
+            background: rgb(0, 112, 211);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .formulario button:hover {
+            background: rgb(78, 220, 123);
+            color: rgb(0, 112, 211);
+        }
+    </style>
 </head>
+
 <body>
-    
+
+    <!-- HEADER -->
+<header class="header">
+      <div class="logo">
+        <a href="{{ url_for('inicio') }}"><img src="{{url_for('static', filename='img/logo.jpeg')}}" alt="Logo Red Solidaria" /></a>
+      </div>
+
+      <input type="checkbox" id="menu-toggle" />
+
+      <label for="menu-toggle" class="menu-icon">☰</label>
+
+      <nav class="nav">
+        <ul class="nav-links">
+          <li><a href="#">¡Dona Ahora!</a></li>
+          <li><a href="#">Projects</a></li>
+          <li><a href="#">About us</a></li>
+          <li class="mobile-btn">
+            <a href="{{ url_for('login') }}" class="btn-link">Iniciar Sesión</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <!-- FORMULARIO -->
+    <div class="formulario">
+        <form action="/registro" method="POST">
+
+            <h2>Registro de Usuario</h2>
+
+            <label>Nombre:</label>
+            <input type="text" name="nombre" placeholder="Ingrese el nombre de usuario" required>
+
+            <label>Correo:</label>
+            <input type="email" name="correo" placeholder="Ingrese su correo eléctronico" required>
+
+            <label>Contraseña:</label>
+            <input type="password" name="password" placeholder="Ingrese su contraseña" required>
+
+            <label>Rol:</label>
+            <select name="rol" onchange="cambiarFormulario()" required>
+                <option value="">Seleccione...</option>
+                <option value="donante">Donante</option>
+                <option value="fundacion">Fundación</option>
+            </select>
+
+            <!-- DONANTE -->
+            <div id="campos-donante" style="display:none;">
+                <h3>Datos del Donante</h3>
+
+                <label>Teléfono:</label>
+                <input type="text" name="telefono">
+
+                <label>Dirección:</label>
+                <input type="text" name="direccion">
+            </div>
+
+            <!-- FUNDACIÓN -->
+            <div id="campos-fundacion" style="display:none;">
+                <h3>Datos de la Fundación</h3>
+
+                <label>NIT:</label>
+                <input type="text" name="nit">
+
+                <label>Nombre de la organización:</label>
+                <input type="text" name="organizacion">
+            </div>
+
+            <button type="submit">Registrarse</button>
+        </form>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+    function cambiarFormulario() {
+        let rol = document.querySelector("select[name='rol']").value;
+
+        let donante = document.getElementById("campos-donante");
+        let fundacion = document.getElementById("campos-fundacion");
+
+        let telefono = document.querySelector("[name='telefono']");
+        let direccion = document.querySelector("[name='direccion']");
+        let nit = document.querySelector("[name='nit']");
+        let organizacion = document.querySelector("[name='organizacion']");
+
+        // Ocultar todo
+        donante.style.display = "none";
+        fundacion.style.display = "none";
+
+        // Quitar required
+        telefono.required = false;
+        direccion.required = false;
+        nit.required = false;
+        organizacion.required = false;
+
+        // Mostrar según rol
+        if (rol === "donante") {
+            donante.style.display = "block";
+            telefono.required = true;
+            direccion.required = true;
+
+        } else if (rol === "fundacion") {
+            fundacion.style.display = "block";
+            nit.required = true;
+            organizacion.required = true;
+        }
+    }
+    </script>
+
 </body>
 </html>

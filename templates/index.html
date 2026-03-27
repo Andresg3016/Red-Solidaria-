@@ -34,7 +34,7 @@
 
       <nav class="nav">
         <ul class="nav-links">
-          <li><a href="#">¡Dona Ahora!</a></li>
+          <li><a href="{{url_for('registro')}}">¡Dona Ahora!</a></li>
           <li><a href="#">Projects</a></li>
           <li><a href="#">About us</a></li>
           <li class="mobile-btn">
@@ -94,17 +94,17 @@
       <div class="row text-center">
 
         <div class="col-md-4">
-          <h4>1️⃣ Regístrate</h4>
+          <h4> Regístrate</h4>
           <p class="lead text-bg">Crea una cuenta como donante o fundación.</p>
         </div>
 
         <div class="col-md-4">
-          <h4>2️⃣ Publica o busca</h4>
+          <h4> Publica o busca</h4>
           <p class="lead text-bg">Los donantes publican donaciones y las fundaciones pueden solicitarlas.</p>
         </div>
 
         <div class="col-md-4">
-          <h4>3️⃣ Conecta y ayuda</h4>
+          <h4> Conecta y ayuda</h4>
           <p class="lead text-bg">Las fundaciones aceptan donaciones y coordinan la entrega.</p>
         </div>
 
@@ -124,7 +124,7 @@
       Tu donación puede cambiar la vida de muchas personas.
     </p>
 
-    <a href="formularioDonador.html" class="btn btn-success btn-lg w-30 mx-auto d-block">
+    <a href="{{url_for('registro')}}" class="btn btn-success btn-lg w-30 mx-auto d-block">
       Comenzar a donar
     </a>
 
