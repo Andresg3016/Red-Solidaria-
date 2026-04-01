@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Red Solidaria - Donador</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Nunito&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/home_donador.css')}}">
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <header class="header">
+        <div class="logo">
+            <a href="{{ url_for('inicio') }}">
+                <img src="{{url_for('static', filename='img/logo.jpeg')}}" alt="Logo Red Solidaria" />
+            </a>
+        </div>
+
+        <input type="checkbox" id="menu-toggle" />
+        <label for="menu-toggle" class="menu-icon">☰</label>
+
+        <nav class="nav">
+            <ul class="nav-links">
+               <!-- <li><a href="#">Mis donaciones</a></li> -->
+
+                <!-- Mostrar nombre -->
+                <!-- <li><a href="#">Hola, {{ usuario.nombre }}</a></li> -->
+
+                <li class="mobile-btn">
+                    <a href="{{ url_for('logout') }}" class="btn-link">Cerrar sesión</a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- CONTENIDO -->
+    <div class="container">
+
+        <!-- PERFIL -->
+        <div class="perfil">
+
+            <!-- FOTO (CLICK PARA CAMBIAR) -->
+            <form action="{{ url_for('subir_foto') }}" method="POST" enctype="multipart/form-data">
+
+                <label for="inputFoto">
+                    <img 
+                    src="{{ url_for('static', filename='uploads/' + (session.get('foto') if session.get('foto') else 'default.png')) }}" 
+                    alt="perfil">
+                </label>
+
+                <input type="file" name="foto" id="inputFoto" hidden onchange="this.form.submit()">
+
+            </form>
+
+            <!-- INFO -->
+            <div class="perfil-info">
+                <h2>Hola, {{ usuario.nombre }}</h2>
+                <p>Donador activo</p>
+
+                <a href="{{ url_for('editar_perfil') }}">
+                    <button>Editar perfil</button>
+                </a>
+            </div>
+
+        </div>
+
+
+        <!-- PUBLICAR DONACIÓN -->
+        <div class="publicar-container">
+            <a href="{{ url_for('donar') }}" class="btn-publicar">
+                Publicar Donación
+            </a>
+        </div>
+
+        <!-- MIS DONACIONES COMO CARDS -->
+        <div class="mis-donaciones-section">
+            <h3 class="mis-donaciones-title">Mis Donaciones Publicadas</h3>
+            {% if donaciones and donaciones|length > 0 %}
+                <div class="mis-donaciones-cards">
+                    {% for d in donaciones %}
+                    <div class="donacion-card">
+                        <div class="donacion-card-header">
+                            <span class="donacion-categoria">{{ d[1] }}</span>
+                        </div>
+                        <div class="donacion-card-body">
+                            <p class="donacion-descripcion"><b>Descripción:</b> {{ d[2] }}</p>
+                            <p class="donacion-cantidad"><b>Cantidad:</b> {{ d[3] }}</p>
+                            <p class="donacion-estado"><b>Estado:</b> {{ d[4] }}</p>
+                            <p class="donacion-fecha"><b>Fecha:</b> {{ d[5] }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No has publicado donaciones aún.</p>
+            {% endif %}
+        </div>
+
+        <!-- OPCIONES -->
+      <!--  <div class="cards">-->
+      <!--      <div class="card">
+                <h3>Donar dinero</h3>
+                <p>Apoya causas con aportes económicos.</p>
+                <button>Donar</button>
+            </div>
+            <div class="card">
+                <h3>Donar alimentos</h3>
+                <p>Entrega comida a quienes lo necesitan.</p>
+                <button>Donar</button>
+            </div>
+            <div class="card">
+                <h3>Donar ropa</h3>
+                <p>Comparte prendas en buen estado.</p>
+                <button>Donar</button>
+            </div>
+        </div> -->
+
+    </div>
+
+</body>
+</html>

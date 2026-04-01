@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Publicar Donación</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/donar.css')}}" />
+</head>
+<body>
+
+<div class="container">
+
+    <div class="form-card">
+
+        <h1>Publicar Donación</h1>
+
+        <form method="POST">
+
+            <label>Categoría:</label>
+            <select name="categoria_id" required>
+                {% for cat in categorias %}
+                    <option value="{{ cat[0] }}">{{ cat[1] }}</option>
+                {% endfor %}
+            </select>
+
+            <label>Descripción:</label>
+            <textarea name="descripcion" required></textarea>
+
+            <label>Cantidad:</label>
+            <input type="number" name="cantidad" min="1" required>
+
+            <button type="submit">Publicar</button>
+
+        </form>
+
+        <a href="{{ url_for('home_donador') }}" class="volver">Volver</a>
+
+    </div>
+
+</div>
+
+</body>
+</html>

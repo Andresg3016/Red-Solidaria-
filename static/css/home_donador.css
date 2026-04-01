@@ -1,0 +1,277 @@
+/* MIS DONACIONES - TÍTULO Y SECCIÓN */
+.mis-donaciones-section {
+    margin: 40px 0 30px 0;
+    padding: 30px 0 0 0;
+}
+.mis-donaciones-title {
+    text-align: center;
+    font-size: 2rem;
+    color: #0077b6;
+    font-weight: 800;
+    margin-bottom: 30px;
+    letter-spacing: 1px;
+    background: linear-gradient(90deg, #e0f7fa 60%, #b2f7ef 100%);
+    border-radius: 12px;
+    padding: 12px 0 10px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* CARDS DE DONACIONES */
+.mis-donaciones-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    justify-content: center;
+}
+.donacion-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0,112,211,0.08);
+    padding: 22px 20px 18px 20px;
+    min-width: 260px;
+    max-width: 320px;
+    flex: 1 1 260px;
+    display: flex;
+    flex-direction: column;
+    transition: 0.2s;
+    border: 2px solid #e0f7fa;
+}
+.donacion-card:hover {
+    box-shadow: 0 8px 24px rgba(0,112,211,0.16);
+    border-color: #0077b6;
+    transform: translateY(-4px) scale(1.03);
+}
+.donacion-card-header {
+    margin-bottom: 10px;
+    text-align: left;
+}
+.donacion-categoria {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #009688;
+    background: #e0f7fa;
+    padding: 4px 12px;
+    border-radius: 8px;
+}
+.donacion-card-body p {
+    margin-bottom: 7px;
+    color: #222;
+    font-size: 1rem;
+}
+.donacion-card-body p:last-child {
+    margin-bottom: 0;
+}
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+*{
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Nunito", sans-serif;
+        }
+
+        body{
+            background: linear-gradient(150deg, rgb(0,112,211), rgb(78,220,123));
+        }
+
+        .header{
+    background-color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 85px;
+    padding: 5px 10%;
+    position: relative;
+}
+
+
+.logo img{
+    height: 70px;
+    transition: 0.3s;
+}
+
+.logo img:hover{
+    transform: scale(1.1);
+}
+
+
+.nav-links{
+    list-style: none;
+    display: flex;
+    gap: 20px;
+}
+
+.nav-links li{
+    display: inline-block;
+}
+
+.nav-links a{
+    font-weight: 700;
+    color: c;
+    text-decoration: none;
+}
+
+.nav-links a:hover{
+    color: rgb(78, 220, 123);
+}
+
+
+.btn-link{
+    background-color: rgb(0, 112, 211);
+    color: white !important;
+    padding: 8px 18px;
+    border-radius: 20px;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.btn-link:hover{
+    background-color: rgb(248, 9, 9);
+    color: rgb(0, 112, 211);
+}
+
+
+.menu-icon{
+    display: none;
+    font-size: 30px;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+#menu-toggle{
+    position: absolute;
+    opacity: 0;
+}
+
+
+@media (max-width: 768px){
+
+    .menu-icon{
+        display: block;
+    }
+
+    .nav{
+        width: 100%;
+    }
+
+    .nav-links{
+        position: absolute;
+        top: 85px;
+        left: 0;
+        width: 100%;
+        background: white;
+        flex-direction: column;
+        align-items: center;
+        display: none;
+        padding: 20px 0;
+        z-index: 999;
+    }
+
+    .nav-links li{
+        margin: 15px 0;
+    }
+
+    #menu-toggle:checked ~ .nav .nav-links{
+        display: flex;
+    }
+}
+
+        /* CONTENEDOR PRINCIPAL */
+        .container{
+            padding: 40px 8%;
+        }
+
+        /* PERFIL */
+        .perfil{
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0px 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .perfil img{
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .perfil-info h2{
+            color: rgb(0,112,211);
+        }
+
+        .perfil-info button{
+            margin-top: 8px;
+            background: rgb(78,220,123);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        /* TARJETAS */
+        .cards{
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .card{
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .card:hover{
+            transform: translateY(-5px);
+        }
+
+        .card h3{
+            color: rgb(0,112,211);
+        }
+
+        .card button{
+            margin-top: 15px;
+            background: rgb(0,112,211);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .card button:hover{
+            background: rgb(78,220,123);
+            color: rgb(0,112,211);
+        }
+        /* CONTENEDOR */
+.publicar-container{
+    text-align: center;
+    margin: 30px 0;
+}
+
+/* BOTÓN PUBLICAR */
+.btn-publicar{
+    display: inline-block;
+    padding: 12px 25px;
+    font-size: 16px;
+    font-weight: 700;
+    background: rgb(78, 220, 123);
+    color: white;
+    border-radius: 25px;
+    text-decoration: none;
+    transition: 0.3s;
+    box-shadow: 0px 5px 15px rgba(0,0,0,0.2);
+}
+
+/* HOVER */
+.btn-publicar:hover{
+    background: rgb(0, 112, 211);
+    color: white;
+    transform: translateY(-2px);
+}

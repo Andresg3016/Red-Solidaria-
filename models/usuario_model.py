@@ -36,18 +36,18 @@ class UsuarioModel:
         conn.commit()
         conn.close()
         
-def obtener_usuario_por_correo(self, correo):
+    def obtener_usuario_por_correo(self, correo):
 
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
 
-    query = "SELECT * FROM usuarios WHERE correo = %s"
-    cursor.execute(query, (correo,))
+        query = "SELECT * FROM usuarios WHERE correo = %s"
+        cursor.execute(query, (correo,))
 
-    data = cursor.fetchone()
+        data = cursor.fetchone()
 
-    conn.close()
+        conn.close()
 
-    if data:
-        return Usuario(**data)
-    return None
+        if data:
+            return Usuario(**data)
+        return None

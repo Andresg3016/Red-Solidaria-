@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Perfil</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <h1>Editar Perfil</h1>
+    <form method="POST">
+        <label>Nombre:</label>
+        <input type="text" name="nombre" value="{{ usuario.nombre }}" required><br>
+        <!-- Puedes agregar más campos aquí -->
+        <button type="submit">Guardar cambios</button>
+    </form>
+    <a href="{{ url_for('home_donador') }}">Volver</a>
+</body>
+</html>

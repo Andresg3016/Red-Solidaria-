@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@200..900&display=swap');
+
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Nunito", sans-serif;
+}
+
+body{
+    background: linear-gradient(150deg, rgb(0,112,211), rgb(78,220,123));
+}
+
+/* CONTENEDOR PRINCIPAL */
+.container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* CARD DEL FORMULARIO */
+.form-card{
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0px 10px 25px rgba(0,0,0,0.15);
+    animation: fadeIn 0.4s ease;
+}
+
+/* ANIMACIÓN */
+@keyframes fadeIn{
+    from{
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to{
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* TÍTULO */
+.form-card h1{
+    text-align: center;
+    color: rgb(0,112,211);
+    margin-bottom: 20px;
+}
+
+/* LABELS */
+.form-card label{
+    font-weight: 600;
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
+/* INPUTS */
+.form-card input,
+.form-card select,
+.form-card textarea{
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    outline: none;
+    transition: 0.3s;
+}
+
+/* FOCUS */
+.form-card input:focus,
+.form-card select:focus,
+.form-card textarea:focus{
+    border-color: rgb(0,112,211);
+    box-shadow: 0 0 5px rgba(0,112,211,0.3);
+}
+
+/* TEXTAREA */
+.form-card textarea{
+    resize: none;
+    height: 100px;
+}
+
+/* BOTÓN */
+.form-card button{
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 20px;
+    background: rgb(0,112,211);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+/* HOVER BOTÓN */
+.form-card button:hover{
+    background: rgb(78,220,123);
+    color: rgb(0,112,211);
+}
+
+/* LINK VOLVER */
+.volver{
+    display: block;
+    text-align: center;
+    margin-top: 15px;
+    text-decoration: none;
+    color: rgb(0,112,211);
+    font-weight: 600;
+}
+
+.volver:hover{
+    text-decoration: underline;
+}
