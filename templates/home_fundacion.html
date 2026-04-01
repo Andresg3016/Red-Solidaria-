@@ -1,0 +1,621 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red Solidaria - Panel de Fundación</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://js.stripe.com/v3/"></script>
+    
+    <!-- 🔥 ESTA LÍNEA ERA LA QUE FALTABA 🔥 -->
+    <link href="home_fundacion.css" rel="stylesheet">
+    <style>
+        
+        body {
+            background: linear-gradient(
+                135deg,
+                #1e52ff 0%,
+                #63ff5e98 70%,
+                #b7ebb8 90%
+            );
+            min-height: 100vh;
+            /* AJUSTE: Quitamos el padding de 20px arriba para que la barra blanca se pegue al borde */
+            padding: 0 0 20px 0;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+
+        .admin-container {
+            background: #fffef5;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            padding: 45px;
+            max-width: 1400px;
+            /* AJUSTE: Añadimos margen arriba para que el cuadro amarillo no choque con la navbar */
+            margin: 40px auto;
+            border: 3px solid #f5c518;
+        }
+
+
+        .dashboard-header {
+            background: linear-gradient(
+                135deg,
+                #1e52ff,
+                #63ff5e
+            );
+            color: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+
+        .dashboard-header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+
+        .dashboard-header p {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 0;
+        }
+
+
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            border-left: 5px solid;
+            transition: 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+
+        .stats-card.donaciones-recibidas {
+            border-left-color: #ff6b6b;
+        }
+
+
+        .stats-card.donaciones-enviadas {
+            border-left-color: #51cf66;
+        }
+
+
+        .stats-card.solicitudes {
+            border-left-color: #339af0;
+        }
+
+
+        .stats-card.donaciones-economicas {
+            border-left-color: #fcc419;
+        }
+
+
+        .stats-card.beneficiarios {
+            border-left-color: #0070ba;
+        }
+
+
+        .stats-card.pendientes {
+            border-left-color: #ffc107;
+        }
+
+
+        .stats-card h3 {
+            font-size: 36px;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+
+        .stats-card p {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+
+        .stats-card .icon {
+            font-size: 40px;
+            margin-bottom: 5px;
+        }
+
+
+        .gestion-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+
+
+        .gestion-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f5c518;
+            padding-bottom: 10px;
+            font-weight: 600;
+        }
+
+
+        .btn-gestion {
+            background: #28a745;
+            border: none;
+            color: white;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: background 0.2s;
+        }
+
+
+        .btn-gestion:hover {
+            background: #218838;
+        }
+
+
+        .btn-gestion.amarillo {
+            background: #ffc107;
+            color: #333;
+        }
+
+
+        .btn-gestion.amarillo:hover {
+            background: #e0a800;
+        }
+
+
+        .btn-gestion.rojo {
+            background: #dc3545;
+        }
+
+
+        .btn-gestion.rojo:hover {
+            background: #c82333;
+        }
+
+
+        .btn-gestion.azul {
+            background: #0070ba;
+        }
+
+
+        .btn-gestion.azul:hover {
+            background: #00517a;
+        }
+
+
+        .table-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+            overflow-x: auto;
+        }
+
+
+        .table th {
+            background: #28a745;
+            color: white;
+            border: none;
+            text-align: center;
+        }
+
+
+        .table td {
+            vertical-align: middle;
+            text-align: center;
+            border-color: #dee2e6;
+        }
+
+
+        .badge-estado {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+
+        .badge-activo {
+            background: #28a745;
+            color: white;
+        }
+
+
+        .badge-pendiente {
+            background: #ffc107;
+            color: #333;
+        }
+
+
+        .badge-rechazado {
+            background: #dc3545;
+            color: white;
+        }
+
+
+        .badge-recibido {
+            background: #17a2b8;
+            color: white;
+        }
+
+
+        .badge-entregado {
+            background: #6f42c1;
+            color: white;
+        }
+
+
+        .mensaje-emergente {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            display: none;
+            z-index: 9999;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+
+        .mensaje-emergente.show {
+            display: block;
+            animation: slideIn 0.3s ease forwards;
+        }
+
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+
+        .nav-tabs {
+            border-bottom: 2px solid #f5c518;
+            margin-bottom: 20px;
+        }
+
+
+        .nav-tabs .nav-link {
+            color: #333;
+            font-weight: 600;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px 10px 0 0;
+            transition: all 0.3s ease;
+        }
+
+
+        .nav-tabs .nav-link:hover {
+            background: rgba(245,197,24,0.1);
+            color: #f5c518;
+        }
+
+
+        .nav-tabs .nav-link.active {
+            background: #f5c518;
+            color: white;
+            border: none;
+        }
+
+
+        .btn-logout {
+            background: #dc3545;
+            border: none;
+            color: white;
+            font-weight: 700;
+            padding: 8px 20px;
+            border-radius: 8px;
+        }
+
+
+        .pasarela-pagos {
+            background: #f0f8ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+            border: 2px solid #0070ba;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary shadow-sm">
+        <div class="container-fluid">
+           <a href="{{ url_for('inicio') }}" class="d-flex align-items-center text-decoration-none">
+    <img src="{{ url_for('static', filename='img/logo.jpeg') }}" 
+         alt="Logo Red Solidaria" 
+         height="60" 
+         class="me-3 shadow-sm logo-responsive" 
+         style="border-radius: 10px; max-width: 80px; height: auto;">
+</a>
+
+            <div class="d-flex gap-2">
+                <a
+                    href="panel_fundacion.html"
+                    class="btn btn-outline-success fw-bold"
+                >
+                    🏛️ Panel Fundación
+                </a>
+                <a
+                    href="solicitar_ayuda.html"
+                    class="btn btn-outline-primary fw-bold"
+                >
+                    📤 Solicitar Ayuda
+                </a>
+            </div>
+
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <button
+                            class="btn btn-outline-dark dropdown-toggle fw-bold"
+                            data-bs-toggle="dropdown"
+                        >
+                            👤 Fundacion
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                            <li>
+                                <a class="dropdown-item" href="perfil_admin.html">
+                                    👤 Ver perfil
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="editar_perfil.html">
+                                    ✏️ Editar perfil
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <button
+                                    class="dropdown-item text-danger fw-bold"
+                                    onclick="cerrarSesion()"
+                                >
+                                    🚪 Cerrar sesión
+                                </button>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+    <div
+        id="mensajeEmergente"
+        class="mensaje-emergente"
+    >
+        <strong>✅</strong>
+        <span id="mensajeTexto">
+            Acción realizada exitosamente
+        </span>
+    </div>
+
+
+    <div class="admin-container">
+       
+<div class="dashboard-header text-center">
+            <h1>🏛️ Panel de Gestión - Fundación</h1>
+            <p>Red Solidaria - Sistema de Administración y Seguimiento</p>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-2" onclick="activarSeccion('recibidas-tab')">
+                <div class="stats-card donaciones-recibidas">
+                    <div class="icon">📥</div><h3>1,245</h3><p>Recibidas</p>
+                </div>
+            </div>
+            <div class="col-md-2" onclick="activarSeccion('enviadas-tab')">
+                <div class="stats-card donaciones-enviadas">
+                    <div class="icon">📤</div><h3>842</h3><p>Enviadas</p>
+                </div>
+            </div>
+            <div class="col-md-2" onclick="activarSeccion('solicitudes-tab')">
+                <div class="stats-card solicitudes">
+                    <div class="icon">📋</div><h3>156</h3><p>Solicitudes</p>
+                </div>
+            </div>
+            <div class="col-md-2" onclick="activarSeccion('pagos-tab')">
+                <div class="stats-card donaciones-economicas">
+                    <div class="icon">💰</div><h3>$45k</h3><p>Pagos</p>
+                </div>
+            </div>
+            <div class="col-md-2" onclick="activarSeccion('beneficiarios-tab')">
+                <div class="stats-card beneficiarios">
+                    <div class="icon">👥</div><h3>2.3k</h3><p>Beneficiarios</p>
+                </div>
+            </div>
+            <div class="col-md-2" onclick="activarSeccion('pendientes-tab')">
+                <div class="stats-card pendientes">
+                    <div class="icon">⏳</div><h3>23</h3><p>Pendientes</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="recibidas-tab" data-bs-toggle="tab" data-bs-target="#recibidas" type="button">
+                    📥 Donaciones Recibidas
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="enviadas-tab" data-bs-toggle="tab" data-bs-target="#enviadas" type="button">
+                    📤 Donaciones Enviadas
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="solicitudes-tab" data-bs-toggle="tab" data-bs-target="#solicitudes" type="button">
+                    📋 Solicitudes
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="pagos-tab" data-bs-toggle="tab" data-bs-target="#pagos" type="button">
+                    💳 Pagos
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="beneficiarios-tab" data-bs-toggle="tab" data-bs-target="#beneficiarios" type="button">
+                    👥 Beneficiarios
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="pendientes-tab" data-bs-toggle="tab" data-bs-target="#pendientes" type="button">
+                    ⏳ Pendientes
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="adminTabContent">
+            
+            <div class="tab-pane fade show active" id="recibidas" role="tabpanel">
+                <div class="gestion-section">
+                    <h3>📥 Historial de Donaciones Ingresadas</h3>
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <button class="btn-gestion" onclick="mostrarMensaje('Filtrando datos...')">🔍 Filtrar Resultados</button>
+                        <button class="btn-gestion amarillo" onclick="mostrarMensaje('Generando Reporte PDF...')">📊 Exportar Reporte</button>
+                        <button class="btn-gestion rojo" onclick="mostrarMensaje('Actualizando estados...')">✅ Marcar Todo como Entregado</button>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID Registro</th>
+                                    <th>Nombre Donante</th>
+                                    <th>Categoría</th>
+                                    <th>Detalles Específicos</th>
+                                    <th>Cant.</th>
+                                    <th>Fecha Registro</th>
+                                    <th>Estado Actual</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>REC001</strong></td>
+                                    <td>Juan Pérez</td>
+                                    <td>Ropa</td>
+                                    <td>Hombre, Talla M, Color Azul</td>
+                                    <td>15</td>
+                                    <td>2024-01-15</td>
+                                    <td><span class="badge-estado badge-pendiente">⏳ Pendiente</span></td>
+                                    <td>
+                                        <div class="d-flex gap-1 justify-content-center">
+                                            <button class="btn btn-sm btn-success" onclick="mostrarMensaje('Recibido')">📦 Recibir</button>
+                                            <button class="btn btn-sm btn-danger" onclick="mostrarMensaje('Rechazado')">❌ Rechazar</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>REC002</strong></td>
+                                    <td>María Gómez</td>
+                                    <td>Alimentos</td>
+                                    <td>Arroz Premium, Pack 5kg</td>
+                                    <td>10</td>
+                                    <td>2024-01-16</td>
+                                    <td><span class="badge-estado badge-activo">✅ Recibida</span></td>
+                                    <td><button class="btn btn-sm btn-primary" onclick="mostrarMensaje('Entregando...')">🚀 Entregar a Beneficiario</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="enviadas" role="tabpanel">
+                <div class="gestion-section">
+                    <h3>📤 Control de Salidas</h3>
+                    <p class="text-muted">No hay registros de envío recientes.</p>
+                </div>
+            </div>
+            
+            <div class="tab-pane fade" id="solicitudes" role="tabpanel">
+                <div class="gestion-section">
+                    <h3>📋 Bandeja de Solicitudes</h3>
+                    <p class="text-muted">Cargando solicitudes de ayuda...</p>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pagos" role="tabpanel">
+                <div class="gestion-section">
+                    <h3>💳 Registro de Pagos</h3>
+                    <p class="text-muted">Historial de transacciones de Stripe.</p>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="beneficiarios" role="tabpanel">
+                <div class="gestion-section">
+                    <h3>👥 Directorio de Beneficiarios</h3>
+                    <p class="text-muted">Listado de familias y comedores registrados.</p>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pendientes" role="tabpanel">
+                <div class="gestion-section">
+                    <h3>⏳ Tareas Pendientes</h3>
+                    <p class="text-danger">Urgente: Revisar 23 casos críticos.</p>
+                </div>
+            </div>
+        </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // ESTA ES LA FUNCIÓN CLAVE PARA LAS TARJETAS
+        function activarSeccion(idTab) {
+            const boton = document.getElementById(idTab);
+            if (boton) {
+                const instanciaTab = new bootstrap.Tab(boton);
+                instanciaTab.show();
+                // Opcional: bajar automáticamente a la tabla
+                boton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function cerrarSesion() {
+            const confirmacion = confirm("¿Está seguro que desea finalizar su sesión actual?");
+            if (confirmacion) { window.location.href = "iniciarSesion.html"; }
+        }
+
+        function mostrarMensaje(texto) {
+            const contenedor = document.getElementById('mensajeEmergente');
+            const textoElemento = document.getElementById('mensajeTexto');
+            if(textoElemento) {
+                textoElemento.innerText = texto;
+                contenedor.classList.add('show');
+                setTimeout(function() { contenedor.classList.remove('show'); }, 3000);
+            } else { alert(texto); }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Panel de Fundación Red Solidaria Inicializado.");
+        });
+    </script>

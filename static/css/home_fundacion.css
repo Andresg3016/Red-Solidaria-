@@ -1,0 +1,365 @@
+
+        body {
+            background: linear-gradient(
+                135deg,
+                #1e52ff 0%,
+                #63ff5e98 70%,
+                #b7ebb8 90%
+            );
+            min-height: 100vh;
+            /* AJUSTE: Quitamos el padding de 20px arriba para que la barra blanca se pegue al borde */
+            padding: 0 0 20px 0;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+
+        .admin-container {
+            background: #fffef5;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            padding: 45px;
+            max-width: 1400px;
+            /* AJUSTE: Añadimos margen arriba para que el cuadro amarillo no choque con la navbar */
+            margin: 40px auto;
+            border: 3px solid #f5c518;
+        }
+
+
+        .dashboard-header {
+            background: linear-gradient(
+                135deg,
+                #1e52ff,
+                #63ff5e
+            );
+            color: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+
+        .dashboard-header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+
+        .dashboard-header p {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 0;
+        }
+
+
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            border-left: 5px solid;
+            transition: 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+
+        .stats-card.donaciones-recibidas {
+            border-left-color: #ff6b6b;
+        }
+
+
+        .stats-card.donaciones-enviadas {
+            border-left-color: #51cf66;
+        }
+
+
+        .stats-card.solicitudes {
+            border-left-color: #339af0;
+        }
+
+
+        .stats-card.donaciones-economicas {
+            border-left-color: #fcc419;
+        }
+
+
+        .stats-card.beneficiarios {
+            border-left-color: #0070ba;
+        }
+
+
+        .stats-card.pendientes {
+            border-left-color: #ffc107;
+        }
+
+
+        .stats-card h3 {
+            font-size: 36px;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+
+        .stats-card p {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+
+        .stats-card .icon {
+            font-size: 40px;
+            margin-bottom: 5px;
+        }
+
+
+        .gestion-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+
+
+        .gestion-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f5c518;
+            padding-bottom: 10px;
+            font-weight: 600;
+        }
+
+
+        .btn-gestion {
+            background: #28a745;
+            border: none;
+            color: white;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: background 0.2s;
+        }
+
+
+        .btn-gestion:hover {
+            background: #218838;
+        }
+
+
+        .btn-gestion.amarillo {
+            background: #ffc107;
+            color: #333;
+        }
+
+
+        .btn-gestion.amarillo:hover {
+            background: #e0a800;
+        }
+
+
+        .btn-gestion.rojo {
+            background: #dc3545;
+        }
+
+
+        .btn-gestion.rojo:hover {
+            background: #c82333;
+        }
+
+
+        .btn-gestion.azul {
+            background: #0070ba;
+        }
+
+
+        .btn-gestion.azul:hover {
+            background: #00517a;
+        }
+
+
+        .table-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+            overflow-x: auto;
+        }
+
+
+        .table th {
+            background: #28a745;
+            color: white;
+            border: none;
+            text-align: center;
+        }
+
+
+        .table td {
+            vertical-align: middle;
+            text-align: center;
+            border-color: #dee2e6;
+        }
+
+
+        .badge-estado {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+
+        .badge-activo {
+            background: #28a745;
+            color: white;
+        }
+
+
+        .badge-pendiente {
+            background: #ffc107;
+            color: #333;
+        }
+
+
+        .badge-rechazado {
+            background: #dc3545;
+            color: white;
+        }
+
+
+        .badge-recibido {
+            background: #17a2b8;
+            color: white;
+        }
+
+
+        .badge-entregado {
+            background: #6f42c1;
+            color: white;
+        }
+
+
+        .mensaje-emergente {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            display: none;
+            z-index: 9999;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+
+        .mensaje-emergente.show {
+            display: block;
+            animation: slideIn 0.3s ease forwards;
+        }
+
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+
+        .nav-tabs {
+            border-bottom: 2px solid #f5c518;
+            margin-bottom: 20px;
+        }
+
+
+        .nav-tabs .nav-link {
+            color: #333;
+            font-weight: 600;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px 10px 0 0;
+            transition: all 0.3s ease;
+        }
+
+
+        .nav-tabs .nav-link:hover {
+            background: rgba(245,197,24,0.1);
+            color: #f5c518;
+        }
+
+
+        .nav-tabs .nav-link.active {
+            background: #f5c518;
+            color: white;
+            border: none;
+        }
+
+
+        .btn-logout {
+            background: #dc3545;
+            border: none;
+            color: white;
+            font-weight: 700;
+            padding: 8px 20px;
+            border-radius: 8px;
+        }
+
+
+        .pasarela-pagos {
+            background: #f0f8ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+            border: 2px solid #0070ba;
+        }
+    
+        /* Asegúrate de que las clases coincidan exactamente con el HTML */
+.stats-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    border-left: 8px solid #ccc; /* Grosor aumentado para que se note el color */
+    transition: 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+}
+
+/* Colores específicos para cada tarjeta */
+.donaciones-recibidas { border-left-color: #ff6b6b !important; }
+.donaciones-enviadas { border-left-color: #51cf66 !important; }
+.solicitudes { border-left-color: #339af0 !important; }
+.donaciones-economicas { border-left-color: #fcc419 !important; }
+.beneficiarios { border-left-color: #0070ba !important; }
+.pendientes { border-left-color: #ffc107 !important; }
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    background-color: #f8f9fa;
+}
