@@ -83,7 +83,21 @@
                               placeholder="Describe por qué es urgente y cómo ayudará a la comunidad..." 
                               required></textarea>
                 </div>
-
+                
+                <form method="post" id="formPublicar" action="/solicitar-ayuda">
+    <div class="mb-4">
+        <label class="form-label fw-bold">📦 Categoría y Prioridad del Recurso</label>
+        <select name="tipo_urgencia" class="form-select" required style="border: 2px solid #ced4da;">
+            <option value="">-- Selecciona una opción --</option>
+            
+            <optgroup label="🚨 PRIORIDAD MÁXIMA (Desastres Naturales)" style="color: #dc3545;">
+                <option value="urgente_alimentos">🆘 URGENTE: Alimentos y Agua</option>
+                <option value="urgente_salud">🆘 URGENTE: Medicamentos e Insumos</option>
+                <option value="urgente_ropa">🆘 URGENTE: Ropa y Mantas</option>
+                <option value="urgente_fondos">🆘 URGENTE: Fondos de Emergencia</option>
+                 </optgroup>
+                </div>
+                
                 <div class="mb-4">
                     <label class="form-label">📅 Fecha Límite de la Campaña</label>
                     <input type="date" name="fecha_limite" class="form-control">
