@@ -5,5 +5,5 @@ def get_connection():
         host="localhost",
         user="root",
         password="",
-        database="red_solidaria"
+        database="donaciones_db"  # <--- Cambié "red_solidaria" por "donaciones_db"
     )

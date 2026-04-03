@@ -225,3 +225,47 @@ body {
 .form-control:focus, .form-select:focus {
     border-color: #1e52ff !important;
     box-shadow: 0 0 0 0.2rem rgba(30, 82, 255, 0.25) ;}
+
+/* Para que los links del navbar parezcan botones reales *//* Estilo base para AMBOS botones del Navbar */
+.nav-link-gradiente {
+    background: linear-gradient(135deg, rgba(30, 82, 255, 0.1), rgba(99, 255, 94, 0.1));
+    color: #1e52ff !important;
+    border-radius: 12px;
+    margin: 0 8px;
+    padding: 10px 20px !important;
+    font-weight: 600;
+    border: 1px solid rgba(30, 82, 255, 0.2);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+}
+
+/* Estilo cuando el botón está ACTIVO (en la página actual) */
+.nav-link-gradiente.active {
+    background: linear-gradient(135deg, #1e52ff, #63ff5e) !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(30, 82, 255, 0.3);
+    border: none;
+}
+
+/* Efecto al pasar el mouse por encima de cualquiera de los dos */
+.nav-link-gradiente:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #1e52ff, #63ff5e);
+    color: white !important;
+    box-shadow: 0 6px 20px rgba(30, 82, 255, 0.4);
+}
+
+/* Esto hará que el cuadrito blanco del menú sea más suave */
+.dropdown-menu {
+    border-radius: 15px !important;
+    border: none !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+    padding: 10px !important;
+}
+
+/* Y que los links de adentro no estén tan pegados */
+.dropdown-item {
+    padding: 10px 15px !important;
+    border-radius: 8px !important;
+}

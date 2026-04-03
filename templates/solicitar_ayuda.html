@@ -4,156 +4,160 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📤 Solicitar Ayuda - Red Solidaria</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="../static/css/solicitar_ayuda.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/solicitar_ayuda.css') }}">
 </head>
 
-
 <body>
-    <!-- Navbar igual al panel -->
+    <!-- NAVBAR PROFESIONAL -->
     <nav class="navbar navbar-expand-lg navbar-custom shadow-sm">
         <div class="container-fluid">
-            <a href="index3.html" class="d-flex align-items-center text-decoration-none">
-                <!-- Cambia el logo por esto -->
-                <img src="../static/img/Logo.jpeg" alt="Logo Red Solidaria"
-                     height="60" class="me-3 shadow-sm logo-responsive"
-                      style="border-radius: 10px; max-width: 80px; height: auto;">
+            <!-- Logo -->
+            <a class="navbar-brand d-flex align-items-center text-decoration-none" href="{{ url_for('home_fundacion') }}">
+                <img src="{{ url_for('static', filename='img/Logo.jpeg') }}" alt="Logo Red Solidaria"
+                     class="logo-responsive">
+                
+            </a>
 
-
-            <div class="d-flex gap-2">
-               <a href="home_fundacion.html" class="btn btn-outline-success fw-bold">
-                     🏛️ Panel Fundación
-                </a>
-               <a href="solicitar_ayuda.html" class="btn btn-outline-primary fw-bold btn-active">
-                  📤 Solicitar Ayuda
-                 </a>
-                </div>
-
-
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item dropdown">
-                    <button class="btn btn-outline-dark dropdown-toggle fw-bold" data-bs-toggle="dropdown">
-                        👤 Fundacion
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow">
-                        <li><a class="dropdown-item" href="perfil_usuario.html">👤 Ver perfil</a></li>
-                        <li><a class="dropdown-item" href="editar_perfil_usuario.html">✏️ Editar perfil</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <button class="dropdown-item text-danger fw-bold" onclick="cerrarSesion()">
-                                🚪 Cerrar sesión
-                            </button>
-                        </li>
-                    </ul>
+            <!-- Botones de navegación -->
+           <div class="navbar-nav me-auto mb-2 mb-lg-0 gap-2">
+           <a href="{{ url_for('home_fundacion') }}" 
+            class="nav-link nav-link-gradiente {% if request.endpoint == 'home_fundacion' %}active{% endif %}">
+             🏛️ Panel Fundación
+            </a>
+    
+             <a href="{{ url_for('solicitar_ayuda') }}" 
+             class="nav-link nav-link-gradiente {% if request.endpoint == 'solicitar_ayuda' %}active{% endif %}">
+             📤 Solicitar Ayuda
+            </a>
+            </div>
+            <!-- Dropdown Perfil -->
+                    <button class="nav-link nav-link-gradiente dropdown-toggle fw-bold" 
+                     data-bs-toggle="dropdown" 
+                     style="border: none !important; color: rgb(57, 107, 194) !important;">
+                     👤 {{ session['nombre'] }}
+                     </button>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg">
+                    <li><a class="dropdown-item" href="{{ url_for('editar_perfil') }}">👤 Ver Perfil</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('editar_perfil') }}">✏️ Editar Perfil</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                 <a class="dropdown-item text-danger fw-bold" href="{{ url_for('logout') }}">
+            🚪 Cerrar Sesión
+        </a>
+    </li>
+</ul>
                 </li>
             </ul>
         </div>
     </nav>
 
-
-    <div class="container">
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="main-container">
         <div class="form-container">
             <div class="form-header">
-                <h1>📤 Solicitud de Ayuda</h1>
-                <p>Red Solidaria - Completa tu solicitud y te ayudaremos</p>
+                <div class="header-icon">📤</div>
+                <h1>Solicitud de Ayuda</h1>
+                <p>Completa el formulario y nuestro equipo te contactará en 24-48 horas</p>
             </div>
 
-            
-                  <form method="post" id="formPublicar">
-                <div class="mb-4">
-                    <label class="form-label">📦 Categoría del Recurso Necesitado</label>
-                    <select name="tipo" class="form-select" required>
-                        <option value="">Selecciona una categoría</option>
-                        <option value="alimentos">🍚 Alimentos (Campaña Mensual)</option>
-                        <option value="salud">🏥 Insumos Médicos</option>
-                        <option value="infraestructura">👕 Ropa y Calzado</option>
-                        <option value="fondos">💰 Colecta Económica</option>
-                        <option value="otros">📦 Otros</option>
+            <!-- FORMULARIO ÚNICO Y CORREGIDO -->
+            <form method="POST" id="formSolicitud" action="{{ url_for('solicitar_ayuda') }}" enctype="multipart/form-data">
+                {{ form.hidden_tag() if form else '' }}
+
+                <!-- Categoría y Urgencia -->
+                <div class="form-group mb-4">
+                    <label class="form-label">📦 Categoría y Prioridad</label>
+                    <select name="tipo_urgencia" class="form-select form-select-lg" required>
+                        <option value="">-- Selecciona una opción --</option>
+                        <optgroup label="🚨 PRIORIDAD MÁXIMA (Emergencias)">
+                            <option value="urgente_alimentos">🆘 URGENTE: Alimentos y Agua</option>
+                            <option value="urgente_salud">🆘 URGENTE: Medicamentos</option>
+                            <option value="urgente_ropa">🆘 URGENTE: Ropa y Mantas</option>
+                            <option value="urgente_fondos">🆘 URGENTE: Fondos Emergencia</option>
+                        </optgroup>
+                        <optgroup label="⚡ PRIORIDAD ALTA">
+                            <option value="alta_alimentos">🍚 Alimentos (Campaña)</option>
+                            <option value="alta_salud">🏥 Insumos Médicos</option>
+                            <option value="alta_ropa">👕 Ropa y Calzado</option>
+                        </optgroup>
+                        <optgroup label="📋 PRIORIDAD MEDIA">
+                            <option value="media_otros">📦 Otros Recursos</option>
+                            <option value="media_fondos">💰 Colecta Económica</option>
+                        </optgroup>
                     </select>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label">🎯 Meta / Objetivo</label>
-                    <input type="text" name="meta" class="form-control" placeholder="Ej: 100 kg de arroz o 50 frazadas" required>
+                <!-- Meta / Cantidad -->
+                <div class="form-group mb-4">
+                    <label class="form-label">🎯 Meta / Cantidad Necesaria</label>
+                    <input type="text" name="meta" class="form-control form-control-lg" 
+                           placeholder="Ej: 100 kg de arroz, 50 frazadas, $5000" required>
                 </div>
 
-                <div class="mb-4">
+                <!-- Descripción -->
+                <div class="form-group mb-4">
                     <label class="form-label">📝 Descripción Detallada</label>
-                    <textarea name="descripcion" class="form-control" rows="5" 
-                              placeholder="Describe por qué es urgente y cómo ayudará a la comunidad..." 
+                    <textarea name="descripcion" class="form-control" rows="6" 
+                              placeholder="Explica detalladamente: ¿Por qué es urgente? ¿Cuántas personas beneficiará? ¿Cómo se distribuirá?..." 
                               required></textarea>
                 </div>
-                
-                <form method="post" id="formPublicar" action="/solicitar-ayuda">
-    <div class="mb-4">
-        <label class="form-label fw-bold">📦 Categoría y Prioridad del Recurso</label>
-        <select name="tipo_urgencia" class="form-select" required style="border: 2px solid #ced4da;">
-            <option value="">-- Selecciona una opción --</option>
-            
-            <optgroup label="🚨 PRIORIDAD MÁXIMA (Desastres Naturales)" style="color: #dc3545;">
-                <option value="urgente_alimentos">🆘 URGENTE: Alimentos y Agua</option>
-                <option value="urgente_salud">🆘 URGENTE: Medicamentos e Insumos</option>
-                <option value="urgente_ropa">🆘 URGENTE: Ropa y Mantas</option>
-                <option value="urgente_fondos">🆘 URGENTE: Fondos de Emergencia</option>
-                 </optgroup>
-                </div>
-                
-                <div class="mb-4">
+
+                <!-- Fecha Límite -->
+                <div class="form-group mb-4">
                     <label class="form-label">📅 Fecha Límite de la Campaña</label>
-                    <input type="date" name="fecha_limite" class="form-control">
+                    <input type="date" name="fecha_limite" class="form-control form-control-lg" required>
                 </div>
 
+                <!-- Foto (Opcional) -->
+                <div class="form-group mb-5">
+                    <label class="form-label">📷 Foto de la Situación (Opcional)</label>
+                    <input type="file" name="foto" class="form-control" accept="image/*">
+                    <small class="form-text text-muted">Máx. 5MB - Ayuda a que los donadores vean la urgencia</small>
+                </div>
 
-            
-
+                <!-- BOTÓN ENVÍO -->
                 <button type="submit" class="btn btn-submit w-100">
-                    🚀 Enviar Solicitud de Ayuda
+                    <span class="btn-text">🚀 Enviar Solicitud de Ayuda</span>
+                    <span class="btn-loading" style="display: none;">✅ Enviando...</span>
                 </button>
             </form>
         </div>
     </div>
 
+    <!-- TOAST NOTIFICACIONES -->
+    <div id="toastContainer"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-   
-    <script>
-        function cerrarSesion() {
-            const confirmacion = confirm("¿Está seguro que desea finalizar su sesión actual?");
-            if (confirmacion) {
-                window.location.href = "iniciarSesion.html";
+   <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('formSolicitud');
+        const btnSubmit = form.querySelector('.btn-submit');
+        const btnText = btnSubmit.querySelector('.btn-text');
+        const btnLoading = btnSubmit.querySelector('.btn-loading');
+
+        form.addEventListener('submit', function(e) {
+            // 1. Validar fecha (opcional)
+            const fechaLimite = document.querySelector('input[name="fecha_limite"]').value;
+            const hoy = new Date().toISOString().split('T')[0];
+            
+            if (new Date(fechaLimite) < new Date(hoy)) {
+                e.preventDefault(); // Detiene si la fecha es vieja
+                alert('❌ La fecha límite no puede ser anterior a hoy');
+                return;
             }
-        }
 
-
-        // Manejo del formulario
-        document.getElementById('formSolicitud').addEventListener('submit', function(e) {
-            e.preventDefault();
-           
-            // Simulación de envío exitoso
-            const btn = this.querySelector('.btn-submit');
-            const originalText = btn.innerHTML;
-           
-            btn.innerHTML = '✅ Enviando...';
-            btn.disabled = true;
-           
-            setTimeout(() => {
-                btn.innerHTML = '🎉 ¡Solicitud Enviada!';
-                btn.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
-               
-                setTimeout(() => {
-                    alert('¡Tu solicitud ha sido enviada exitosamente!\nNuestro equipo la revisará en las próximas 24-48 horas.');
-                    // Aquí iría el código real de envío al servidor
-                    // this.submit();
-                    window.location.href = 'panel_usuario.html';
-                }, 2000);
-            }, 2000);
+            // 2. Animación de carga
+            btnSubmit.disabled = true;
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline';
+            
+            // IMPORTANTE: Aquí NO debe haber preventDefault() ni setTimeout.
+            // El formulario debe enviarse naturalmente a Python.
         });
-
-
-        // Efecto de scroll suave
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log("Formulario de Solicitud de Ayuda - Red Solidaria Inicializado.");
-        });
-    </script>
+    });
+</script>
 </body>
 </html>

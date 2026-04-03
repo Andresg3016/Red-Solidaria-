@@ -1,163 +1,136 @@
+<!doctype html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Red Solidaria - Panel de Fundación</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://js.stripe.com/v3/"></script>
-    
-    <!-- 🔥 ESTA LÍNEA ERA LA QUE FALTABA 🔥 -->
-    <link href="home_fundacion.css" rel="stylesheet">
-        
+    <link href="{{ url_for('static', filename='css/home_fundacion.css') }}" rel="stylesheet">
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg bg-body-tertiary shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-custom shadow-sm">
         <div class="container-fluid">
-           <a href="{{ url_for('inicio') }}" class="d-flex align-items-center text-decoration-none">
-    <img src="{{ url_for('static', filename='img/logo.jpeg') }}" 
-         alt="Logo Red Solidaria" 
-         height="60" 
-         class="me-3 shadow-sm logo-responsive" 
-         style="border-radius: 10px; max-width: 80px; height: auto;">
-</a>
+            <a href="{{ url_for('inicio') }}" class="d-flex align-items-center text-decoration-none">
+                <img src="{{ url_for('static', filename='img/logo.jpeg') }}" alt="Logo Red Solidaria"
+                     height="60" class="me-3 shadow-sm logo-responsive"
+                     style="border-radius: 10px; max-width: 80px; height: auto;">
+            </a>
 
-            <div class="d-flex gap-2">
-                <a
-                    href="panel_fundacion.html"
-                    class="btn btn-outline-success fw-bold"
-                >
-                    🏛️ Panel Fundación
-                </a>
-                <a
-                    href="solicitar_ayuda.html"
-                    class="btn btn-outline-primary fw-bold"
-                >
-                    📤 Solicitar Ayuda
-                </a>
-            </div>
+           <div class="navbar-nav me-auto mb-2 mb-lg-0 gap-2">
+           <a href="{{ url_for('home_fundacion') }}" 
+            class="nav-link nav-link-gradiente {% if request.endpoint == 'home_fundacion' %}active{% endif %}">
+             🏛️ Panel Fundación
+            </a>
 
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item dropdown">
-                        <button
-                            class="btn btn-outline-dark dropdown-toggle fw-bold"
-                            data-bs-toggle="dropdown"
-                        >
-                            👤 Fundacion
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow">
-                            <li>
-                                <a class="dropdown-item" href="perfil_admin.html">
-                                    👤 Ver perfil
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="editar_perfil.html">
-                                    ✏️ Editar perfil
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <button
-                                    class="dropdown-item text-danger fw-bold"
-                                    onclick="cerrarSesion()"
-                                >
-                                    🚪 Cerrar sesión
-                                </button>
-                            </li>
-                        </ul>
-                    </li>
-                </ul>
+            <a href="{{ url_for('solicitar_ayuda') }}" 
+             class="nav-link nav-link-gradiente {% if request.endpoint == 'solicitar_ayuda' %}active{% endif %}">
+             📤 Solicitar Ayuda
+            </a>
             </div>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown ms-lg-3">
+            <button class="nav-link nav-link-gradiente dropdown-toggle fw-bold" 
+                data-bs-toggle="dropdown" 
+                style="border: none !important; color: rgb(42, 80, 161) !important;">
+            👤 {{ session['nombre'] }}
+        </button>
+    <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2" style="border-radius: 15px;">
+        <li><a class="dropdown-item py-2" href="{{ url_for('editar_perfil') }}" style="border-radius: 10px;">👤 Ver Perfil</a></li>
+        <li><a class="dropdown-item py-2" href="{{ url_for('editar_perfil') }}" style="border-radius: 10px;">✏️ Editar Perfil</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <button class="dropdown-item text-danger fw-bold py-2" onclick="cerrarSesion()" style="border-radius: 10px;">
+                🚪 Cerrar sesión
+            </button>
+        </li>
+    </ul>
+</li>
+                </li>
+            </ul>
         </div>
     </nav>
 
-
-    <div
-        id="mensajeEmergente"
-        class="mensaje-emergente"
-    >
+    <div id="mensajeEmergente" class="mensaje-emergente">
         <strong>✅</strong>
-        <span id="mensajeTexto">
-            Acción realizada exitosamente
-        </span>
+        <span id="mensajeTexto">Acción realizada exitosamente</span>
     </div>
 
-
     <div class="admin-container">
-       
-<div class="dashboard-header text-center">
-            <h1>🏛️ Panel de Gestión - Fundación</h1>
-            <p>Red Solidaria - Sistema de Administración y Seguimiento</p>
+        <div class="dashboard-header text-center">
+              <h1>🏛️ Panel de Gestión - {{ fundacion.nombre_fundacion }}</h1>
+               <p>Bienvenido(a), {{ session['nombre'] }}</p>
         </div>
 
         <div class="row g-3 mb-4">
-            <div class="col-md-2" onclick="activarSeccion('recibidas-tab')">
-                <div class="stats-card donaciones-recibidas">
-                    <div class="icon">📥</div><h3>1,245</h3><p>Recibidas</p>
-                </div>
-            </div>
-            <div class="col-md-2" onclick="activarSeccion('enviadas-tab')">
-                <div class="stats-card donaciones-enviadas">
-                    <div class="icon">📤</div><h3>842</h3><p>Enviadas</p>
-                </div>
-            </div>
-            <div class="col-md-2" onclick="activarSeccion('solicitudes-tab')">
-                <div class="stats-card solicitudes">
-                    <div class="icon">📋</div><h3>156</h3><p>Solicitudes</p>
-                </div>
-            </div>
-            <div class="col-md-2" onclick="activarSeccion('pagos-tab')">
-                <div class="stats-card donaciones-economicas">
-                    <div class="icon">💰</div><h3>$45k</h3><p>Pagos</p>
-                </div>
-            </div>
-            <div class="col-md-2" onclick="activarSeccion('beneficiarios-tab')">
-                <div class="stats-card beneficiarios">
-                    <div class="icon">👥</div><h3>2.3k</h3><p>Beneficiarios</p>
-                </div>
-            </div>
-            <div class="col-md-2" onclick="activarSeccion('pendientes-tab')">
-                <div class="stats-card pendientes">
-                    <div class="icon">⏳</div><h3>23</h3><p>Pendientes</p>
-                </div>
-            </div>
+  <div class="row g-3 mb-4">
+    <!-- RECIBIDAS -->
+    <div class="col-md-2" onclick="activarSeccion('recibidas-tab')">
+        <div class="stats-card donaciones-recibidas">
+            <div class="icon">📥</div>
+            <h3 id="contador-recibidas" data-actual="0">0</h3>
+            <p>Recibidas</p>
         </div>
+    </div>
+    
+    <!-- ENVIADAS -->
+    <div class="col-md-2" onclick="activarSeccion('enviadas-tab')">
+        <div class="stats-card donaciones-enviadas">
+            <div class="icon">📤</div>
+            <h3 id="contador-enviadas" data-actual="0">0</h3>
+            <p>Enviadas</p>
+        </div>
+    </div>
+    
+    <!-- SOLICITUDES -->
+    <div class="col-md-2" onclick="activarSeccion('solicitudes-tab')">
+        <div class="stats-card solicitudes">
+            <div class="icon">📋</div>
+            <h3 id="contador-solicitudes" data-actual="0">0</h3>
+            <p>Solicitudes</p>
+        </div>
+    </div>
+    
+    <!-- PAGOS -->
+    <div class="col-md-2" onclick="activarSeccion('pagos-tab')">
+        <div class="stats-card donaciones-economicas">
+            <div class="icon">💰</div>
+            <h3 id="contador-pagos" data-actual="0">$0</h3>
+            <p>Pagos</p>
+        </div>
+    </div>
+    
+    <!-- BENEFICIARIOS -->
+    <div class="col-md-2" onclick="activarSeccion('beneficiarios-tab')">
+        <div class="stats-card beneficiarios">
+            <div class="icon">👥</div>
+            <h3 id="contador-beneficiarios" data-actual="0">0</h3>
+            <p>Beneficiarios</p>
+        </div>
+    </div>
+    
+    <!-- PENDIENTES -->
+    <div class="col-md-2" onclick="activarSeccion('pendientes-tab')">
+        <div class="stats-card pendientes">
+            <div class="icon">⏳</div>
+            <h3 id="contador-pendientes" data-actual="0">0</h3>
+            <p>Pendientes</p>
+        </div>
+    </div>
+</div>
 
         <ul class="nav nav-tabs" id="adminTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="recibidas-tab" data-bs-toggle="tab" data-bs-target="#recibidas" type="button">
-                    📥 Donaciones Recibidas
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="enviadas-tab" data-bs-toggle="tab" data-bs-target="#enviadas" type="button">
-                    📤 Donaciones Enviadas
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="solicitudes-tab" data-bs-toggle="tab" data-bs-target="#solicitudes" type="button">
-                    📋 Solicitudes
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="pagos-tab" data-bs-toggle="tab" data-bs-target="#pagos" type="button">
-                    💳 Pagos
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="beneficiarios-tab" data-bs-toggle="tab" data-bs-target="#beneficiarios" type="button">
-                    👥 Beneficiarios
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="pendientes-tab" data-bs-toggle="tab" data-bs-target="#pendientes" type="button">
-                    ⏳ Pendientes
-                </button>
-            </li>
+            <li class="nav-item"><button class="nav-link active" id="recibidas-tab" data-bs-toggle="tab" data-bs-target="#recibidas" type="button">📥 Donaciones Recibidas</button></li>
+            <li class="nav-item"><button class="nav-link" id="enviadas-tab" data-bs-toggle="tab" data-bs-target="#enviadas" type="button">📤 Donaciones Enviadas</button></li>
+            <li class="nav-item"><button class="nav-link" id="solicitudes-tab" data-bs-toggle="tab" data-bs-target="#solicitudes" type="button">📋 Solicitudes</button></li>
+            <li class="nav-item"><button class="nav-link" id="pagos-tab" data-bs-toggle="tab" data-bs-target="#pagos" type="button">💳 Pagos</button></li>
+            <li class="nav-item"><button class="nav-link" id="beneficiarios-tab" data-bs-toggle="tab" data-bs-target="#beneficiarios" type="button">👥 Beneficiarios</button></li>
+            <li class="nav-item"><button class="nav-link" id="pendientes-tab" data-bs-toggle="tab" data-bs-target="#pendientes" type="button">⏳ Pendientes</button></li>
         </ul>
 
         <div class="tab-content" id="adminTabContent">
-            
+            <!-- TAB RECIBIDAS -->
             <div class="tab-pane fade show active" id="recibidas" role="tabpanel">
                 <div class="gestion-section">
                     <h3>📥 Historial de Donaciones Ingresadas</h3>
@@ -182,31 +155,33 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for d in donaciones %}
                                 <tr>
-                                    <td><strong>REC001</strong></td>
-                                    <td>Juan Pérez</td>
-                                    <td>Ropa</td>
-                                    <td>Hombre, Talla M, Color Azul</td>
-                                    <td>15</td>
-                                    <td>2024-01-15</td>
-                                    <td><span class="badge-estado badge-pendiente">⏳ Pendiente</span></td>
+                                    <td><strong>#{{ d.id }}</strong></td>
+                                    <td>{{ d.nombre_donante }}</td>
+                                    <td>{{ d.categoria }}</td>
+                                    <td>{{ d.descripcion }}</td>
+                                    <td>{{ d.cantidad }}</td>
+                                    <td>{{ d.fecha_registro }}</td>
+                                    <td>
+                                        {% if d.estado == 'pendiente' %}
+                                            <span class="badge-estado badge-pendiente">⏳ Pendiente</span>
+                                        {% else %}
+                                            <span class="badge-estado badge-activo">✅ {{ d.estado }}</span>
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         <div class="d-flex gap-1 justify-content-center">
-                                            <button class="btn btn-sm btn-success" onclick="mostrarMensaje('Recibido')">📦 Recibir</button>
-                                            <button class="btn btn-sm btn-danger" onclick="mostrarMensaje('Rechazado')">❌ Rechazar</button>
+                                            <button class="btn btn-sm btn-success">📦 Recibir</button>
+                                            <button class="btn btn-sm btn-danger">❌ Rechazar</button>
                                         </div>
                                     </td>
                                 </tr>
+                                {% else %}
                                 <tr>
-                                    <td><strong>REC002</strong></td>
-                                    <td>María Gómez</td>
-                                    <td>Alimentos</td>
-                                    <td>Arroz Premium, Pack 5kg</td>
-                                    <td>10</td>
-                                    <td>2024-01-16</td>
-                                    <td><span class="badge-estado badge-activo">✅ Recibida</span></td>
-                                    <td><button class="btn btn-sm btn-primary" onclick="mostrarMensaje('Entregando...')">🚀 Entregar a Beneficiario</button></td>
+                                    <td colspan="8" class="text-center text-muted">No tienes donaciones asignadas en este momento.</td>
                                 </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -248,24 +223,23 @@
                 </div>
             </div>
         </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
-        // ESTA ES LA FUNCIÓN CLAVE PARA LAS TARJETAS
         function activarSeccion(idTab) {
             const boton = document.getElementById(idTab);
             if (boton) {
                 const instanciaTab = new bootstrap.Tab(boton);
                 instanciaTab.show();
-                // Opcional: bajar automáticamente a la tabla
                 boton.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
 
         function cerrarSesion() {
-            const confirmacion = confirm("¿Está seguro que desea finalizar su sesión actual?");
-            if (confirmacion) { window.location.href = "iniciarSesion.html"; }
+            if (confirm("¿Está seguro que desea finalizar su sesión actual?")) {
+                window.location.href = "{{ url_for('logout') }}";
+            }
         }
 
         function mostrarMensaje(texto) {
@@ -278,7 +252,55 @@
             } else { alert(texto); }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log("Panel de Fundación Red Solidaria Inicializado.");
-        });
+        // FUNCIÓN MEJORADA PARA ANIMAR TODOS LOS CONTADORES
+function animarTodosLosContadores() {
+    const contadores = document.querySelectorAll('h3[data-target]');
+    
+    contadores.forEach(contador => {
+        const objetivo = parseInt(contador.getAttribute('data-target'));
+        const id = contador.id;
+        const esDinero = id === 'contador-pagos';
+        
+        if (objetivo === 0) {
+            contador.innerText = '0';
+            return;
+        }
+
+        let actual = 0;
+        const duracion = 1500; // 1.5 segundos
+        const pasos = 60;
+        const incremento = objetivo / pasos;
+        const tiempoPorPaso = duracion / pasos;
+
+        const intervalo = setInterval(() => {
+            actual += incremento;
+            if (actual >= objetivo) {
+                // VALOR FINAL FORMATEADO
+                if (esDinero) {
+                    contador.innerText = '$' + Math.round(objetivo/1000) + 'k';
+                } else {
+                    contador.innerText = objetivo.toLocaleString();
+                }
+                contador.setAttribute('data-actual', objetivo);
+                clearInterval(intervalo);
+            } else {
+                // ANIMACIÓN EN PROCESO
+                const valorActual = Math.ceil(actual);
+                if (esDinero) {
+                    contador.innerText = '$' + valorActual.toLocaleString();
+                } else {
+                    contador.innerText = Math.ceil(actual).toLocaleString();
+                }
+            }
+        }, tiempoPorPaso);
+    });
+}
+
+// EJECUTAR AL CARGAR
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("🎯 Contadores inicializados");
+    animarTodosLosContadores();
+});
     </script>
+</body>
+</html>

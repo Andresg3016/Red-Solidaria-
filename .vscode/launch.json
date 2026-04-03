@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "java",
+            "name": "ServiciosApplication",
+            "request": "launch",
+            "mainClass": "com.example.servicios.ServiciosApplication",
+            "projectName": "servicios"
+        },
+        {
             "type": "jdk",
             "request": "launch",
             "name": "Launch Java App"

@@ -1,439 +1,86 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Red Solidaria - Panel de Administrador</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red Solidaria - Panel de Administrador</title>
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<!-- Stripe Payment Elements -->
-<script src="https://js.stripe.com/v3/"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<style>
-
-body{
-background: linear-gradient(135deg,#1e52ff 0%,#63ff5e98 70%,#b7ebb8 90%);
-min-height:100vh;
-padding:20px 0;
-}
-
-.admin-container{
-background:#fffef5;
-border-radius:20px;
-box-shadow:0 20px 50px rgba(0,0,0,0.15);
-padding:45px;
-max-width:1400px;
-margin:auto;
-border:3px solid #f5c518;
-}
-
-/* Header del Dashboard */
-.dashboard-header{
-background: linear-gradient(135deg,#1e52ff,#63ff5e);
-color:white;
-border-radius:15px;
-padding:30px;
-margin-bottom:30px;
-}
-
-.dashboard-header h1{
-font-size:32px;
-margin-bottom:10px;
-}
-
-.dashboard-header p{
-font-size:16px;
-opacity:0.9;
-}
-
-/* Tarjetas de Estadísticas */
-.stats-card{
-background:white;
-border-radius:15px;
-padding:25px;
-box-shadow:0 5px 20px rgba(0,0,0,0.1);
-margin-bottom:20px;
-border-left:5px solid;
-transition:0.3s;
-}
-
-.stats-card:hover{
-transform:translateY(-5px);
-}
-
-.stats-card.donantes{border-left-color:#ff6b6b;}
-.stats-card.fundaciones{border-left-color:#51cf66;}
-.stats-card.donaciones{border-left-color:#339af0;}
-.stats-card.ayudas{border-left-color:#fcc419;}
-.stats-card.pagos{border-left-color:#0070ba;}
-.stats-card.validaciones{border-left-color:#ffc107;}
-
-.stats-card h3{
-font-size:36px;
-margin-bottom:5px;
-}
-
-.stats-card p{
-font-size:14px;
-color:#666;
-margin-bottom:0;
-}
-
-.stats-card .icon{
-font-size:40px;
-margin-bottom:10px;
-}
-
-/* Secciones de Gestión */
-.gestion-section{
-background:white;
-border-radius:15px;
-padding:25px;
-box-shadow:0 5px 20px rgba(0,0,0,0.1);
-margin-bottom:25px;
-}
-
-.gestion-section h3{
-color:#333;
-margin-bottom:20px;
-border-bottom:2px solid #f5c518;
-padding-bottom:10px;
-}
-
-/* Botones de Acción */
-.btn-gestion{
-background:#0070ba;
-border:none;
-color:white;
-font-weight:700;
-padding:10px 20px;
-border-radius:8px;
-margin-right:10px;
-margin-bottom:10px;
-}
-
-.btn-gestion:hover{
-background:#00517a;
-}
-
-.btn-gestion.verde{
-background:#28a745;
-}
-
-.btn-gestion.verde:hover{
-background:#218838;
-}
-
-.btn-gestion.amarillo{
-background:#ffc107;
-color:#333;
-}
-
-.btn-gestion.amarillo:hover{
-background:#e0a800;
-}
-
-.btn-gestion.rojo{
-background:#dc3545;
-}
-
-.btn-gestion.rojo:hover{
-background:#c82333;
-}
-
-/* Tablas */
-.table-container{
-background:#f8f9fa;
-border-radius:10px;
-padding:20px;
-margin-top:15px;
-}
-
-.table{
-margin-bottom:0;
-}
-
-.table th{
-background:#0070ba;
-color:white;
-}
-
-.table td{
-vertical-align:middle;
-}
-
-/* Badges de Estado */
-.badge-estado{
-padding:5px 12px;
-border-radius:20px;
-font-size:12px;
-font-weight:600;
-}
-
-.badge-activo{
-background:#28a745;
-color:white;
-}
-
-.badge-pendiente{
-background:#ffc107;
-color:#333;
-}
-
-.badge-rechazado{
-background:#dc3545;
-color:white;
-}
-
-.badge-validado{
-background:#17a2b8;
-color:white;
-}
-
-/* Mensaje emergente */
-.mensaje-emergente{
-position:fixed;
-top:20px;
-right:20px;
-background:#28a745;
-color:white;
-padding:15px 25px;
-border-radius:10px;
-display:none;
-z-index:9999;
-}
-
-.mensaje-emergente.show{
-display:block;
-}
-
-/* Barra de navegación */
-.navbar{
-margin-bottom:20px;
-}
-
-/* Pestañas */
-.nav-tabs{
-border-bottom:2px solid #f5c518;
-margin-bottom:20px;
-}
-
-.nav-tabs .nav-link{
-color:#333;
-font-weight:600;
-padding:12px 25px;
-border:none;
-border-radius:10px 10px 0 0;
-transition:all 0.3s ease;
-}
-
-.nav-tabs .nav-link:hover{
-background:rgba(245,197,24,0.1);
-color:#f5c518;
-}
-
-.nav-tabs .nav-link.active{
-background:#f5c518;
-color:white;
-border:none;
-}
-
-.tab-content{
-display:none;
-}
-
-.tab-content.active{
-display:block;
-}
-
-/* Botón de cerrar sesión */
-.btn-logout{
-background:#dc3545;
-border:none;
-color:white;
-font-weight:700;
-padding:8px 20px;
-border-radius:8px;
-}
-
-.btn-logout:hover{
-background:#c82333;
-}
-
-/* Tarjetas de Donaciones */
-.donacion-card{
-background:#fff;
-border-radius:15px;
-box-shadow:0 5px 20px rgba(0,0,0,0.1);
-padding:25px;
-margin-bottom:25px;
-border-left:5px solid;
-transition:0.3s;
-}
-
-.donacion-card:hover{
-transform:translateY(-5px);
-}
-
-.donacion-card.donante{border-left-color:#ff6b6b;}
-.donacion-card.fundacion{border-left-color:#51cf66;}
-
-.donacion-card h3{
-color:#333;
-margin-bottom:15px;
-}
-
-.donacion-card .info-item{
-margin-bottom:10px;
-font-size:15px;
-}
-
-.donacion-card .info-item strong{
-color:#555;
-}
-
-.donacion-card .info-item span{
-color:#333;
-}
-
-/* Pasarela de Pagos */
-.pasarela-pagos{
-background:#f0f8ff;
-border-radius:10px;
-padding:20px;
-margin-top:15px;
-border:2px solid #0070ba;
-}
-
-.pasarela-pagos h4{
-color:#0070ba;
-margin-bottom:15px;
-}
-
-.pago-oculto{
-display:none;
-}
-
-/* Botones de pago */
-.btn-pagar{
-background:#0070ba;
-border:none;
-color:white;
-font-weight:700;
-padding:12px 30px;
-border-radius:8px;
-margin-top:15px;
-}
-
-.btn-pagar:hover{
-background:#00517a;
-}
-
-.btn-paypal{
-background:#ffc439;
-border:none;
-color:#111;
-font-weight:700;
-padding:12px 30px;
-border-radius:8px;
-margin-top:15px;
-}
-
-.btn-paypal:hover{
-background:#f0b90f;
-}
-
-.btn-nequi{
-background:#00a651;
-border:none;
-color:white;
-font-weight:700;
-padding:12px 30px;
-border-radius:8px;
-margin-top:15px;
-}
-
-.btn-nequi:hover{
-background:#008a42;
-}
-
-.btn-daviplata{
-background:#00a651;
-border:none;
-color:white;
-font-weight:700;
-padding:12px 30px;
-border-radius:8px;
-margin-top:15px;
-}
-
-.btn-daviplata:hover{
-background:#008a42;
-}
-
-</style>
+    <!-- CSS propio -->
+    <link href="{{ url_for('static', filename='css/home_administrador.css') }}" rel="stylesheet">
+    
+    <!-- Stripe -->
+    <script src="https://js.stripe.com/v3/"></script>
 </head>
 
 <body>
 
-<!-- Barra de navegación -->
-<nav class="navbar navbar-expand-lg bg-body-tertiary">
-  <div class="container-fluid">
+    <!-- ================= NAVBAR ================= -->
+    <nav class="navbar navbar-expand-lg bg-body-tertiary shadow-sm">
+        <div class="container-fluid">
 
-    <!-- LOGO (NO SE MODIFICA) -->
-    <a href="index3.html" class="d-flex align-items-center text-decoration-none">
-      <img src="img/logo.jpeg" alt="Logo" height="80" class="me-3" />
-    </a>
+            <!-- LOGO -->
+            <a href="{{ url_for('inicio') }}" class="d-flex align-items-center text-decoration-none">
+                <img 
+                    src="{{ url_for('static', filename='img/logo.jpeg') }}" 
+                    alt="Logo" 
+                    height="80" 
+                    class="me-3"
+                />
+            </a>
 
-    <!-- BOTONES ADMIN AL LADO DEL LOGO -->
-    <div class="d-flex gap-2">
-      <a href="panel_admin.html" class="btn btn-outline-primary">
-        📊 Panel Admin
-      </a>
+            <!-- BOTONES ADMIN -->
+            <div class="d-flex gap-2">
+                <a href="panel_admin.html" class="btn btn-outline-primary">
+                    📊 Panel Admin
+                </a>
 
-      <a href="gestion_usuarios.html" class="btn btn-outline-success">
-        👥 Usuarios
-      </a>
-    </div>
+                <a href="gestion_usuarios.html" class="btn btn-outline-success">
+                    👥 Usuarios
+                </a>
+            </div>
 
-    <!-- Botón hamburguesa -->
-    <button
-      class="navbar-toggler"
-      type="button"
-      data-bs-toggle="collapse"
-      data-bs-target="#navbarSupportedContent"
-    >
-      <span class="navbar-toggler-icon"></span>
-    </button>
+            <!-- BOTÓN HAMBURGUESA -->
+            <button 
+                class="navbar-toggler" 
+                type="button" 
+                data-bs-toggle="collapse" 
+                data-bs-target="#navbarSupportedContent"
+            >
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-
-
-      <!-- PERFIL ADMIN -->
-    </div>
-
+            <!-- MENÚ DERECHO -->
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav ms-auto">
+                    
                     <li class="nav-item dropdown">
+
                         <button
                             class="btn btn-outline-dark dropdown-toggle fw-bold"
                             data-bs-toggle="dropdown"
-                            aria-expanded="false"
                         >
-                            👤 Administrador 
+                            👤 Administrador
                         </button>
+
                         <ul class="dropdown-menu dropdown-menu-end shadow">
+
                             <li>
                                 <a class="dropdown-item" href="perfil_admin.html">
                                     👤 Ver perfil
                                 </a>
                             </li>
+
                             <li>
                                 <a class="dropdown-item" href="editar_perfil.html">
                                     ✏️ Editar perfil
                                 </a>
                             </li>
+
                             <li><hr class="dropdown-divider"></li>
+
                             <li>
                                 <button
                                     class="dropdown-item text-danger fw-bold"
@@ -442,234 +89,312 @@ background:#008a42;
                                     🚪 Cerrar sesión
                                 </button>
                             </li>
+
                         </ul>
+
                     </li>
+
                 </ul>
             </div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        </div>
+    </nav>
 
-<script>
-function cerrarSesion(){
+    <!-- ================= MENSAJE EMERGENTE ================= -->
+    <div id="mensajeEmergente" class="mensaje-emergente">
+        <strong>✅</strong> 
+        <span id="mensajeTexto">Acción realizada exitosamente</span>
+    </div>
 
-if(confirm("¿Seguro que deseas cerrar sesión?")){
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} mt-3 text-center">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
-window.location.href="iniciarSesion.html"
+    <!-- ================= CONTENEDOR PRINCIPAL ================= -->
+    <div class="admin-container">
 
-}
-
-}
-</script>
-
-</body>
-</html>
-  </div>
-</nav>
-<!-- MENSAJE -->
-<div id="mensajeEmergente" class="mensaje-emergente">
-<strong>✅</strong> <span id="mensajeTexto">Acción realizada exitosamente</span>
-</div>
-
- <div class="admin-container">
-       
-<div class="dashboard-header text-center">
+        <!-- HEADER -->
+        <div class="dashboard-header text-center">
             <h1>🏛️ Panel de Gestión - Administrador</h1>
             <p>Red Solidaria - Sistema de Administración y Seguimiento</p>
         </div>
 
-        <div class="row g-3 mb-4">
-            <div class="col-md-2" onclick="activarSeccion('Donantes-tab')">
-                <div class="stats-card donantes">
-                    <div class="icon">👥</div><h3>1,245</h3><p>Donantes</p>
-                </div>
-            </div>
-            <div class="col-md-2" onclick="activarSeccion('Fundaciones-tab')">
-                <div class="stats-card fundaciones">
-                    <div class="icon">🏛️</div><h3>842</h3><p>Fundaciones</p>
-                </div>
-            </div>
-            <div class="col-md-2" onclick="activarSeccion('Donaciones-tab')">
-                <div class="stats-card donaciones">
-                    <div class="icon">📦</div><h3>156</h3><p>Donaciones</p>
-                </div>
-            </div>
-            <div class="col-md-2" onclick="activarSeccion('DonacionesEconomicas-tab')">
-                <div class="stats-card donaciones-economicas">
-                    <div class="icon">💰</div><h3>$45k</h3><p>Donaciones Económicas</p>
-                </div>
-            </div>
-            <div class="col-md-2" onclick="activarSeccion('pagos-tab')">
-                <div class="stats-card pagos">
-                    <div class="icon">💳</div><h3>2.3k</h3><p>pagos</p>
-                </div>
-            </div>
+       <!-- ================= TARJETAS CON CONTADORES ANIMADOS ================= -->
+<div class="row g-3 mb-4">
+    <!-- DONANTES -->
+    <div class="col-md-2" onclick="activarSeccion('Donantes-tab')">
+        <div class="stats-card donantes">
+            <div class="icon">👥</div>
+            <h3 id="contador-donantes" data-target="1245" data-actual="1245">0</h3>
+            <p>Donantes</p>
+        </div>
+    </div>
+
+    <!-- FUNDACIONES -->
+    <div class="col-md-2" onclick="activarSeccion('Fundaciones-tab')">
+        <div class="stats-card fundaciones">
+            <div class="icon">🏛️</div>
+            <h3 id="contador-fundaciones" data-target="842" data-actual="842">0</h3>
+            <p>Fundaciones</p>
+        </div>
+    </div>
+
+    <!-- DONACIONES -->
+    <div class="col-md-2" onclick="activarSeccion('Donaciones-tab')">
+        <div class="stats-card donaciones">
+            <div class="icon">📦</div>
+            <h3 id="contador-donaciones" data-target="156" data-actual="156">0</h3>
+            <p>Donaciones</p>
+        </div>
+    </div>
+
+    <!-- DONACIONES ECONÓMICAS -->
+    <div class="col-md-2" onclick="activarSeccion('DonacionesEconomicas-tab')">
+        <div class="stats-card donaciones-economicas">
+            <div class="icon">💰</div>
+            <h3 id="contador-economicas" data-target="45000" data-actual="45000">$0</h3>
+            <p>Económicas</p>
+        </div>
+    </div>
+
+    <!-- PAGOS -->
+    <div class="col-md-2" onclick="activarSeccion('pagos-tab')">
+        <div class="stats-card pagos">
+            <div class="icon">💳</div>
+            <h3 id="contador-pagos" data-target="2300" data-actual="2300">0</h3>
+            <p>Pagos</p>
+        </div>
+    </div>
+
             <div class="col-md-2" onclick="activarSeccion('pendientes-tab')">
                 <div class="stats-card pendientes">
-                    <div class="icon">⏳</div><h3>23</h3><p>Pendientes</p>
+                    <div class="icon">⏳</div>
+                    <h3>{{ total_pendientes }}</h3>
+                    <p>Pendientes</p>
                 </div>
             </div>
+
         </div>
 
-        <ul class="nav nav-tabs" id="adminTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="Donantes-tab" data-bs-toggle="tab" data-bs-target="#Donantes" type="button">
-                      👥 Donantes
+        <!-- ================= TABS ================= -->
+        <ul class="nav nav-tabs">
+
+            <li class="nav-item">
+                <button class="nav-link" id="Donantes-tab" data-bs-toggle="tab" data-bs-target="#Donantes">
+                    👥 Donantes
                 </button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="Fundaciones-tab" data-bs-toggle="tab" data-bs-target="#Fundaciones" type="button">
+
+            <li class="nav-item">
+                <button class="nav-link" id="Fundaciones-tab" data-bs-toggle="tab" data-bs-target="#Fundaciones">
                     🏛️ Fundaciones
                 </button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="Donaciones-tab" data-bs-toggle="tab" data-bs-target="#Donaciones" type="button">
+
+            <li class="nav-item">
+                <button class="nav-link" id="Donaciones-tab" data-bs-toggle="tab" data-bs-target="#Donaciones">
                     📦 Donaciones
                 </button>
             </li>
 
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="DonacionesEconomicas-tab" data-bs-toggle="tab" data-bs-target="#DonacionesEconomicas" type="button">
-                    💰 Donaciones Economicas
+            <li class="nav-item">
+                <button class="nav-link" id="DonacionesEconomicas-tab" data-bs-toggle="tab" data-bs-target="#DonacionesEconomicas">
+                    💰 Donaciones Económicas
                 </button>
             </li>
 
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="pagos-tab" data-bs-toggle="tab" data-bs-target="#pagos" type="button">
+            <li class="nav-item">
+                <button class="nav-link" id="pagos-tab" data-bs-toggle="tab" data-bs-target="#pagos">
                     💳 Pagos
                 </button>
             </li>
-            
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="pendientes-tab" data-bs-toggle="tab" data-bs-target="#pendientes" type="button">
+
+            <li class="nav-item">
+                <button class="nav-link active" id="pendientes-tab" data-bs-toggle="tab" data-bs-target="#pendientes">
                     ⏳ Pendientes
                 </button>
             </li>
+
         </ul>
 
-        <div class="tab-content" id="adminTabContent">
-            
-            <div class="tab-pane fade show active" id="recibidas" role="tabpanel">
-                <div class="gestion-section">
-                    <h3>📥 Historial de Donaciones Ingresadas</h3>
-                    <div class="d-flex flex-wrap gap-2 mb-4">
-                        <button class="btn-gestion" onclick="mostrarMensaje('Filtrando datos...')">🔍 Filtrar Resultados</button>
-                        <button class="btn-gestion amarillo" onclick="mostrarMensaje('Generando Reporte PDF...')">📊 Exportar Reporte</button>
-                        <button class="btn-gestion rojo" onclick="mostrarMensaje('Actualizando estados...')">✅ Marcar Todo como Entregado</button>
-                    </div>
+        <!-- ================= CONTENIDO ================= -->
+        <div class="tab-content">
 
-                    <div class="table-container">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID Registro</th>
-                                    <th>Nombre Donante</th>
-                                    <th>Categoría</th>
-                                    <th>Detalles Específicos</th>
-                                    <th>Cant.</th>
-                                    <th>Fecha Registro</th>
-                                    <th>Estado Actual</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>REC001</strong></td>
-                                    <td>Juan Pérez</td>
-                                    <td>Ropa</td>
-                                    <td>Hombre, Talla M, Color Azul</td>
-                                    <td>15</td>
-                                    <td>2024-01-15</td>
-                                    <td><span class="badge-estado badge-pendiente">⏳ Pendiente</span></td>
-                                    <td>
-                                        <div class="d-flex gap-1 justify-content-center">
-                                            <button class="btn btn-sm btn-success" onclick="mostrarMensaje('Recibido')">📦 Recibir</button>
-                                            <button class="btn btn-sm btn-danger" onclick="mostrarMensaje('Rechazado')">❌ Rechazar</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><strong>REC002</strong></td>
-                                    <td>María Gómez</td>
-                                    <td>Alimentos</td>
-                                    <td>Arroz Premium, Pack 5kg</td>
-                                    <td>10</td>
-                                    <td>2024-01-16</td>
-                                    <td><span class="badge-estado badge-activo">✅ Recibida</span></td>
-                                    <td><button class="btn btn-sm btn-primary" onclick="mostrarMensaje('Entregando...')">🚀 Entregar a Beneficiario</button></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+    <div class="tab-pane fade" id="Donantes">
+        <h3 class="mt-3">👥 Lista de Donantes</h3>
+        <p>Contenido de donantes...</p>
+    </div>
+
+    <div class="tab-pane fade" id="Fundaciones">
+        <h3 class="mt-3">🏛️ Todas las Fundaciones</h3>
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>NIT</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in fundaciones %}
+                <tr>
+                    <td>#{{ f.id }}</td>
+                    <td>{{ f.nombre_fundacion }}</td>
+                    <td>{{ f.nit }}</td>
+                    <td>{{ f.estado }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="text-center">No hay datos</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="tab-pane fade" id="Donaciones">
+        <h3 class="mt-3">📦 Gestión de Donaciones</h3>
+    </div>
+
+    <div class="tab-pane fade" id="pagos">
+        <h3 class="mt-3">💳 Historial de Pagos</h3>
+    </div>
+
+    <div class="tab-pane fade show active" id="pendientes">
+        <h3 class="text-danger mt-3">⏳ Fundaciones Pendientes de Validación</h3>
+        <p>Total pendientes: <strong>{{ fundaciones|length }}</strong></p>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Fundación</th>
+                        <th>Correo</th>
+                        <th>NIT</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in fundaciones %}
+                    <tr>
+                        <td>{{ f.id }}</td>
+                        <td>{{ f.nombre_fundacion }}</td>
+                        <td>{{ f.correo }}</td>
+                        <td>{{ f.nit }}</td>
+                        <td><span class="badge bg-warning text-dark">{{ f.estado }}</span></td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ url_for('aprobar_fundacion_ruta', id=f.id) }}" class="btn btn-sm btn-success">Aprobar</a>
+                                <a href="{{ url_for('rechazar_fundacion_ruta', id=f.id) }}" class="btn btn-sm btn-danger">Rechazar</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center">No hay fundaciones pendientes por validar.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>       <!-- FIN CONTENIDO -->
+
+            <!-- PENDIENTES -->
+            <div class="tab-pane fade show active" id="pendientes">
+                <h3>⏳ Fundaciones Pendientes</h3>
+                <p>Total fundaciones: {{ fundaciones|length }}</p>
+
+                <div class="table-container">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fundación</th>
+                                <th>Correo</th>
+                                <th>Fecha Registro</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+    {% for f in fundaciones %}
+    <tr style="background-color: #f8f9fa;">
+        <td>{{ f.id }}</td>
+        <td>{{ f.nombre_fundacion }}</td>
+        <td>{{ f.correo }}</td>
+        <td>{{ f.fecha_registro }}</td>
+        <td>{{ f.estado }}</td>
+        <td>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('aprobar_fundacion_ruta', id=f.id) }}" 
+           class="btn btn-sm btn-success fw-bold">
+           Aprobar
+        </a>
+
+        <a href="{{ url_for('rechazar_fundacion_ruta', id=f.id) }}" 
+           class="btn btn-sm btn-danger fw-bold">
+           Rechazar
+        </a>
+    </div>
+</td>
+    </tr>
+    {% endfor %}
+</tbody>
+                    </table>
                 </div>
+
             </div>
 
-            <div class="tab-pane fade" id="enviadas" role="tabpanel">
-                <div class="gestion-section">
-                    <h3>📤 Control de Salidas</h3>
-                    <p class="text-muted">No hay registros de envío recientes.</p>
-                </div>
-            </div>
-            
-            <div class="tab-pane fade" id="solicitudes" role="tabpanel">
-                <div class="gestion-section">
-                    <h3>📋 Bandeja de Solicitudes</h3>
-                    <p class="text-muted">Cargando solicitudes de ayuda...</p>
-                </div>
-            </div>
-
-            <div class="tab-pane fade" id="pagos" role="tabpanel">
-                <div class="gestion-section">
-                    <h3>💳 Registro de Pagos</h3>
-                    <p class="text-muted">Historial de transacciones de Stripe.</p>
-                </div>
-            </div>
-
-            <div class="tab-pane fade" id="beneficiarios" role="tabpanel">
-                <div class="gestion-section">
-                    <h3>👥 Directorio de Beneficiarios</h3>
-                    <p class="text-muted">Listado de familias y comedores registrados.</p>
-                </div>
-            </div>
-
-            <div class="tab-pane fade" id="pendientes" role="tabpanel">
-                <div class="gestion-section">
-                    <h3>⏳ Tareas Pendientes</h3>
-                    <p class="text-danger">Urgente: Revisar 23 casos críticos.</p>
-                </div>
-            </div>
         </div>
 
+    </div>
+
+    <!-- ================= JS ================= -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // ESTA ES LA FUNCIÓN CLAVE PARA LAS TARJETAS
+
         function activarSeccion(idTab) {
             const boton = document.getElementById(idTab);
             if (boton) {
-                const instanciaTab = new bootstrap.Tab(boton);
-                instanciaTab.show();
-                // Opcional: bajar automáticamente a la tabla
-                boton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const instancia = new bootstrap.Tab(boton);
+                instancia.show();
             }
         }
 
         function cerrarSesion() {
-            const confirmacion = confirm("¿Está seguro que desea finalizar su sesión actual?");
-            if (confirmacion) { window.location.href = "iniciarSesion.html"; }
+            if (confirm("¿Seguro que deseas cerrar sesión?")) {
+                window.location.href = "{{ url_for('login') }}";
+            }
         }
 
         function mostrarMensaje(texto) {
             const contenedor = document.getElementById('mensajeEmergente');
             const textoElemento = document.getElementById('mensajeTexto');
-            if(textoElemento) {
-                textoElemento.innerText = texto;
-                contenedor.classList.add('show');
-                setTimeout(function() { contenedor.classList.remove('show'); }, 3000);
-            } else { alert(texto); }
+
+            textoElemento.innerText = texto;
+            contenedor.classList.add('show');
+
+            setTimeout(function () {
+                contenedor.classList.remove('show');
+            }, 3000);
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log("Panel de Fundación Red Solidaria Inicializado.");
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log("Panel Administrador cargado correctamente");
         });
+
     </script>
+
+</body>
+</html>

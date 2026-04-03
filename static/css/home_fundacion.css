@@ -363,3 +363,85 @@
     transform: translateY(-5px);
     background-color: #f8f9fa;
 }
+
+/* Estilo base para AMBOS botones del Navbar */
+.nav-link-gradiente {
+    background: linear-gradient(135deg, rgba(30, 82, 255, 0.1), rgba(99, 255, 94, 0.1));
+    color: #1e52ff !important;
+    border-radius: 12px;
+    margin: 0 8px;
+    padding: 10px 20px !important;
+    font-weight: 600;
+    border: 1px solid rgba(30, 82, 255, 0.2);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+}
+
+/* Estilo cuando el botón está ACTIVO (en la página actual) */
+.nav-link-gradiente.active {
+    background: linear-gradient(135deg, #1e52ff, #63ff5e) !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(30, 82, 255, 0.3);
+    border: none;
+}
+
+/* Efecto al pasar el mouse por encima de cualquiera de los dos */
+.nav-link-gradiente:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #1e52ff, #63ff5e);
+    color: white !important;
+    box-shadow: 0 6px 20px rgba(30, 82, 255, 0.4);
+}
+
+/* Para que el botón del usuario se vea perfecto con el dropdown */
+.nav-item.dropdown .dropdown-toggle::after {
+    vertical-align: middle;
+    margin-left: 10px;
+}
+
+/* Efecto suave para los items dentro del menú desplegable */
+.dropdown-item {
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(30, 82, 255, 0.1) !important;
+    color: #1e52ff !important;
+    transform: translateX(5px);
+}
+
+/* El botón de cerrar sesión que resalte en rojo suave al pasar el mouse */
+.dropdown-item.text-danger:hover {
+    background-color: rgba(220, 53, 69, 0.1) !important;
+    color: #dc3545 !important;
+}
+
+/* Esto hará que el cuadrito blanco del menú sea más suave */
+.dropdown-menu {
+    border-radius: 15px !important;
+    border: none !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+    padding: 10px !important;
+}
+
+/* Y que los links de adentro no estén tan pegados */
+.dropdown-item {
+    padding: 10px 15px !important;
+    border-radius: 8px !important;
+}
+
+/* Este es el fondo blanco profesional de tu imagen */
+.navbar-custom {
+    background-color: #ffffff !important; /* Blanco puro */
+    padding: 15px 0 !important;          /* Espacio arriba y abajo */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important; /* Sombra sutil inferior */
+    border: none !important;
+    margin-bottom: 0 !important;
+}
+
+/* Aseguramos que el contenedor interno ocupe todo el ancho si es necesario */
+.container-fluid {
+    padding-left: 5%;
+    padding-right: 5%;
+}
