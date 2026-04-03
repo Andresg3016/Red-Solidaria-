@@ -61,19 +61,32 @@ def aprobar_fundacion_controller(id_fundacion, correo_fundacion, nombre_fundacio
     return redirect(url_for('home_admin_panel'))
 
 # --- RECHAZAR FUNDACIÓN ---
-def rechazar_fundacion_controller(id_fundacion):
-    """
-    Rechaza la solicitud de la fundación (opcionalmente se podría enviar correo aquí también).
-    """
+# RECHAZAR FUNDACIÓN (ACTUALIZADO)
+def rechazar_fundacion_controller(id_fundacion, correo_fundacion=None, nombre_fundacion=None):
     from models.home_administrador_model import HomeAdminModel
     
+    # 1. Cambiamos el estado en MySQL (a 'rechazado' o borrar, según tu modelo)
     if HomeAdminModel.rechazar_fundacion(id_fundacion):
-        print(f"DEBUG: Fundación ID {id_fundacion} ha sido rechazada.")
-        flash("❌ Solicitud de fundación rechazada correctamente.", "info")
+        
+        # 2. Si tenemos los datos, notificamos a Java
+        if correo_fundacion:
+            try:
+                url_java = "http://localhost:8080/api/email/enviar"
+                payload = {
+                    "destinatario": correo_fundacion,
+                    "nombreFundacion": nombre_fundacion,
+                    "estado": "RECHAZADO" # Esto activará el color ROJO y el mensaje de rechazo en Java
+                }
+                import requests
+                requests.post(url_java, json=payload, timeout=5)
+                print(f"❌ Notificación de RECHAZO enviada a {correo_fundacion}")
+            except Exception as e:
+                print(f"⚠️ Error avisando rechazo a Java: {e}")
+
+        from flask import flash, redirect, url_for
+        flash("La solicitud ha sido rechazada y el correo enviado.", "info")
     else:
-        flash("⚠️ Error al intentar rechazar la fundación.", "danger")
+        flash("Error al procesar el rechazo en la base de datos.", "danger")
 
-    # Redirigimos de vuelta al panel principal
     return redirect(url_for('home_admin_panel'))
-
 # Fin del archivo home_administrador_controller.py

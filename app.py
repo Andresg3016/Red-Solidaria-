@@ -113,8 +113,21 @@ def aprobar_fundacion_ruta(id):
 @app.route("/rechazar/<int:id>")
 def rechazar_fundacion_ruta(id):
     from controllers.home_administrador_controller import rechazar_fundacion_controller
-    # Aquí podrías hacer lo mismo si quieres enviar un correo de rechazo
-    return rechazar_fundacion_controller(id)
+    from models.usuario_model import UsuarioModel
+    
+    # 1. Buscamos los datos de contacto en la DB antes de rechazar
+    modelo_usuario = UsuarioModel()
+    datos = modelo_usuario.obtener_datos_aprobacion(id)
+    
+    if datos:
+        correo = datos['correo']
+        nombre = datos['nombre_fundacion']
+        
+        # 2. Enviamos el ID, el CORREO y el NOMBRE al controlador
+        return rechazar_fundacion_controller(id, correo, nombre)
+    
+    # Si no encuentra datos, al menos rechaza en la DB para no trabar el sistema
+    return rechazar_fundacion_controller(id, None, None)
 
 # ================= RUTA SOLICITAR AYUDA (CONECTADA) =================
 

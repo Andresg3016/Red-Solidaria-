@@ -1,41 +1,11 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Red Solidaria - Registro</title>
-    <link rel="stylesheet" href="{{url_for('static', filename='css/registro.css')}}" />
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200;400;700&display=swap" rel="stylesheet">
-</head>
+{% extends "layout.html" %}
 
-<body>
+{% block title %}Registro{% endblock %}
 
-    <!-- Header -->
-<header class="header">
-      <div class="logo">
-        <a href="{{ url_for('inicio') }}"><img src="{{url_for('static', filename='img/logo.jpeg')}}" alt="Logo Red Solidaria" /></a>
-      </div>
-
-      <input type="checkbox" id="menu-toggle" />
-
-      <label for="menu-toggle" class="menu-icon">☰</label>
-
-      <nav class="nav">
-        <ul class="nav-links">
-          <li><a href="{{url_for('registro')}}">¡Dona Ahora!</a></li>
-          <li><a href="#">Projects</a></li>
-          <li><a href="#">About us</a></li>
-          <li class="mobile-btn">
-            <a href="{{ url_for('login') }}" class="btn-link">Iniciar Sesión</a>
-          </li>
-        </ul>
-      </nav>
-    </header>
-
-    <div class="main">
+{% block content %}
+<div class="main">
     <div class="formulario">
         <form action="{{ url_for('registro') }}" method="POST" id="form-registro">
-            
             <h2>Registro de Usuario</h2>
 
             <label>Nombre:</label>
@@ -50,73 +20,39 @@
             <label>Rol:</label>
             <select name="rol" id="selector-rol" onchange="cambiarFormulario()" required>
                 <option value="">Seleccione...</option>
-                <option value="2">Donante</option>  
+                <option value="2">Donante</option> 
                 <option value="3">Fundación</option>
             </select>
 
             <div id="campos-donante" style="display:none;">
                 <h3>Datos del Donante</h3>
                 <label>Teléfono:</label>
-                <input type="text" name="telefono" id="input-telefono">
+                <input type="text" name="telefono">
                 <label>Dirección:</label>
-                <input type="text" name="direccion" id="input-direccion">
+                <input type="text" name="direccion">
             </div>
 
             <div id="campos-fundacion" style="display:none;">
                 <h3>Datos de la Fundación</h3>
                 <label>NIT:</label>
-                <input type="text" name="nit" id="input-nit">
+                <input type="text" name="nit">
                 <label>Nombre de la organización:</label>
-                <input type="text" name="organizacion" id="input-organizacion">
+                <input type="text" name="organizacion">
             </div>
 
             <button type="submit" class="btn-submit">Registrarse</button>
-
-        </form> </div>
+        </form>
+    </div>
 </div>
+{% endblock %}
 
-                 
-            </form>
-        </div>
-    </div>   
-    <!-- Script -->
-    <script>
+{% block scripts %}
+<script>
     function cambiarFormulario() {
         let rol = document.querySelector("select[name='rol']").value;
-
-        let donante = document.getElementById("campos-donante");
-        let fundacion = document.getElementById("campos-fundacion");
-
-        let telefono = document.querySelector("[name='telefono']");
-        let direccion = document.querySelector("[name='direccion']");
-        let nit = document.querySelector("[name='nit']");
-        let organizacion = document.querySelector("[name='organizacion']");
-
-        // 1. Ocultar todo por defecto
-        donante.style.display = "none";
-        fundacion.style.display = "none";
-
-        // 2. Quitar required de todos para que no bloqueen el envío
-        telefono.required = false;
-        direccion.required = false;
-        nit.required = false;
-        organizacion.required = false;
-
-        // 3. Mostrar y activar required según el rol
-        if (rol === "2") { 
-            donante.style.display = "block";
-            telefono.required = true;
-            direccion.required = true;
-        } else if (rol === "3") { 
-            fundacion.style.display = "block";
-            nit.required = true;
-            organizacion.required = true;
-        }
+        document.getElementById("campos-donante").style.display = (rol === "2") ? "block" : "none";
+        document.getElementById("campos-fundacion").style.display = (rol === "3") ? "block" : "none";
     }
-
-    // OPCIONAL: Ejecutar al cargar la página para resetear campos
     window.onload = cambiarFormulario;
 </script>
-
-</body>
-</html>
+{% endblock %}
