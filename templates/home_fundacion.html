@@ -20,8 +20,8 @@
     <div class="admin-container mt-4">
         <div class="dashboard-header">
             <div>
-                <h1>🏛️ Panel Fundación</h1>
-                <p>¡Hola, {{ fundacion.nombre_fundacion }}! Gestiona tus donaciones y solicitudes</p>
+                <h1>🏛️ Panel {{ fundacion.nombre_fundacion if fundacion.nombre_fundacion else fundacion.nombre }}</h1>
+                <p>¡Hola, {{ fundacion.nombre_fundacion if fundacion.nombre_fundacion else fundacion.nombre }}! Gestiona tus donaciones</p>
             </div>
         </div>
 
@@ -34,58 +34,40 @@
                              style="width: 100px; height: 100px; object-fit: cover; border: 3px solid #f5c518;">
                     </div>
                     
-                    <h3 class="fw-bold text-center mb-2">{{ fundacion.nombre_fundacion }}</h3>
+                    <h3 class="fw-bold text-center mb-2">{{ fundacion.nombre_fundacion if fundacion.nombre_fundacion else fundacion.nombre }}</h3>
                     
-                    {% if fundacion.estado_validacion == 'aprobado' %}
-                        <span class="badge badge-activo d-block text-center mb-3">✅ Fundación Activa</span>
-                    {% elif fundacion.estado_validacion == 'pendiente' %}
+                    {% if fundacion.estado == 'aprobado' %}
+                        <span class="badge bg-success d-block text-center mb-3">✅ Fundación Activa</span>
+                    {% elif fundacion.estado == 'pendiente' %}
                         <span class="badge bg-warning text-dark d-block text-center mb-3">⏳ Validación Pendiente</span>
                     {% else %}
-                        <span class="badge bg-secondary d-block text-center mb-3">❓ {{ fundacion.estado_validacion | default('Sin Estado') }}</span>
+                        <span class="badge bg-secondary d-block text-center mb-3">❓ {{ fundacion.estado | default('Sin Estado') }}</span>
                     {% endif %}
 
                     <div class="text-center">
-                        <button class="btn-gestion amarillo w-100" type="button" data-bs-toggle="collapse" data-bs-target="#formEditarPerfil" aria-expanded="false">
+                        <button class="btn-gestion amarillo w-100" type="button" data-bs-toggle="collapse" data-bs-target="#formEditarPerfil">
                             ✏️ Editar Perfil
                         </button>
 
                         <div class="collapse mt-3" id="formEditarPerfil">
-                            <div class="card card-body border-warning p-3 shadow-sm" style="background-color: #fdfdfd; border-radius: 10px;">
+                            <div class="card card-body border-warning p-3 shadow-sm">
                                 <form action="{{ url_for('editar_perfil') }}" method="POST" enctype="multipart/form-data">
-                                    
                                     <div class="mb-2 text-start">
                                         <label class="small fw-bold">📸 Foto de Perfil</label>
                                         <input type="file" name="foto_perfil" class="form-control form-control-sm" accept="image/*">
                                     </div>
-
                                     <div class="mb-2 text-start">
-                                        <label class="small fw-bold">Nombre Fundación</label>
-                                        <input type="text" name="nombre_fundacion" class="form-control form-control-sm" value="{{ fundacion.nombre_fundacion }}" required>
+                                        <label class="small fw-bold">Nombre</label>
+                                        <input type="text" name="nombre_fundacion" class="form-control form-control-sm" value="{{ fundacion.nombre_fundacion if fundacion.nombre_fundacion else fundacion.nombre }}" required>
                                     </div>
                                     <div class="mb-2 text-start">
                                         <label class="small fw-bold">NIT</label>
-                                        <input type="text" name="nit" class="form-control form-control-sm" value="{{ fundacion.nit }}">
+                                        <input type="text" name="nit" class="form-control form-control-sm" value="{{ fundacion.nit if fundacion.nit else '' }}">
                                     </div>
-                                    <div class="mb-2 text-start">
-                                        <label class="small fw-bold">Dirección</label>
-                                        <input type="text" name="direccion" class="form-control form-control-sm" value="{{ fundacion.direccion }}">
-                                    </div>
-                                    <div class="mb-3 text-start">
-                                        <label class="small fw-bold">Teléfono</label>
-                                        <input type="text" name="telefono" class="form-control form-control-sm" value="{{ fundacion.telefono }}">
-                                    </div>
-                                    <button type="submit" class="btn btn-dark btn-sm w-100 fw-bold">💾 GUARDAR CAMBIOS</button>
+                                    <button type="submit" class="btn btn-dark btn-sm w-100 fw-bold">💾 GUARDAR</button>
                                 </form>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <div class="stats-panel">
-                    <div class="stat-card">
-                        <div class="stat-icon">📦</div>
-                        <h4>{{ donaciones|length if donaciones else 0 }}</h4>
-                        <p>Donaciones Recibidas</p>
                     </div>
                 </div>
             </div>
@@ -97,133 +79,66 @@
                     <div class="row g-3">
                         {% for d in donaciones %}
                         <div class="col-md-6">
-                            <div class="donacion-card">
-                                <div class="donacion-card-header">
-                                    <span class="donacion-categoria">{{ d.categoria }}</span>
-                                    <span class="donacion-estado-badge estado-{{ d.estado }}">
-                                        {{ d.estado | title }}
-                                    </span>
+                            <div class="donacion-card p-3 border rounded shadow-sm bg-white">
+                                <div class="d-flex justify-content-between">
+                                    <span class="badge bg-info">{{ d.categoria }}</span>
+                                    <span class="badge bg-secondary">{{ d.estado }}</span>
                                 </div>
-                                <div class="donacion-card-body">
-                                    <p><strong>{{ d.nombre_donante }}</strong></p>
-                                    <p>{{ d.descripcion }}</p>
-                                    <p><strong>Cantidad:</strong> {{ d.cantidad }}</p>
-                                    <p><small>{{ d.fecha_registro }}</small></p>
-                                    <div class="donacion-actions">
-                                        {% if d.estado == 'pendiente' %}
-                                            <button class="btn-gestion btn-editar btn-sm">✅ Recibir</button>
-                                            <button class="btn-gestion btn-eliminar btn-sm">❌ Rechazar</button>
-                                        {% endif %}
-                                    </div>
+                                <div class="mt-2">
+                                    <p><strong>De:</strong> {{ d.nombre_donante }}</p>
+                                    <p class="mb-1">{{ d.descripcion }}</p>
+                                    <p class="small text-muted">Cantidad: {{ d.cantidad }}</p>
                                 </div>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
                     {% else %}
-                    <div class="empty-state text-center p-5">
-                        <div class="empty-icon" style="font-size: 3rem;">📦</div>
+                    <div class="empty-state text-center p-5 border rounded bg-white">
+                        <div style="font-size: 3rem;">📦</div>
                         <p>No tienes donaciones recibidas aún</p>
                     </div>
                     {% endif %}
+                    <div class="col-lg-9">
+    <div class="panel-section mb-4">
+        <h3 class="panel-title mb-3">🔍 Rastrear por Fundaciones</h3>
+        <div class="filtro-container">
+            <form method="GET" action="{{ url_for('home_donador') }}" class="row g-2">
+                <div class="col-md-4">
+                    <label class="small fw-bold">Buscar Donación</label>
+                    <input type="text" name="q" class="form-control form-control-sm" placeholder="¿Qué estás buscando?..." value="{{ request.args.get('q', '') }}">
                 </div>
 
-                <div class="panel-section mt-4">
-                    <h3 class="panel-title mb-3">🔍 Búsqueda Multicriterio</h3>
-                    <div class="filtro-container">
-                        <form method="GET" action="{{ url_for('home_fundacion') }}" class="row g-2">
-                            <div class="col-md-4">
-                                <label class="small fw-bold">Donante</label>
-                                <input type="text" name="q" class="form-control form-control-sm" placeholder="Nombre del donante..." value="{{ request.args.get('q', '') }}">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="small fw-bold">Categoría</label>
-                                <select name="cat" class="form-select form-select-sm">
-                                    <option value="">Todas</option>
-                                    <option value="Alimentos" {% if request.args.get('cat') == 'Alimentos' %}selected{% endif %}>Alimentos</option>
-                                    <option value="Ropa" {% if request.args.get('cat') == 'Ropa' %}selected{% endif %}>Ropa</option>
-                                    <option value="Medicamentos" {% if request.args.get('cat') == 'Medicamentos' %}selected{% endif %}>Medicamentos</option>
-                                    <option value="Otros" {% if request.args.get('cat') == 'Otros' %}selected{% endif %}>Otros</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="small fw-bold">Estado</label>
-                                <select name="est" class="form-select form-select-sm">
-                                    <option value="">Todos</option>
-                                    <option value="pendiente" {% if request.args.get('est') == 'pendiente' %}selected{% endif %}>Pendiente</option>
-                                    <option value="recibido" {% if request.args.get('est') == 'recibido' %}selected{% endif %}>Recibido</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2 d-flex align-items-end">
-                                <button type="submit" class="btn btn-dark btn-sm w-100">Filtrar</button>
-                            </div>
-                        </form>
-                    </div>
+                <div class="col-md-3">
+                    <label class="small fw-bold">Fundación</label>
+                    <select name="fundacion" class="form-select form-select-sm">
+                        <option value="">Todas las fundaciones</option>
+                        <option value="fundacion_vida" {% if request.args.get('fundacion') == 'fundacion_vida' %}selected{% endif %}>Fundación Vida</option>
+                        <option value="manos_abiertas" {% if request.args.get('fundacion') == 'manos_abiertas' %}selected{% endif %}>Manos Abiertas</option>
+                        <option value="esperanza_viva" {% if request.args.get('fundacion') == 'esperanza_viva' %}selected{% endif %}>Esperanza Viva</option>
+                        <option value="corazones_unidos" {% if request.args.get('fundacion') == 'corazones_unidos' %}selected{% endif %}>Corazones Unidos</option>
+                    </select>
                 </div>
 
-                <div id="fundaciones" class="panel-section mt-4">
-                    <h3 class="panel-title">📋 Historial Completo</h3>
-                    <div class="table-container">
-                        <table class="table-donaciones table w-100">
-                            <thead>
-                                <tr>
-                                    <th>Donante</th>
-                                    <th>Categoría</th>
-                                    <th>Descripción</th>
-                                    <th>Cantidad</th>
-                                    <th>Fecha</th>
-                                    <th>Estado</th>
-                                    <th>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for d in donaciones %}
-                                <tr>
-                                    <td>{{ d.nombre_donante }}</td>
-                                    <td>{{ d.categoria }}</td>
-                                    <td>{{ d.descripcion[:40] }}...</td>
-                                    <td>{{ d.cantidad }}</td>
-                                    <td>{{ d.fecha_registro }}</td>
-                                    <td>
-                                        <span class="badge estado-{{ d.estado }}">{{ d.estado | title }}</span>
-                                    </td>
-                                    <td>
-                                        {% if d.estado == 'pendiente' %}
-                                            <button class="btn-gestion btn-editar btn-sm">Recibir</button>
-                                        {% else %}
-                                            <span class="badge badge-activo">✓ Completado</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="col-md-3">
+                    <label class="small fw-bold">Estado de Entrega</label>
+                    <select name="est" class="form-select form-select-sm">
+                        <option value="">Todos los estados</option>
+                        <option value="pendiente" {% if request.args.get('est') == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                        <option value="en_camino" {% if request.args.get('est') == 'en_camino' %}selected{% endif %}>En Camino</option>
+                        <option value="recibido" {% if request.args.get('est') == 'recibido' %}selected{% endif %}>Recibido por Fundación</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold">🔍 BUSCAR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="barra-inferior p-4 bg-light border-top">
-        <div class="container text-center">
-            <h5>¿Necesitas ayuda urgente?</h5>
-            <p class="mb-0">Solicita recursos para tu fundación ahora</p>
-        </div>
-    </div>
-{% endblock %}
-
-{% block scripts %}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const target = document.querySelector(this.getAttribute('href'));
-                    if (target) {
-                        target.scrollIntoView({ behavior: 'smooth' });
-                    }
-                });
-            });
-        });
-    </script>
 {% endblock %}

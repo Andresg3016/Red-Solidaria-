@@ -1,9 +1,7 @@
 from database.db import get_connection
 
 class Usuario:
-    # Agregamos foto_perfil y telefono (con None por defecto para que no falle)
-    def __init__(self, id=None, nombre=None, correo=None, password=None, rol_id=None, 
-                 estado=None, fecha_registro=None, foto_perfil=None, telefono=None):
+    def __init__(self, id, nombre, correo, password, rol_id, estado, fecha_registro, tipo_solicitud=None, foto_perfil=None, telefono=None):
         self.id = id
         self.nombre = nombre
         self.correo = correo
@@ -11,7 +9,7 @@ class Usuario:
         self.rol_id = rol_id
         self.estado = estado
         self.fecha_registro = fecha_registro
-        # --- NUEVOS ATRIBUTOS ---
+        self.tipo_solicitud = tipo_solicitud # <--- AGREGA ESTA LÍNEA
         self.foto_perfil = foto_perfil
         self.telefono = telefono
 
@@ -54,22 +52,27 @@ class UsuarioModel:
                 print("DEBUG: Conexión cerrada en crear_usuario")
 
     def obtener_usuario_por_correo(self, correo):
-        conn = get_connection()
+        import mysql.connector
+        conn = None
         try:
+            # Conexión manual directa para evitar el error de 'self.db'
+            conn = mysql.connector.connect(
+                host='localhost',
+                user='root',
+                password='',
+                database='donaciones_db'
+            )
             cursor = conn.cursor(dictionary=True)
-            query = "SELECT * FROM usuarios WHERE correo = %s"
-            cursor.execute(query, (correo,))
-            data = cursor.fetchone()
-            
-            if data:
-                print(f"DEBUG: Datos encontrados para {correo}")
-                return Usuario(**data)
-            return None
+            sql = "SELECT * FROM usuarios WHERE correo = %s"
+            cursor.execute(sql, (correo,))
+            usuario = cursor.fetchone()
+            return usuario
         except Exception as e:
-            print(f"ERROR en obtener_usuario: {e}")
+            print(f"ERROR CRÍTICO EN MODELO: {e}")
             return None
         finally:
-            if conn:
+            if conn and conn.is_connected():
+                cursor.close()
                 conn.close()
 
     def obtener_fundacion_por_usuario(self, usuario_id):

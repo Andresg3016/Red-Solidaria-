@@ -9,38 +9,36 @@ class UsuarioController:
         self.modelo = UsuarioModel()
 
     def login_view(self):
-        # Esta línea tiene 8 espacios de sangría (2 niveles de Tab)
         from flask import render_template, request, redirect, url_for, session, flash
 
         if request.method == "POST":
-            correo = request.form.get("correo")
+            correo = request.form.get("correo").strip() # .strip() quita espacios accidentales
             password = request.form.get("password")
 
-            # 1. Validamos con el modelo (Asegúrate que validar_usuario exista en UsuarioModel)
             usuario = self.modelo.validar_usuario(correo, password)
 
             if usuario:
-                # 2. Guardamos los datos necesarios en la sesión
+                # Si el estado es 'inactivo' o algo raro, podrías bloquearlo aquí.
+                # Pero para Diana y Junior que son 'pendiente', debemos dejarlos pasar.
+                
                 session["usuario_id"] = usuario["id"]
                 session["nombre"] = usuario["nombre"]
-                session["rol"] = usuario["rol_id"]
-                
-                print(f"DEBUG LOGIN: {usuario['nombre']} ha iniciado sesión.")
+                session["rol"] = int(usuario["rol_id"]) 
+                session["estado"] = usuario["estado"] # Guardamos el estado en sesión
 
-                # 3. Redirección según el rol_id
+                print(f"DEBUG LOGIN: {usuario['nombre']} (Rol: {usuario['rol_id']}, Estado: {usuario['estado']}) ha iniciado sesión.")
+
                 rol_id = int(usuario["rol_id"])
-                if rol_id == 1:   # Administrador
+                if rol_id == 1:
                     return redirect(url_for("home_administrador"))
-                elif rol_id == 3: # Fundación
+                elif rol_id == 3:
                     return redirect(url_for("home_fundacion"))
-                else:             # Donador (Rol 2)
+                else:
                     return redirect(url_for("home_donador"))
             else:
-                # --- SOLO SE ACTIVA SI LOS DATOS SON ERRÓNEOS EN EL POST ---
-                flash("Contraseña incorrecta", "danger")
+                flash("Correo o contraseña incorrectos", "danger")
                 return render_template("login.html")
 
-        # 4. Si entras por GET (solo cargar la página), no hay flash y carga limpio
         return render_template("login.html")
 
     def editar_perfil_view(self):
