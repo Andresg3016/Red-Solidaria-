@@ -1,138 +1,160 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Red Solidaria - Donador</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/home_donador.css') }}">
-</head>
-<body>
+{% extends "layout.html" %}
 
-    <nav class="navbar navbar-expand-lg shadow-sm" style="background: #fffef5; border-bottom: 3px solid #f5c518; padding: 10px 0;">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('inicio') }}">
-                <img src="{{ url_for('static', filename='img/logo.jpeg') }}" alt="Logo" style="height: 50px; border-radius: 8px;">
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-    <ul class="navbar-nav ms-auto align-items-center gap-2">
-        <li class="nav-item">
-            <a class="btn-gestion amarillo btn-sm px-3 text-decoration-none d-inline-block" href="#mis-donaciones">
-                📦 Mis Donaciones
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="btn-gestion verde btn-sm px-3 text-decoration-none d-inline-block" href="#fundaciones">
-                🏛️ Fundaciones
-            </a>
-        </li>
-        <li class="nav-item ms-lg-3">
-            <a href="{{ url_for('logout') }}" class="btn-logout shadow-sm">
-                🚪 Cerrar Sesión
-            </a>
-        </li>
-    </ul>
-</div>
-    </nav>
+{% block title %}Panel de Donador{% endblock %}
 
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/solicitar_ayuda.css') }}">
+    <link href="{{ url_for('static', filename='css/home_fundacion.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/home_donador.css') }}" rel="stylesheet">
+    <style>
+        .filtro-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .perfil-donante-card {
+            border-top: 5px solid #007bff !important;
+        }
+        .btn-primario-donante {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            transition: 0.3s;
+        }
+        .btn-primario-donante:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
     <div class="admin-container mt-4">
-        <div class="dashboard-header d-flex justify-content-between align-items-center">
+        <div class="dashboard-header">
             <div>
-                <h1>¡Hola, {{ usuario.nombre }}!</h1>
-                <p>Bienvenido a tu panel de Red Solidaria - Impacta con tu generosidad</p>
+                <h1>🙋‍♂️ Panel Donador</h1>
+                <p>¡Hola, {{ donador.nombre }}! Aquí puedes ver el impacto de tu ayuda.</p>
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-lg-4">
-                <div class="gestion-section text-center">
-                    <div class="profile-img-container mb-3">
-                        {% set foto = session.get('foto') if session.get('foto') else 'default.png' %}
-                        <form action="{{ url_for('subir_foto') }}" method="POST" enctype="multipart/form-data" id="formFoto">
-                            <label for="inputFoto" style="cursor: pointer;">
-                                <img src="{{ url_for('static', filename='uploads/' + foto) }}" class="rounded-circle shadow-sm" style="width: 120px; height: 120px; border: 3px solid #f5c518; object-fit: cover;">
-                            </label>
-                            <input type="file" name="foto" id="inputFoto" hidden onchange="this.form.submit()">
-                        </form>
+        <div class="row mb-4">
+            <div class="col-lg-3">
+                <div class="perfil perfil-donante-card mb-4 shadow-sm">
+                    <div class="profile-img-container text-center mb-3">
+                        <img src="{{ url_for('static', filename='img/' + (donador.foto_perfil if donador.foto_perfil else 'donador-default.jpg')) }}" 
+                             class="rounded-circle shadow-sm" 
+                             style="width: 110px; height: 110px; object-fit: cover; border: 4px solid #007bff;">
                     </div>
-                    <h3 class="fw-bold">{{ usuario.nombre }}</h3>
-                    <span class="badge-estado badge-activo">Donador Activo</span>
-                    <div class="mt-3">
-                        <a href="{{ url_for('editar_perfil') }}" class="btn-gestion amarillo w-100">✏️ Editar Perfil</a>
+                    
+                    <h3 class="fw-bold text-center mb-1">{{ donador.nombre }}</h3>
+                    <p class="text-muted text-center small mb-3">Donador de Corazón ❤️</p>
+                    
+                    <div class="text-center">
+                        <button class="btn-gestion btn-outline-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#formEditarDonante" aria-expanded="false">
+                            ✏️ Editar Mi Perfil
+                        </button>
+
+                        <div class="collapse mt-3" id="formEditarDonante">
+                            <div class="card card-body border-primary p-3 shadow-sm" style="background-color: #fdfdfd; border-radius: 10px;">
+                                <form action="{{ url_for('editar_perfil_donador') }}" method="POST" enctype="multipart/form-data">
+                                    <div class="mb-2 text-start">
+                                        <label class="small fw-bold text-primary">📸 Actualizar Foto</label>
+                                        <input type="file" name="foto_perfil" class="form-control form-control-sm" accept="image/*">
+                                    </div>
+                                    <div class="mb-2 text-start">
+                                        <label class="small fw-bold">Nombre Completo</label>
+                                        <input type="text" name="nombre" class="form-control form-control-sm" value="{{ donador.nombre }}" required>
+                                    </div>
+                                    <div class="mb-2 text-start">
+                                        <label class="small fw-bold">Teléfono de Contacto</label>
+                                        <input type="text" name="telefono" class="form-control form-control-sm" value="{{ donador.telefono }}">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold mt-2">💾 GUARDAR CAMBIOS</button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="stats-card donaciones">
-                    <div class="icon">📦</div>
-                    <h3 id="total-publicadas">{{ donaciones|length if donaciones else 0 }}</h3>
-                    <p>Donaciones Publicadas</p>
-                </div>
-
-                <div class="stats-card fundaciones">
-                    <div class="icon">✅</div>
-                    <h3 id="total-entregadas">0</h3>
-                    <p>Donaciones Entregadas</p>
+                <div class="stats-panel">
+                    <div class="stat-card shadow-sm">
+                        <div class="stat-icon">🌟</div>
+                        <h4>{{ donaciones|length if donaciones else 0 }}</h4>
+                        <p>Donaciones Enviadas</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="col-lg-8">
-                <div class="gestion-section shadow-sm">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h3 id="mis-donaciones" class="m-0">📦 Mis Donaciones</h3>
-                        <a href="{{ url_for('donar') }}" class="btn-gestion verde">+ Publicar Nueva Donación</a>
-                    </div>
-
-                    {% if donaciones %}
-                    <div class="row g-3">
-                        {% for d in donaciones %}
-                        <div class="col-md-6">
-                            <div class="donacion-card {{ 'fundacion' if d[4] == 'entregada' else 'donante' }}">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <span class="badge-estado {{ 'badge-activo' if d[4] == 'entregada' else 'badge-pendiente' }}">
-                                        {{ d[4]|upper }}
-                                    </span>
-                                    <small class="text-muted" style="font-size: 0.7rem;">{{ d[5] }}</small>
-                                </div>
-                                <h4 class="mt-3 fw-bold">{{ d[1] }}</h4>
-                                <p class="text-muted small mb-2">{{ d[2]|truncate(80) }}</p>
-                                <div class="info-item"><strong>Cant:</strong> <span>{{ d[3] }}</span></div>
-                                <div class="mt-3 d-flex gap-2">
-                                    <button onclick="editarDonacion({{ d[0] }})" class="btn-gestion amarillo btn-sm px-3" title="Editar">✏️</button>
-                                    <button onclick="eliminarDonacion({{ d[0] }})" class="btn-gestion rojo btn-sm px-3" title="Eliminar">🗑️</button>
-                                </div>
+            <div class="col-lg-9">
+                
+                <div class="panel-section mb-4">
+                    <h3 class="panel-title mb-3">🔍 Rastrear Donaciones (API REST Filter)</h3>
+                    <div class="filtro-container">
+                        <form method="GET" action="{{ url_for('home_donador') }}" class="row g-2">
+                            <div class="col-md-4">
+                                <label class="small fw-bold">Palabra Clave</label>
+                                <input type="text" name="q" class="form-control form-control-sm" placeholder="Buscar por descripción o fundación..." value="{{ request.args.get('q', '') }}">
                             </div>
-                        </div>
-                        {% endfor %}
+                            <div class="col-md-3">
+                                <label class="small fw-bold">Categoría</label>
+                                <select name="cat" class="form-select form-select-sm">
+                                    <option value="">Todas</option>
+                                    <option value="Alimentos" {% if request.args.get('cat') == 'Alimentos' %}selected{% endif %}>Alimentos</option>
+                                    <option value="Ropa" {% if request.args.get('cat') == 'Ropa' %}selected{% endif %}>Ropa</option>
+                                    <option value="Medicamentos" {% if request.args.get('cat') == 'Medicamentos' %}selected{% endif %}>Medicamentos</option>
+                                    <option value="Otros" {% if request.args.get('cat') == 'Otros' %}selected{% endif %}>Otros</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="small fw-bold">Estado</label>
+                                <select name="est" class="form-select form-select-sm">
+                                    <option value="">Todos los estados</option>
+                                    <option value="pendiente" {% if request.args.get('est') == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                                    <option value="recibido" {% if request.args.get('est') == 'recibido' %}selected{% endif %}>Recibido</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold">🔍 FILTRAR</button>
+                            </div>
+                        </form>
                     </div>
-                    {% else %}
-                    <div class="table-container text-center py-4">
-                        <p class="text-muted m-0">Aún no has publicado ninguna donación. ¡Empieza hoy!</p>
-                    </div>
-                    {% endif %}
                 </div>
 
-                <div class="gestion-section shadow-sm" id="fundaciones">
-                    <h3 class="mb-4">🏛️ Fundaciones Registradas</h3>
-                    <div class="table-container p-0 overflow-hidden" style="border-radius: 10px;">
-                        <table class="table table-hover mb-0">
-                            <thead>
+                <div id="mis-donaciones-realizadas" class="panel-section shadow-sm">
+                    <h3 class="panel-title">📋 Mi Historial de Ayuda</h3>
+                    <div class="table-container mt-3">
+                        <table class="table-donaciones table w-100">
+                            <thead class="table-dark">
                                 <tr>
-                                    <th class="ps-3">Fundación</th>
-                                    <th>Ubicación</th>
-                                    <th class="text-center">Acción</th>
+                                    <th>Fundación Destino</th>
+                                    <th>Categoría</th>
+                                    <th>Descripción</th>
+                                    <th>Cantidad</th>
+                                    <th>Fecha</th>
+                                    <th>Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for f in fundaciones %}
+                                {% for d in donaciones %}
                                 <tr>
-                                    <td class="ps-3"><strong>{{ f.nombre_fundacion }}</strong></td>
-                                    <td><small>📍 {{ f.ubicacion }}</small></td>
-                                    <td class="text-center">
-                                        <a href="{{ url_for('donar_fundacion', fundacion_id=f.id) }}" class="btn-gestion verde btn-sm py-1 px-3">💝 Donar</a>
+                                    <td><strong>{{ d.nombre_fundacion }}</strong></td>
+                                    <td>{{ d.categoria }}</td>
+                                    <td>{{ d.descripcion[:35] }}...</td>
+                                    <td>{{ d.cantidad }}</td>
+                                    <td>{{ d.fecha_registro }}</td>
+                                    <td>
+                                        <span class="badge estado-{{ d.estado }}">{{ d.estado | title }}</span>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5">
+                                        <div class="empty-state">
+                                            <i class="fas fa-box-open fa-3x mb-3 text-muted"></i>
+                                            <p class="text-muted">No se encontraron donaciones con estos filtros.</p>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -144,20 +166,28 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="barra-inferior p-5 bg-primary text-white mt-5">
+        <div class="container text-center">
+            <h2 class="fw-bold">¿Tienes algo que compartir hoy?</h2>
+            <p class="lead">Tu pequeña acción genera un gran cambio.</p>
+            <a href="{{ url_for('crear_donacion') }}" class="btn btn-light btn-lg mt-3 fw-bold px-5">🚀 REALIZAR NUEVA DONACIÓN</a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Calculamos entregadas buscando el badge activo dentro de las donaciones
-            const cardsEntregadas = document.querySelectorAll('.donacion-card.fundacion').length;
-            document.getElementById('total-entregadas').textContent = cardsEntregadas;
+            // Scroll suave para navegación interna
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
         });
-
-        function editarDonacion(id) { window.location.href = `/editar_donacion/${id}`; }
-        function eliminarDonacion(id) { 
-            if(confirm('¿Seguro que deseas eliminar esta donación?')) {
-                window.location.href = `/eliminar_donacion/${id}`;
-            }
-        }
     </script>
-</body>
-</html>
+{% endblock %}

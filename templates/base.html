@@ -1,20 +1,82 @@
-<footer class="bg-dark text-white text-center p-5 mt-5" style="border-top: 4px solid #63ff5e;">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12 mb-3">
-                <img src="/static/images/logo.jpeg" alt="Logo" style="max-height: 50px; border-radius: 8px; margin-bottom: 15px; background: white; padding: 2px;">
-                <h5 class="text-uppercase fw-bold">Red Solidaria</h5>
-                <p class="mb-1">Conectando solidaridad con quienes más lo necesitan</p>
-            </div>
+{% extends "layout.html" %}
+
+{% block body_content %}
+    <nav class="navbar navbar-expand-lg navbar-custom shadow-sm bg-white">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center text-decoration-none" href="{{ url_for('inicio') }}">
+                <img src="{{ url_for('static', filename='img/logo.jpeg') }}" alt="Logo Red Solidaria" class="logo-responsive" style="height: 50px;">
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav me-auto mb-2 mb-lg-0 gap-2">
+                    <div class="navbar-nav me-auto mb-2 mb-lg-0 gap-2">
+    {% if session.get('usuario_id') %}
+        
+        {# FILTRO 1: SI ES DONADOR (ROL 2) #}
+        {% if session.get('rol') == 2 or session.get('rol') == '2' %}
+            <a href="{{ url_for('home_donador') }}" class="nav-link nav-link-gradiente">🏠 Mi Panel</a>
+            <a href="{{ url_for('crear_donacion') }}" class="nav-link nav-link-gradiente">🎁 Donar</a>
+        
+        {# FILTRO 2: SI ES FUNDACIÓN (ROL 3) #}
+        {% elif session.get('rol') == 3 or session.get('rol') == '3' %}
+            <a href="{{ url_for('home_fundacion') }}" class="nav-link nav-link-gradiente">🏛️ Panel Fundación</a>
+            <a href="{{ url_for('solicitar_ayuda') }}" class="nav-link nav-link-gradiente">📤 Solicitar Ayuda</a>
             
-            <div class="col-md-12 mb-3">
-                <hr class="bg-light w-25 mx-auto">
-                <p class="mb-1">
-                    <strong>Contacto:</strong> 
-                    <a href="mailto:soporte@redsolidaria.com" class="text-info text-decoration-none">soporte@redsolidaria.com</a>
-                </p>
-                <p class="small">© 2026 Red Solidaria - Uniendo Corazones</p>
+        {# FILTRO 3: SI ES ADMIN (ROL 1) #}
+        {% elif session.get('rol') == 1 or session.get('rol') == '1' %}
+            <a href="{{ url_for('home_administrador') }}" class="nav-link nav-link-gradiente">🛡️ Admin</a>
+        {% endif %}
+
+    {% else %}
+        {# SI NO HAY NADIE LOGUEADO #}
+        <a href="{{ url_for('inicio') }}" class="nav-link nav-link-gradiente">🏠 Inicio</a>
+        <a href="{{ url_for('registro') }}" class="nav-link nav-link-gradiente">🎁 ¡Dona Ahora!</a>
+    {% endif %}
+</div>
+
+                <div class="navbar-nav ms-auto gap-2">
+                    {% if session.get('nombre') %}
+                        <div class="dropdown">
+                            <button class="nav-link nav-link-gradiente dropdown-toggle fw-bold" 
+                                    data-bs-toggle="dropdown" 
+                                    style="border: none !important; color: rgb(57, 107, 194) !important;">
+                                👤 {{ session['nombre'] }}
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg">
+                                <li><a class="dropdown-item" href="{{ url_for('editar_perfil') }}">👤 Ver Perfil</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger fw-bold" href="{{ url_for('logout') }}">
+                                        🚪 Cerrar Sesión
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="nav-link nav-link-gradiente fw-bold" style="color: #6366f1 !important;">
+                            🔑 Iniciar Sesión
+                        </a>
+                    {% endif %}
+                </div>
             </div>
         </div>
-    </div>
-</footer>
+    </nav>
+
+    <main style="padding-top: 20px; min-height: 70vh;">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-dark text-white text-center mt-auto" style="border-top: 4px solid #63ff5e; padding: 25px 20px;">
+        <div class="container">
+            <h6 class="fw-bold mb-2">Red Solidaria</h6>
+            <p class="small mb-2">Conectando solidaridad con quienes más lo necesitan</p>
+            <p class="xsmall mb-0" style="font-size: 0.75rem; opacity: 0.8;">© 2026 Red Solidaria - Uniendo Corazones</p>
+        </div>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+{% endblock %}

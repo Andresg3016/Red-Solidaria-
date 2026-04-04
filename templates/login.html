@@ -1,42 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Red Solidaria</title>
-    <link rel="stylesheet" href="{{url_for('static', filename='css/login.css')}}" />
-    
-</head>
-<body>
+{% extends "base.html" %}
 
-<header class="header">
-    <div class="logo">
-        <a href="{{ url_for('inicio') }}">
-            <img src="{{url_for('static', filename='img/logo.jpeg')}}" alt="Logo">
-        </a>
-    </div>
+{% block title %}Iniciar Sesión{% endblock %}
 
-    <input type="checkbox" id="menu-toggle" />
-    <label for="menu-toggle" class="menu-icon">☰</label>
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+{% endblock %}
 
-    <nav class="nav">
-        <ul class="nav-links">
-            <li><a href="{{url_for('registro')}}">¡Dona Ahora!</a></li>
-            <li><a href="#">Projects</a></li>
-            <li><a href="#">About us</a></li>
-            <li>
-                <a href="{{ url_for('login') }}" class="btn-link">Iniciar Sesión</a>
-            </li>
-        </ul>
-    </nav>
-</header>
-
-<!-- NUEVO CONTENEDOR -->
+{% block content %}
 <div class="main">
-    <div class="formulario">
+    <div class="formulario shadow-lg">
         <h1>Inicio de Sesión</h1>
         
-
         <form method="post">
             <div class="email">
                 <input type="email" name="correo" placeholder="Correo electrónico" required>
@@ -49,11 +23,9 @@
             <input type="submit" value="Iniciar">
 
             <div class="registrarse">
-                Quiero hacer el <a href="{{url_for('registro')}}">registro</a>
+                ¿No tienes cuenta? Quiero hacer el <a href="{{ url_for('registro') }}">registro</a>
             </div>
         </form>
     </div>
 </div>
-
-</body>
-</html>
+{% endblock %}
