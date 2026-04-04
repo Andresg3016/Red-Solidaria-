@@ -1,7 +1,9 @@
 from database.db import get_connection
 
 class Usuario:
-    def __init__(self, id = None, nombre = None, correo = None, password = None, rol_id = None, estado = None, fecha_registro = None):
+    # Agregamos foto_perfil y telefono (con None por defecto para que no falle)
+    def __init__(self, id=None, nombre=None, correo=None, password=None, rol_id=None, 
+                 estado=None, fecha_registro=None, foto_perfil=None, telefono=None):
         self.id = id
         self.nombre = nombre
         self.correo = correo
@@ -9,6 +11,9 @@ class Usuario:
         self.rol_id = rol_id
         self.estado = estado
         self.fecha_registro = fecha_registro
+        # --- NUEVOS ATRIBUTOS ---
+        self.foto_perfil = foto_perfil
+        self.telefono = telefono
 
 class UsuarioModel:
 

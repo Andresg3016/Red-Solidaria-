@@ -47,6 +47,8 @@ class AuthController:
             session["usuario_id"] = usuario.id
             session["rol"] = int(usuario.rol_id) 
             session["nombre"] = usuario.nombre
+            session["foto_perfil"] = usuario.foto_perfil
+            session["telefono"] = usuario.telefono
             
             print(f"DEBUG: Sesión creada. Redirigiendo según Rol: {usuario.rol_id}")
             

@@ -150,13 +150,21 @@ class UsuarioController:
     def home_donador_view(self):
         from flask import session, redirect, url_for, render_template
         from models.donacion_model import DonacionModel
+        
         if "rol" not in session:
             return redirect(url_for("login"))
         if int(session["rol"]) != 2: 
             return "Acceso no autorizado"
-        usuario = {"nombre": session.get("nombre")}
+
+        # AGREGA ESTOS DATOS para que el HTML pueda mostrarlos
+        usuario = {
+            "nombre": session.get("nombre"),
+            "foto_perfil": session.get("foto_perfil"), # Para la imagen circular
+            "telefono": session.get("telefono")       # Para el formulario de edición
+        }
+        
         donaciones = DonacionModel().donaciones_por_usuario(session["usuario_id"])
-        return render_template("home_donador.html", usuario=usuario, donaciones=donaciones)
+        return render_template("home_donador.html", donador=usuario, donaciones=donaciones)
 
     def home_fundacion_view(self):
         from flask import session, redirect, url_for, render_template

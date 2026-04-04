@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "base.html" %}
 
 {% block title %}Panel de Donador{% endblock %}
 
@@ -58,7 +58,7 @@
 
                         <div class="collapse mt-3" id="formEditarDonante">
                             <div class="card card-body border-primary p-3 shadow-sm" style="background-color: #fdfdfd; border-radius: 10px;">
-                                <form action="{{ url_for('editar_perfil_donador') }}" method="POST" enctype="multipart/form-data">
+                                <form action="{{ url_for('editar_perfil') }}" method="POST" enctype="multipart/form-data">
                                     <div class="mb-2 text-start">
                                         <label class="small fw-bold text-primary">📸 Actualizar Foto</label>
                                         <input type="file" name="foto_perfil" class="form-control form-control-sm" accept="image/*">
@@ -170,7 +170,7 @@
         <div class="container text-center">
             <h2 class="fw-bold">¿Tienes algo que compartir hoy?</h2>
             <p class="lead">Tu pequeña acción genera un gran cambio.</p>
-            <a href="{{ url_for('crear_donacion') }}" class="btn btn-light btn-lg mt-3 fw-bold px-5">🚀 REALIZAR NUEVA DONACIÓN</a>
+            <a href="{{ url_for('donar') }}" class="btn btn-light btn-lg mt-3 fw-bold px-5">🚀 REALIZAR NUEVA DONACIÓN</a>
         </div>
     </div>
 {% endblock %}
