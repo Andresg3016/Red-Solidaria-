@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Publicar Donación{% endblock %}
+{% block title %}Publicar Donación - Red Solidaria{% endblock %}
 
 {% block head %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/donar.css') }}" />
@@ -27,6 +27,9 @@
             border-radius: 15px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
+        .text-primary {
+            color: #0d6efd !important;
+        }
     </style>
 {% endblock %}
 
@@ -35,33 +38,40 @@
     <div class="form-card">
         <h1 class="text-center mb-4 text-primary fw-bold">🎁 Publicar Donación</h1>
 
+        {# Sección informativa si el donador viene desde una necesidad específica #}
         {% if necesidad %}
         <div class="info-urgencia shadow-sm">
             <i class="fas fa-exclamation-triangle me-2"></i>
-            <strong>Donación para:</strong> {{ necesidad.nombre_fundacion }}<br>
-            <small class="d-block mt-1"><strong>Necesidad:</strong> {{ necesidad.descripcion[:120] }}...</small>
+            <strong>Donación destinada a:</strong> {{ necesidad.nombre_fundacion }}<br>
+            <small class="d-block mt-1"><strong>Causa:</strong> {{ necesidad.descripcion[:120] }}...</small>
         </div>
         {% endif %}
 
-        <form method="POST" class="needs-validation">
+        <form method="POST" action="{{ url_for('publicar_donacion', necesidad_id=necesidad.id if necesidad else None) }}" class="needs-validation">
+            
+            {# Campo Oculto: ID de la Fundación (CRUCIAL para que aparezca en el tablero) #}
             <input type="hidden" name="fundacion_id" value="{{ necesidad.fundacion_id if necesidad else '' }}">
 
+            {# Campo: Fundación Destino (Solo lectura) #}
             <div class="mb-3">
                 <label class="form-label fw-bold">🏛️ Fundación Destino:</label>
                 <input type="text" 
-                       value="{{ necesidad.nombre_fundacion if necesidad else 'Donación General / Pendiente' }}" 
+                       value="{{ necesidad.nombre_fundacion if necesidad else 'Donación General / Pendiente de Asignar' }}" 
                        class="form-control readonly-field" 
                        readonly>
             </div>
 
+            {# Campo: Categoría #}
             <div class="mb-3">
-                <label class="form-label fw-bold">📂 Categoría:</label>
+                <label class="form-label fw-bold">📂 Categoría de la Donación:</label>
                 {% if necesidad %}
+                    {# Si viene de una necesidad, la categoría ya está fija #}
                     <input type="text" value="{{ necesidad.nombre_categoria }}" class="form-control readonly-field" readonly>
                     <input type="hidden" name="categoria_id" value="{{ necesidad.categoria_id }}">
                 {% else %}
+                    {# Si es donación libre, el usuario elige #}
                     <select name="categoria_id" class="form-select" required>
-                        <option value="" disabled selected>Selecciona una categoría...</option>
+                        <option value="" disabled selected>Selecciona qué vas a donar...</option>
                         {% for cat in categorias %}
                             <option value="{{ cat.id }}">{{ cat.nombre }}</option>
                         {% endfor %}
@@ -69,20 +79,24 @@
                 {% endif %}
             </div>
 
+            {# Campo: Descripción #}
             <div class="mb-3">
                 <label class="form-label fw-bold">📝 Descripción de tu donación:</label>
                 <textarea name="descripcion" class="form-control" rows="3" 
-                          placeholder="Ej: Ropa de invierno limpia, 10 latas de atún, etc." required></textarea>
+                          placeholder="Ej: 5 bolsas de arroz de 1kg, Ropa para niños talla 10, etc." required></textarea>
+                <div class="form-text">Sé lo más específico posible para ayudar a la fundación.</div>
             </div>
 
+            {# Campo: Cantidad #}
             <div class="mb-4">
-                <label class="form-label fw-bold">🔢 Cantidad:</label>
+                <label class="form-label fw-bold">🔢 Cantidad / Unidades:</label>
                 <input type="number" name="cantidad" class="form-control" min="1" 
                        placeholder="{{ necesidad.cantidad if necesidad else 'Ingresa el número de artículos' }}" required>
             </div>
 
+            {# Botón de Envío #}
             <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">
-                {% if necesidad %}🤝 CONFIRMAR AYUDA AHORA{% else %}🚀 PUBLICAR DONACIÓN{% endif %}
+                {% if necesidad %}🤝 CONFIRMAR AYUDA AHORA{% else %}🚀 PUBLICAR MI DONACIÓN{% endif %}
             </button>
         </form>
 
@@ -94,3 +108,5 @@
     </div>
 </div>
 {% endblock %}
+
+{# Fin del archivo donar.html - Red Solidaria #}

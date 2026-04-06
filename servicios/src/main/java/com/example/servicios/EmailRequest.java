@@ -1,5 +1,8 @@
 package com.example.servicios;
 
+import java.util.List;
+import java.util.Map;
+
 public class EmailRequest {
     private String destinatario;
     private String nombreFundacion;
@@ -10,16 +13,17 @@ public class EmailRequest {
     private int cantidadDonaciones;
     private String categoriaFiltrada;
     private String estadoFiltrado;
+    
+    // Lista para la tabla del PDF
+    private List<Map<String, Object>> donaciones;
 
-    // Getters y Setters de los campos originales
+    // Getters y Setters
     public String getDestinatario() { return destinatario; }
     public void setDestinatario(String destinatario) { this.destinatario = destinatario; }
     public String getNombreFundacion() { return nombreFundacion; }
     public void setNombreFundacion(String nombreFundacion) { this.nombreFundacion = nombreFundacion; }
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
-
-    // Getters y Setters de los nuevos campos
     public String getNit() { return nit; }
     public void setNit(String nit) { this.nit = nit; }
     public int getCantidadDonaciones() { return cantidadDonaciones; }
@@ -28,4 +32,6 @@ public class EmailRequest {
     public void setCategoriaFiltrada(String categoriaFiltrada) { this.categoriaFiltrada = categoriaFiltrada; }
     public String getEstadoFiltrado() { return estadoFiltrado; }
     public void setEstadoFiltrado(String estadoFiltrado) { this.estadoFiltrado = estadoFiltrado; }
+    public List<Map<String, Object>> getDonaciones() { return donaciones; }
+    public void setDonaciones(List<Map<String, Object>> donaciones) { this.donaciones = donaciones; }
 }

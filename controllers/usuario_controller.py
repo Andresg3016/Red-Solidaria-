@@ -231,8 +231,12 @@ class UsuarioController:
     def home_fundacion_view(self):
         from flask import session, redirect, url_for, render_template, request, flash
         from models.donacion_model import DonacionModel 
-        import requests # Necesario para la conexión con la API de Java
+        import requests 
+        import json # <--- IMPORTANTE: Asegúrate de que esté aquí
         
+        # Importamos la función de limpieza que creamos en app.py
+        from app import serializar_datos 
+
         if "rol" not in session:
             return redirect(url_for("login"))
         
@@ -245,46 +249,53 @@ class UsuarioController:
         if not fundacion:
             return "Error: No se encontraron datos de la fundación."
 
-        # 1. CAPTURAR FILTROS Y ACCIÓN DEL FORMULARIO
         query = request.args.get('q', '')
         donante = request.args.get('donante', '')
         categoria = request.args.get('categoria', '')
         estado = request.args.get('est', '')
-        accion = request.args.get('accion') # 'buscar' o 'reporte'
+        accion = request.args.get('accion') 
         correo_reporte = request.args.get('correo_reporte')
 
-        # 2. OBTENER DONACIONES (Multicriterio)
         donacion_model = DonacionModel()
-        # Aquí pasamos los filtros al modelo (Asegúrate que tu modelo acepte estos argumentos)
         mis_donaciones = donacion_model.obtener_donaciones_por_fundacion(
-            fundacion['id'], 
+            usuario_id,
             q=query, 
             donante=donante, 
             categoria=categoria, 
             estado=estado
         )
 
-        # 3. LÓGICA PARA ENVIAR REPORTE A JAVA
         if accion == 'reporte':
             if not correo_reporte:
                 flash("Por favor, ingresa un correo para el reporte", "warning")
             else:
                 try:
-                    # Preparamos el paquete para Java
-                    url_java = "http://localhost:8080/api/email/enviar-reporte" # Ajusta tu URL de Java
+                    url_java = "http://localhost:8080/api/email/enviar-reporte"
+                    
                     payload = {
                         "destinatario": correo_reporte,
-                        "nombreFundacion": fundacion['nombre_fundacion'],
+                        "nombreFundacion": fundacion.get('nombre_fundacion', fundacion.get('nombre')),
                         "nit": fundacion.get('nit', 'N/A'),
                         "cantidadDonaciones": len(mis_donaciones),
-                        "categoriaFiltrada": categoria if categoria else "Todas",
-                        "estadoFiltrado": estado if estado else "Todos"
+                        "donaciones": mis_donaciones # Aquí están las fechas de MySQL
                     }
-                    requests.post(url_java, json=payload, timeout=5)
-                    flash(f"¡Reporte enviado con éxito a {correo_reporte}!", "success")
+                    
+                    # --- LA CORRECCIÓN CRÍTICA ---
+                    # Limpiamos los datos antes de enviarlos a Java
+                    datos_limpios = json.loads(json.dumps(payload, default=serializar_datos))
+                    
+                    response = requests.post(url_java, json=datos_limpios, timeout=10)
+                    
+                    if response.status_code == 200:
+                        flash(f"✅ ¡Reporte enviado con éxito a {correo_reporte}!", "success")
+                        print("✅ Éxito: Java procesó el PDF y el correo.")
+                    else:
+                        print(f"❌ Error en Java: {response.status_code} - {response.text}")
+                        flash("Java recibió los datos pero hubo un error al generar el PDF", "danger")
+
                 except Exception as e:
-                    print(f"Error al conectar con Java: {e}")
-                    flash("No se pudo enviar el reporte por un error técnico", "danger")
+                    print(f"❌ Error de conexión: {e}")
+                    flash("No se pudo conectar con el servicio de correos (Java)", "danger")
 
         return render_template(
             "home_fundacion.html", 
