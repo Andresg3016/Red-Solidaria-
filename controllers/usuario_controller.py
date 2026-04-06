@@ -42,14 +42,61 @@ class UsuarioController:
         return render_template("login.html")
 
     def editar_perfil_view(self):
-        from flask import session, render_template, request, redirect, url_for
+        from flask import session, render_template, request, redirect, url_for, flash, current_app
+        from models.usuario_model import UsuarioModel
+        import os
+        from werkzeug.utils import secure_filename
+
         if "usuario_id" not in session:
             return redirect(url_for("login"))
+        
         if request.method == "POST":
-            return redirect(url_for("home_donador"))
-        usuario = {"nombre": session.get("nombre")}
-        return render_template("editar_perfil.html", usuario=usuario)
+            usuario_id = session["usuario_id"]
+            nombre = request.form.get("nombre")
+            telefono = request.form.get("telefono")
+            archivo_foto = request.files.get("foto_perfil")
+            
+            nombre_archivo = None
+            
+            # 1. Procesar la foto si el usuario subió una nueva
+            if archivo_foto and archivo_foto.filename != '':
+                nombre_archivo = secure_filename(f"perfil_{usuario_id}_{archivo_foto.filename}")
+                ruta_carpeta = os.path.join('static', 'img')
+                
+                # Asegurar que la carpeta exista
+                if not os.path.exists(ruta_carpeta):
+                    os.makedirs(ruta_carpeta)
+                    
+                archivo_foto.save(os.path.join(ruta_carpeta, nombre_archivo))
+                print(f"DEBUG: Nueva foto guardada como {nombre_archivo}")
 
+            # 2. Llamar al modelo para actualizar en la DB
+            modelo = UsuarioModel()
+            exito = modelo.actualizar_perfil(usuario_id, nombre, telefono, nombre_archivo)
+
+            if exito:
+                # 3. ¡IMPORTANTE! Actualizamos la sesión para que los cambios se vean de inmediato
+                session["nombre"] = nombre
+                session["telefono"] = telefono
+                if nombre_archivo:
+                    session["foto_perfil"] = nombre_archivo
+                
+                flash("✅ Perfil actualizado con éxito", "success")
+            else:
+                flash("❌ Error al actualizar los datos", "danger")
+
+            # Redirigir según el rol para volver a su panel correspondiente
+            if session.get("rol") == 3:
+                return redirect(url_for("home_fundacion"))
+            return redirect(url_for("home_donador"))
+
+        # Si es GET, preparamos los datos para el formulario
+        usuario_datos = {
+            "nombre": session.get("nombre"),
+            "telefono": session.get("telefono"),
+            "foto_perfil": session.get("foto_perfil")
+        }
+        return render_template("editar_perfil.html", usuario=usuario_datos)
     def registrar(self, nombre, correo, password, rol_id, nit=None, organizacion=None):
         import mysql.connector 
         import requests  # <-- IMPORTANTE: Necesario para hablar con Java
@@ -145,28 +192,46 @@ class UsuarioController:
                 
         return render_template("registro.html")
 
-    def home_donador_view(self):
-        from flask import session, redirect, url_for, render_template
+    def publicar_donacion_view(self, request, session, necesidad_id=None):
         from models.donacion_model import DonacionModel
         
-        if "rol" not in session:
+        if "usuario_id" not in session:
             return redirect(url_for("login"))
-        if int(session["rol"]) != 2: 
-            return "Acceso no autorizado"
+            
+        modelo = DonacionModel()
+        necesidad_prellenada = None
+        # 1. Traemos las categorías siempre para las donaciones generales
+        todas_las_categorias = modelo.obtener_categorias()
 
-        # AGREGA ESTOS DATOS para que el HTML pueda mostrarlos
-        usuario = {
-            "nombre": session.get("nombre"),
-            "foto_perfil": session.get("foto_perfil"), # Para la imagen circular
-            "telefono": session.get("telefono")       # Para el formulario de edición
-        }
-        
-        donaciones = DonacionModel().donaciones_por_usuario(session["usuario_id"])
-        return render_template("home_donador.html", donador=usuario, donaciones=donaciones)
+        # 2. Si viene de una necesidad específica, buscamos sus detalles
+        if necesidad_id:
+            necesidad_prellenada = modelo.obtener_necesidad_por_id(necesidad_id)
+
+        if request.method == "POST":
+            donador_id = session["usuario_id"]
+            # Prioridad al ID de la necesidad si existe, si no, al del formulario
+            fundacion_id = request.form.get("fundacion_id")
+            categoria_id = request.form.get("categoria_id")
+            cantidad = request.form.get("cantidad")
+            descripcion = request.form.get("descripcion")
+
+            exito = modelo.registrar_donacion(donador_id, fundacion_id, categoria_id, cantidad, descripcion)
+
+            if exito:
+                flash("🎉 ¡Gracias! Tu ayuda ha sido registrada correctamente.", "success")
+                return redirect(url_for("home_donador"))
+            else:
+                flash("❌ Hubo un problema al procesar la donación.", "danger")
+
+        # 3. Enviamos tanto la necesidad como las categorías al HTML
+        return render_template("donar.html", 
+                            necesidad=necesidad_prellenada, 
+                            categorias=todas_las_categorias)
 
     def home_fundacion_view(self):
-        from flask import session, redirect, url_for, render_template
+        from flask import session, redirect, url_for, render_template, request, flash
         from models.donacion_model import DonacionModel 
+        import requests # Necesario para la conexión con la API de Java
         
         if "rol" not in session:
             return redirect(url_for("login"))
@@ -180,9 +245,46 @@ class UsuarioController:
         if not fundacion:
             return "Error: No se encontraron datos de la fundación."
 
-        # Aquí es donde ocurría el error:
+        # 1. CAPTURAR FILTROS Y ACCIÓN DEL FORMULARIO
+        query = request.args.get('q', '')
+        donante = request.args.get('donante', '')
+        categoria = request.args.get('categoria', '')
+        estado = request.args.get('est', '')
+        accion = request.args.get('accion') # 'buscar' o 'reporte'
+        correo_reporte = request.args.get('correo_reporte')
+
+        # 2. OBTENER DONACIONES (Multicriterio)
         donacion_model = DonacionModel()
-        mis_donaciones = donacion_model.obtener_donaciones_por_fundacion(fundacion['id'])
+        # Aquí pasamos los filtros al modelo (Asegúrate que tu modelo acepte estos argumentos)
+        mis_donaciones = donacion_model.obtener_donaciones_por_fundacion(
+            fundacion['id'], 
+            q=query, 
+            donante=donante, 
+            categoria=categoria, 
+            estado=estado
+        )
+
+        # 3. LÓGICA PARA ENVIAR REPORTE A JAVA
+        if accion == 'reporte':
+            if not correo_reporte:
+                flash("Por favor, ingresa un correo para el reporte", "warning")
+            else:
+                try:
+                    # Preparamos el paquete para Java
+                    url_java = "http://localhost:8080/api/email/enviar-reporte" # Ajusta tu URL de Java
+                    payload = {
+                        "destinatario": correo_reporte,
+                        "nombreFundacion": fundacion['nombre_fundacion'],
+                        "nit": fundacion.get('nit', 'N/A'),
+                        "cantidadDonaciones": len(mis_donaciones),
+                        "categoriaFiltrada": categoria if categoria else "Todas",
+                        "estadoFiltrado": estado if estado else "Todos"
+                    }
+                    requests.post(url_java, json=payload, timeout=5)
+                    flash(f"¡Reporte enviado con éxito a {correo_reporte}!", "success")
+                except Exception as e:
+                    print(f"Error al conectar con Java: {e}")
+                    flash("No se pudo enviar el reporte por un error técnico", "danger")
 
         return render_template(
             "home_fundacion.html", 
@@ -190,6 +292,67 @@ class UsuarioController:
             donaciones=mis_donaciones
         )
     
+    def solicitar_ayuda_view(self):
+        from flask import session, redirect, url_for, request, flash, render_template
+        from models.donacion_model import DonacionModel
+
+        # 1. Seguridad: Solo fundaciones pueden acceder
+        if "usuario_id" not in session or int(session.get("rol")) != 3:
+            return redirect(url_for("login"))
+
+        if request.method == "POST":
+            # 2. Captura de datos del formulario HTML
+            fundacion_id = session["usuario_id"]
+            categoria = request.form.get("categoria")
+            cantidad = request.form.get("cantidad")
+            urgencia = request.form.get("urgencia")
+            fecha_limite = request.form.get("fecha_limite")
+            ubicacion = request.form.get("ubicacion")
+            telefono = request.form.get("telefono")
+            descripcion = request.form.get("descripcion")
+
+            # 3. Llamada al modelo para insertar en la tabla 'necesidades'
+            modelo_donacion = DonacionModel()
+            exito = modelo_donacion.crear_necesidad(
+                fundacion_id, categoria, cantidad, urgencia, 
+                fecha_limite, ubicacion, telefono, descripcion
+            )
+
+            if exito:
+                flash("🚀 ¡Tu solicitud de ayuda ha sido publicada con éxito!", "success")
+                return redirect(url_for("home_fundacion"))
+            else:
+                flash("❌ Hubo un error al publicar la solicitud.", "danger")
+                return render_template("solicitar_ayuda.html") # Ajusta al nombre de tu archivo
+
+        # Si es GET, simplemente mostramos el formulario
+        return render_template("solicitar_ayuda.html")
+    
+    def home_donador_view(self):
+        from flask import session, redirect, url_for, render_template
+        from models.donacion_model import DonacionModel
+
+        if "usuario_id" not in session:
+            return redirect(url_for("login"))
+        
+        # 1. Creamos un diccionario con los datos del donador que están en la sesión
+        # Esto es lo que el HTML busca como "donador"
+        datos_donador = {
+            "nombre": session.get("nombre"),
+            "foto_perfil": session.get("foto_perfil")
+        }
+
+        modelo_donacion = DonacionModel()
+        
+        # 2. Traemos las necesidades y el historial
+        necesidades = modelo_donacion.obtener_todas_las_necesidades()
+        mis_donaciones = modelo_donacion.obtener_donaciones_por_usuario_filtrado(session["usuario_id"])
+
+        # 3. ¡IMPORTANTE!: Agregamos 'donador=datos_donador' al render_template
+        return render_template("home_donador.html", 
+                               donador=datos_donador, 
+                               necesidades=necesidades, 
+                               donaciones=mis_donaciones)
     def admin_panel_view(self):
         from flask import session, redirect, url_for, render_template
         if "rol" not in session:

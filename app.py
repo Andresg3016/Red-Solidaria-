@@ -61,10 +61,12 @@ def logout():
 
 @app.route("/home_donador")
 def home_donador():
+    # Cámbialo por "donador" (con O), que es como lo tienes en el controlador
     return usuario_ctrl.home_donador_view()
 
 @app.route("/home_fundacion")
 def home_fundacion():
+    # Esta ruta es vital para que las fundaciones puedan entrar a su panel
     return usuario_ctrl.home_fundacion_view()
 
 @app.route("/admin")
@@ -86,9 +88,9 @@ def editar_perfil():
     return usuario_ctrl.editar_perfil_view()
 
 @app.route("/donar", methods=["GET", "POST"])
-def donar():
-    return donacion_ctrl.publicar_donacion_view(request, session)
-
+@app.route("/donar/<int:necesidad_id>", methods=["GET", "POST"]) # <-- Nueva variante con ID
+def donar(necesidad_id=None): # <-- Acepta el ID opcional
+    return donacion_ctrl.publicar_donacion_view(request, session, necesidad_id)
 # Acciones del Administrador sobre Fundaciones
 # Acciones del Administrador sobre Fundaciones
 @app.route("/aprobar/<int:id>")

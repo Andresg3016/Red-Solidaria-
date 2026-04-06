@@ -1,43 +1,96 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Publicar Donación</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{url_for('static', filename='css/donar.css')}}" />
-</head>
-<body>
+{% extends "base.html" %}
 
+{% block title %}Publicar Donación{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/donar.css') }}" />
+    <style>
+        .info-urgencia {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #856404;
+        }
+        .readonly-field {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+            border: 1px solid #ced4da;
+        }
+        .form-card {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 30px;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
 <div class="container">
-
     <div class="form-card">
+        <h1 class="text-center mb-4 text-primary fw-bold">🎁 Publicar Donación</h1>
 
-        <h1>Publicar Donación</h1>
+        {% if necesidad %}
+        <div class="info-urgencia shadow-sm">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Donación para:</strong> {{ necesidad.nombre_fundacion }}<br>
+            <small class="d-block mt-1"><strong>Necesidad:</strong> {{ necesidad.descripcion[:120] }}...</small>
+        </div>
+        {% endif %}
 
-        <form method="POST">
+        <form method="POST" class="needs-validation">
+            <input type="hidden" name="fundacion_id" value="{{ necesidad.fundacion_id if necesidad else '' }}">
 
-            <label>Categoría:</label>
-            <select name="categoria_id" required>
-                {% for cat in categorias %}
-                    <option value="{{ cat[0] }}">{{ cat[1] }}</option>
-                {% endfor %}
-            </select>
+            <div class="mb-3">
+                <label class="form-label fw-bold">🏛️ Fundación Destino:</label>
+                <input type="text" 
+                       value="{{ necesidad.nombre_fundacion if necesidad else 'Donación General / Pendiente' }}" 
+                       class="form-control readonly-field" 
+                       readonly>
+            </div>
 
-            <label>Descripción:</label>
-            <textarea name="descripcion" required></textarea>
+            <div class="mb-3">
+                <label class="form-label fw-bold">📂 Categoría:</label>
+                {% if necesidad %}
+                    <input type="text" value="{{ necesidad.nombre_categoria }}" class="form-control readonly-field" readonly>
+                    <input type="hidden" name="categoria_id" value="{{ necesidad.categoria_id }}">
+                {% else %}
+                    <select name="categoria_id" class="form-select" required>
+                        <option value="" disabled selected>Selecciona una categoría...</option>
+                        {% for cat in categorias %}
+                            <option value="{{ cat.id }}">{{ cat.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                {% endif %}
+            </div>
 
-            <label>Cantidad:</label>
-            <input type="number" name="cantidad" min="1" required>
+            <div class="mb-3">
+                <label class="form-label fw-bold">📝 Descripción de tu donación:</label>
+                <textarea name="descripcion" class="form-control" rows="3" 
+                          placeholder="Ej: Ropa de invierno limpia, 10 latas de atún, etc." required></textarea>
+            </div>
 
-            <button type="submit">Publicar</button>
+            <div class="mb-4">
+                <label class="form-label fw-bold">🔢 Cantidad:</label>
+                <input type="number" name="cantidad" class="form-control" min="1" 
+                       placeholder="{{ necesidad.cantidad if necesidad else 'Ingresa el número de artículos' }}" required>
+            </div>
 
+            <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">
+                {% if necesidad %}🤝 CONFIRMAR AYUDA AHORA{% else %}🚀 PUBLICAR DONACIÓN{% endif %}
+            </button>
         </form>
 
-        <a href="{{ url_for('home_donador') }}" class="volver">Volver</a>
-
+        <div class="text-center mt-4">
+            <a href="{{ url_for('home_donador') }}" class="text-decoration-none text-muted small">
+                <i class="fas fa-arrow-left me-1"></i> Volver al Panel de Donador
+            </a>
+        </div>
     </div>
-
 </div>
-
-</body>
-</html>
+{% endblock %}

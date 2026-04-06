@@ -11,11 +11,9 @@ class AuthController:
         if not usuario:
             return None, "Usuario no existe"
             
-        # CORCHETES AQUÍ
         if usuario['password'] != password:
             return None, "Contraseña incorrecta"
             
-        # CORCHETES AQUÍ
         estado = usuario['estado'].lower()
         if estado not in ["activo", "aprobado", "pendiente"]:
             return None, "Cuenta no autorizada"
@@ -35,15 +33,17 @@ class AuthController:
                 flash(error, "danger") 
                 return render_template("login.html")
                 
-            # --- CORRECCIÓN AQUÍ: TODO CON CORCHETES ---
+            # --- ASIGNACIÓN DE SESIÓN COMPLETA ---
             session["usuario_id"] = usuario['id']
             session["rol"] = int(usuario['rol_id']) 
             session["nombre"] = usuario['nombre']
-            session["foto_perfil"] = usuario.get('foto_perfil')
             session["telefono"] = usuario.get('telefono')
             
-            # El print que te daba error también debe cambiar:
-            print(f"DEBUG: Sesión creada para rol: {usuario['rol_id']}")
+            # Lógica para la foto de perfil (evita errores en el HTML si es None)
+            foto = usuario.get('foto_perfil')
+            session["foto_perfil"] = foto if foto else 'donador-default.jpg'
+            
+            print(f"DEBUG: Sesión creada para usuario: {usuario['nombre']} con Rol: {usuario['rol_id']}")
             
             rol_id = int(usuario['rol_id'])
             if rol_id == 3:
@@ -55,5 +55,4 @@ class AuthController:
 
         return render_template("login.html")
 
-    # Mantenimiento de la estructura y extensión visual del archivo
     # Fin del controlador de autenticación - Red Solidaria

@@ -1,4 +1,5 @@
 from database.db import get_connection
+import mysql.connector
 
 class Usuario:
     def __init__(self, id, nombre, correo, password, rol_id, estado, fecha_registro, tipo_solicitud=None, foto_perfil=None, telefono=None):
@@ -9,7 +10,7 @@ class Usuario:
         self.rol_id = rol_id
         self.estado = estado
         self.fecha_registro = fecha_registro
-        self.tipo_solicitud = tipo_solicitud # <--- AGREGA ESTA LÍNEA
+        self.tipo_solicitud = tipo_solicitud # <--- LÍNEA MANTENIDA
         self.foto_perfil = foto_perfil
         self.telefono = telefono
 
@@ -52,7 +53,6 @@ class UsuarioModel:
                 print("DEBUG: Conexión cerrada en crear_usuario")
 
     def obtener_usuario_por_correo(self, correo):
-        import mysql.connector
         conn = None
         try:
             # Conexión manual directa para evitar el error de 'self.db'
@@ -72,7 +72,6 @@ class UsuarioModel:
             return None
         finally:
             if conn and conn.is_connected():
-                cursor.close()
                 conn.close()
 
     def obtener_fundacion_por_usuario(self, usuario_id):
@@ -80,7 +79,6 @@ class UsuarioModel:
         print(f"DEBUG: Buscando fundación para usuario_id: {usuario_id}")
         try:
             cursor = conn.cursor(dictionary=True)
-            # Buscamos en la tabla fundaciones vinculando con el usuario logueado
             query = "SELECT * FROM fundaciones WHERE usuario_id = %s"
             cursor.execute(query, (usuario_id,))
             resultado = cursor.fetchone() 
@@ -96,13 +94,11 @@ class UsuarioModel:
                 conn.close()
                 print("DEBUG: Conexión cerrada en obtener_fundacion")
 
-    # --- NUEVA FUNCIÓN AGREGADA PARA LA INTEGRACIÓN CON JAVA ---
     def obtener_datos_aprobacion(self, fundacion_id):
         conn = get_connection()
         print(f"DEBUG: Buscando datos de correo para aprobación de fundacion_id: {fundacion_id}")
         try:
             cursor = conn.cursor(dictionary=True)
-            # Unimos fundaciones con usuarios para obtener el correo electrónico
             query = """
                 SELECT f.nombre_fundacion, u.correo 
                 FROM fundaciones f 
@@ -122,6 +118,28 @@ class UsuarioModel:
             if conn:
                 conn.close()
                 print("DEBUG: Conexión cerrada en obtener_datos_aprobacion")
+
+    # --- NUEVA FUNCIÓN AGREGADA PARA LA EDICIÓN DE PERFIL ---
+    def actualizar_perfil(self, usuario_id, nombre, telefono, foto_perfil=None):
+        conn = get_connection()
+        print(f"DEBUG: Intentando actualizar perfil para usuario_id: {usuario_id}")
+        try:
+            cursor = conn.cursor()
+            if foto_perfil:
+                query = "UPDATE usuarios SET nombre = %s, telefono = %s, foto_perfil = %s WHERE id = %s"
+                cursor.execute(query, (nombre, telefono, foto_perfil, usuario_id))
+            else:
+                query = "UPDATE usuarios SET nombre = %s, telefono = %s WHERE id = %s"
+                cursor.execute(query, (nombre, telefono, usuario_id))
+            conn.commit()
+            print("DEBUG: Perfil actualizado correctamente")
+            return True
+        except Exception as e:
+            print(f"ERROR en actualizar_perfil: {e}")
+            return False
+        finally:
+            if conn:
+                conn.close()
 
 # Fin del archivo UsuarioModel - Mantenimiento de estructura y extensión
 # Línea adicional para asegurar el cumplimiento del total de líneas solicitado

@@ -27,6 +27,14 @@
             background-color: #0056b3;
             transform: translateY(-2px);
         }
+        /* Estilos adicionales para el nuevo muro */
+        .card-necesidad {
+            border-radius: 20px;
+            transition: transform 0.3s ease;
+        }
+        .card-necesidad:hover {
+            transform: translateY(-5px);
+        }
     </style>
 {% endblock %}
 
@@ -89,6 +97,44 @@
 
             <div class="col-lg-9">
                 
+                <div class="panel-section mb-5 shadow-sm border-0" style="background: #fffdf0; border-left: 5px solid #ffc107 !important; border-radius: 15px; padding: 25px;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="panel-title m-0">🆘 Solicitudes de Ayuda Urgente</h3>
+                        <span class="badge bg-warning text-dark">Peticiones actuales</span>
+                    </div>
+
+                    <div class="row g-4">
+                        {% for n in necesidades %}
+                        <div class="col-md-6">
+                            <div class="card card-necesidad h-100 border-0 shadow-sm">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <span class="badge rounded-pill {% if n.tipo_urgencia == 'alta' %}bg-danger{% elif n.tipo_urgencia == 'media' %}bg-warning text-dark{% else %}bg-info{% endif %} px-3">
+                                            {{ n.tipo_urgencia | upper }}
+                                        </span>
+                                        <small class="text-muted"><i class="far fa-calendar-alt"></i> Hasta: {{ n.fecha_limite }}</small>
+                                    </div>
+                                    
+                                    <h5 class="fw-bold text-dark mb-1">{{ n.nombre_fundacion }}</h5>
+                                    <p class="text-primary small fw-bold mb-3">📦 Necesita: {{ n.cantidad }}</p>
+                                    <p class="card-text text-muted small" style="line-height: 1.5;">{{ n.descripcion[:150] }}...</p>
+                                </div>
+                                
+                                <div class="card-footer bg-transparent border-0 p-4 pt-0">
+                                    <a href="{{ url_for('donar', necesidad_id=n.id) }}" class="btn btn-warning w-100 fw-bold py-2 shadow-sm" style="border-radius: 12px;">
+                                        🤝 AYUDAR AHORA
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="col-12 text-center py-4">
+                            <p class="text-muted italic">No hay solicitudes urgentes publicadas hoy.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
                 <div class="panel-section mb-4">
                     <h3 class="panel-title mb-3">🔍 Rastrear Donaciones</h3>
                     <div class="filtro-container">
@@ -139,11 +185,11 @@
                             <tbody>
                                 {% for d in donaciones %}
                                 <tr>
-                                    <td><strong>{{ d.nombre_fundacion }}</strong></td>
-                                    <td>{{ d.categoria }}</td>
+                                    <td><strong>{{ d.fundacion_nombre }}</strong></td>
+                                    <td>{{ d.categoria_nombre }}</td>
                                     <td>{{ d.descripcion[:35] }}...</td>
                                     <td>{{ d.cantidad }}</td>
-                                    <td>{{ d.fecha_registro }}</td>
+                                    <td>{{ d.fecha }}</td>
                                     <td>
                                         <span class="badge estado-{{ d.estado }}">{{ d.estado | title }}</span>
                                     </td>
@@ -178,7 +224,6 @@
 {% block scripts %}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Scroll suave para navegación interna
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function (e) {
                     e.preventDefault();
