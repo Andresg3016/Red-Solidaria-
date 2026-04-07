@@ -97,6 +97,7 @@ class UsuarioController:
             "foto_perfil": session.get("foto_perfil")
         }
         return render_template("editar_perfil.html", usuario=usuario_datos)
+
     def registrar(self, nombre, correo, password, rol_id, nit=None, organizacion=None):
         import mysql.connector 
         import requests  # <-- IMPORTANTE: Necesario para hablar con Java
@@ -272,12 +273,32 @@ class UsuarioController:
                 try:
                     url_java = "http://localhost:8080/api/email/enviar-reporte"
                     
+                    # --- LÓGICA DE DESGLOSE PROFESIONAL ---
+                    # Agrupamos por descripción para que aparezca "Ropa: 100", "Alimentos: 200"
+                    desglose_dict = {}
+                    for d in mis_donaciones:
+                        desc = d.get('descripcion', 'Otros')
+                        cant = int(d.get('cantidad', 0))
+                        est = d.get('estado', 'Verificado')
+                        
+                        if desc in desglose_dict:
+                            desglose_dict[desc]['cantidad'] += cant
+                        else:
+                            desglose_dict[desc] = {
+                                "descripcion": desc,
+                                "cantidad": cant,
+                                "estado": est
+                            }
+                    
+                    lista_desglosada = list(desglose_dict.values())
+                    total_donaciones = sum(item['cantidad'] for item in lista_desglosada)
+
                     payload = {
                         "destinatario": correo_reporte,
                         "nombreFundacion": fundacion.get('nombre_fundacion', fundacion.get('nombre')),
                         "nit": fundacion.get('nit', 'N/A'),
-                        "cantidadDonaciones": len(mis_donaciones),
-                        "donaciones": mis_donaciones # Aquí están las fechas de MySQL
+                        "cantidadDonaciones": total_donaciones,
+                        "donaciones": lista_desglosada # Enviamos la lista con el desglose real
                     }
                     
                     # --- LA CORRECCIÓN CRÍTICA ---
@@ -364,6 +385,7 @@ class UsuarioController:
                                donador=datos_donador, 
                                necesidades=necesidades, 
                                donaciones=mis_donaciones)
+
     def admin_panel_view(self):
         from flask import session, redirect, url_for, render_template
         if "rol" not in session:

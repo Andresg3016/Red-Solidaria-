@@ -79,13 +79,27 @@
                         </div>
                     </div>
                 </div>
-                </div>
+            </div>
 
             <div class="col-lg-9">
                 <div class="panel-section mb-4">
                     <h3 class="panel-title mb-3">🔍 Rastrear y Reportar Donaciones</h3>
+
+                    <div id="contenedor-flash">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                          {% if messages %}
+                            {% for category, message in messages %}
+                              <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                              </div>
+                            {% endfor %}
+                          {% endif %}
+                        {% endwith %}
+                    </div>
+
                     <div class="filtro-container">
-                        <form method="GET" action="{{ url_for('home_fundacion') }}" class="row g-2">
+                        <form method="GET" action="{{ url_for('home_fundacion') }}" class="row g-2" onsubmit="return manejarEnvio(event);">
                             
                             <div class="col-md-10 mb-2">
                                 <label class="small fw-bold">Correo Destinatario (Para enviar Reporte PDF)</label>
@@ -93,7 +107,7 @@
                             </div>
 
                             <div class="col-md-2 d-flex align-items-end mb-2">
-                                <button type="submit" name="accion" value="reporte" class="btn btn-danger btn-sm w-100 fw-bold">📄 ENVIAR PDF</button>
+                                <button type="submit" name="accion" value="reporte" id="btnReporte" class="btn btn-danger btn-sm w-100 fw-bold"> 📧 Enviar Reporte al Correo</button>
                             </div>
 
                             <hr class="my-2">
@@ -174,4 +188,29 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function manejarEnvio(e) {
+            if (e.submitter && e.submitter.value === 'reporte') {
+                const btn = document.getElementById('btnReporte');
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Enviando...';
+                btn.classList.add("disabled");
+            }
+            return true;
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const container = document.getElementById("contenedor-flash");
+            if (container) {
+                const alerts = container.querySelectorAll(".alert");
+                alerts.forEach(function(a) {
+                    setTimeout(function() {
+                        a.style.transition = "opacity 0.8s ease";
+                        a.style.opacity = "0";
+                        setTimeout(() => a.remove(), 800);
+                    }, 5000);
+                });
+            }
+        });
+    </script>
 {% endblock %}
