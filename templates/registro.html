@@ -8,8 +8,8 @@
         <form action="{{ url_for('registro') }}" method="POST" id="form-registro">
             <h2>Registro de Usuario</h2>
 
-            <label id="label-nombre">Nombre:</label>
-            <input type="text" name="nombre" id="input-nombre" placeholder="Ingrese el nombre de usuario o responsable" required>
+            <label id="label-nombre">Nombre de la persona responsable:</label>
+            <input type="text" name="nombre_fundador" id="nombre_fundador" placeholder="Nombre de la persona responsable" required>
 
             <label>Correo:</label>
             <input type="email" name="correo" placeholder="Ingrese su correo eléctronico" required>
@@ -34,8 +34,6 @@
 
             <div id="campos-fundacion" style="display:none;">
                 <h3>Datos de la Fundación</h3>
-                <label>Nombre de la persona responsable:</label>
-                <input type="text" name="nombre_fundador" id="nombre_fundador" placeholder="Nombre de la persona responsable">
                 <label>NIT:</label>
                 <input type="text" name="nit">
                 <label>Nombre de la fundación:</label>

@@ -50,6 +50,11 @@
         <div class="row mb-4">
             <div class="col-lg-3">
                 <div class="perfil perfil-donante-card mb-4 shadow-sm">
+                    <div class="text-center mb-2">
+                        <span class="badge bg-success d-block" style="font-size: 1rem; padding: 0.6em 1.2em; border-radius: 8px;">
+                            <i class="fas fa-check-square"></i> Donador Activo
+                        </span>
+                    </div>
                     <div class="profile-img-container text-center mb-3">
                             <img src="{{ url_for('static', filename='img/' + (donador.foto_perfil if donador.foto_perfil else 'donador-default.jpg')) }}" 
                                 class="rounded-circle shadow-sm" 
