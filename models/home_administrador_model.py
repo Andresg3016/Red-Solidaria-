@@ -4,12 +4,13 @@ class HomeAdminModel:
 
     @classmethod
     def obtener_fundaciones_pendientes(cls):
-        # QUITAMOS el "WHERE u.estado = 'pendiente'" para que salgan todas
+        # Incluimos estado_validacion para mostrar el estado real de la fundación
         query = """
             SELECT 
                 f.id, 
-                f.nombre_fundacion, 
+                f.nombre, 
                 f.nit, 
+                f.estado_validacion,
                 u.correo, 
                 u.fecha_registro, 
                 u.estado
@@ -43,8 +44,8 @@ class HomeAdminModel:
 
                 usuario_id = resultado[0]
 
-                # 2. Activar usuario
-                sql_user = "UPDATE usuarios SET estado = 'activo' WHERE id = %s"
+                # 2. Activar usuario y poner en 'aprobado'
+                sql_user = "UPDATE usuarios SET estado = 'aprobado' WHERE id = %s"
                 cursor.execute(sql_user, (usuario_id,))
 
                 # 3. Aprobar fundación
@@ -112,7 +113,7 @@ class HomeAdminModel:
             nuevo_usuario_id = cursor.lastrowid
 
             sql_fund = """
-                INSERT INTO fundaciones (usuario_id, nombre_fundacion, nit, estado_validacion) 
+                INSERT INTO fundaciones (usuario_id, nombre, nit, estado_validacion) 
                 VALUES (%s, %s, %s, %s)
             """
             cursor.execute(sql_fund, (nuevo_usuario_id, organizacion, nit, 'pendiente'))
@@ -150,7 +151,7 @@ class HomeAdminModel:
         cursor = conn.cursor(dictionary=True)
         # Buscamos el correo (tabla usuarios) y el nombre (tabla fundaciones)
         sql = """
-            SELECT u.correo, f.nombre_fundacion 
+            SELECT u.correo, f.nombre 
             FROM usuarios u 
             JOIN fundaciones f ON u.id = f.usuario_id 
             WHERE u.id = %s

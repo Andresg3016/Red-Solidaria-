@@ -22,8 +22,9 @@ class UsuarioController:
                 # Pero para Diana y Junior que son 'pendiente', debemos dejarlos pasar.
                 
                 session["usuario_id"] = usuario["id"]
-                session["nombre"] = usuario["nombre"]
-                session["rol"] = int(usuario["rol_id"]) 
+                # Guardar siempre el nombre de la persona, no el de la fundación
+                session["nombre"] = usuario.get("nombre_usuario", usuario["nombre"])
+                session["rol"] = int(usuario["rol_id"])
                 session["estado"] = usuario["estado"] # Guardamos el estado en sesión
 
                 print(f"DEBUG LOGIN: {usuario['nombre']} (Rol: {usuario['rol_id']}, Estado: {usuario['estado']}) ha iniciado sesión.")
@@ -50,43 +51,74 @@ class UsuarioController:
         if "usuario_id" not in session:
             return redirect(url_for("login"))
         
+
+
         if request.method == "POST":
             usuario_id = session["usuario_id"]
-            nombre = request.form.get("nombre")
+            rol = int(session.get("rol"))
+            if rol == 3:
+                # Fundación
+                nombre = request.form.get("nombre_fundacion")
+            else:
+                # Donante
+                nombre = request.form.get("nombre")
             telefono = request.form.get("telefono")
             archivo_foto = request.files.get("foto_perfil")
-            
             nombre_archivo = None
-            
-            # 1. Procesar la foto si el usuario subió una nueva
+
+            # Procesar la foto si el usuario subió una nueva
             if archivo_foto and archivo_foto.filename != '':
                 nombre_archivo = secure_filename(f"perfil_{usuario_id}_{archivo_foto.filename}")
                 ruta_carpeta = os.path.join('static', 'img')
-                
-                # Asegurar que la carpeta exista
                 if not os.path.exists(ruta_carpeta):
                     os.makedirs(ruta_carpeta)
-                    
                 archivo_foto.save(os.path.join(ruta_carpeta, nombre_archivo))
                 print(f"DEBUG: Nueva foto guardada como {nombre_archivo}")
 
-            # 2. Llamar al modelo para actualizar en la DB
             modelo = UsuarioModel()
             exito = modelo.actualizar_perfil(usuario_id, nombre, telefono, nombre_archivo)
 
+            # Si es fundación, también actualizamos la tabla fundaciones
+            if rol == 3:
+                from database.db import get_connection
+                conn = get_connection()
+                try:
+                    cursor = conn.cursor()
+                    query = "UPDATE fundaciones SET nombre = %s, telefono = %s WHERE usuario_id = %s"
+                    cursor.execute(query, (nombre, telefono, usuario_id))
+                    conn.commit()
+                    print("DEBUG: Fundación actualizada correctamente en tabla fundaciones")
+                except Exception as e:
+                    print(f"ERROR al actualizar fundación: {e}")
+                finally:
+                    if conn:
+                        conn.close()
+            else:
+                # Donante: aseguramos que el estado quede activo
+                from database.db import get_connection
+                conn = get_connection()
+                try:
+                    cursor = conn.cursor()
+                    query = "UPDATE usuarios SET estado = 'aprobado' WHERE id = %s"
+                    cursor.execute(query, (usuario_id,))
+                    conn.commit()
+                    print("DEBUG: Donante actualizado a estado aprobado")
+                except Exception as e:
+                    print(f"ERROR al actualizar estado donante: {e}")
+                finally:
+                    if conn:
+                        conn.close()
+
             if exito:
-                # 3. ¡IMPORTANTE! Actualizamos la sesión para que los cambios se vean de inmediato
                 session["nombre"] = nombre
                 session["telefono"] = telefono
                 if nombre_archivo:
                     session["foto_perfil"] = nombre_archivo
-                
                 flash("✅ Perfil actualizado con éxito", "success")
             else:
                 flash("❌ Error al actualizar los datos", "danger")
 
-            # Redirigir según el rol para volver a su panel correspondiente
-            if session.get("rol") == 3:
+            if rol == 3:
                 return redirect(url_for("home_fundacion"))
             return redirect(url_for("home_donador"))
 
@@ -108,11 +140,11 @@ class UsuarioController:
             config = {
                 'host': 'localhost',
                 'user': 'root',
-                'password': '', 
-                'database': 'donaciones_db'
+                'password': '',
+                'database': 'donaciones_db',
+                'port': 3307
             }
-            
-            print(f"DEBUG: Intentando conectar a {config['database']}...")
+            print(f"DEBUG: Intentando conectar a {config['database']} en el puerto {config['port']}...")
             conn = mysql.connector.connect(**config)
             cursor = conn.cursor()
             print("DEBUG: ¡CONECTADO EXITOSAMENTE!")
@@ -128,7 +160,7 @@ class UsuarioController:
             # 2. Insertar Fundación si aplica
             if int(rol_id) == 3:
                 print(f"DEBUG: Insertando en tabla fundaciones para ID: {nuevo_id}")
-                sql_fund = "INSERT INTO fundaciones (usuario_id, nombre_fundacion, nit) VALUES (%s, %s, %s)"
+                sql_fund = "INSERT INTO fundaciones (usuario_id, nombre, nit) VALUES (%s, %s, %s)"
                 cursor.execute(sql_fund, (nuevo_id, organizacion, nit))
             
             # GUARDAR CAMBIOS EN DB
@@ -170,27 +202,30 @@ class UsuarioController:
         from flask import request, redirect, url_for, render_template
         if request.method == "POST":
             print(f"DEBUG: Datos recibidos: {request.form}") 
-            
             rol_id = request.form.get("rol")
             if not rol_id:
                 print("ERROR: No se recibió rol_id")
                 return render_template("registro.html", error="Debe seleccionar un rol")
 
             rol_id = int(rol_id)
-            nombre = request.form.get("nombre")
+            if rol_id == 3:
+                # Fundación: nombre de la persona responsable y nombre de la fundación
+                nombre = request.form.get("nombre_fundador") or request.form.get("nombre")
+                organizacion = request.form.get("organizacion")
+            else:
+                # Donante: nombre normal
+                nombre = request.form.get("nombre")
+                organizacion = None
             correo = request.form.get("correo")
             password = request.form.get("password")
             nit = request.form.get("nit")
-            organizacion = request.form.get("organizacion")
 
             exito = self.registrar(nombre, correo, password, rol_id, nit, organizacion)
-            
             if exito:
                 return redirect(url_for("login"))
             else:
                 print("ERROR: Falló la inserción en la base de datos")
                 return render_template("registro.html", error="Error al registrar")
-                
         return render_template("registro.html")
 
     def publicar_donacion_view(self, request, session, necesidad_id=None):
@@ -246,9 +281,10 @@ class UsuarioController:
 
         usuario_id = session["usuario_id"]
         fundacion = self.modelo.obtener_fundacion_por_usuario(usuario_id)
-        
         if not fundacion:
             return "Error: No se encontraron datos de la fundación."
+
+        fundacion_id = fundacion["id"] if "id" in fundacion else fundacion.get("fundacion_id")
 
         query = request.args.get('q', '')
         donante = request.args.get('donante', '')
@@ -259,7 +295,7 @@ class UsuarioController:
 
         donacion_model = DonacionModel()
         mis_donaciones = donacion_model.obtener_donaciones_por_fundacion(
-            usuario_id,
+            fundacion_id,
             q=query, 
             donante=donante, 
             categoria=categoria, 
@@ -318,10 +354,16 @@ class UsuarioController:
                     print(f"❌ Error de conexión: {e}")
                     flash("No se pudo conectar con el servicio de correos (Java)", "danger")
 
+        # Obtener solicitudes de ayuda activas (puedes filtrar por fundación si lo deseas)
+        solicitudes_ayuda = DonacionModel().obtener_necesidades_activas()
+        # Puedes filtrar solo las de la fundación actual así:
+        # solicitudes_ayuda = [s for s in solicitudes_ayuda if s['fundacion_id'] == usuario_id]
+
         return render_template(
-            "home_fundacion.html", 
-            fundacion=fundacion, 
-            donaciones=mis_donaciones
+            "home_fundacion.html",
+            fundacion=fundacion,
+            donaciones=mis_donaciones,
+            solicitudes_ayuda=solicitudes_ayuda
         )
     
     def solicitar_ayuda_view(self):
@@ -361,26 +403,25 @@ class UsuarioController:
         return render_template("solicitar_ayuda.html")
     
     def home_donador_view(self):
-        from flask import session, redirect, url_for, render_template
+        from flask import session, redirect, url_for, render_template, request
         from models.donacion_model import DonacionModel
 
         if "usuario_id" not in session:
             return redirect(url_for("login"))
-        
-        # 1. Creamos un diccionario con los datos del donador que están en la sesión
-        # Esto es lo que el HTML busca como "donador"
+
         datos_donador = {
             "nombre": session.get("nombre"),
             "foto_perfil": session.get("foto_perfil")
         }
 
         modelo_donacion = DonacionModel()
-        
-        # 2. Traemos las necesidades y el historial
-        necesidades = modelo_donacion.obtener_todas_las_necesidades()
+
+        # Filtros del panel multicriterio
+        q = request.args.get('q', '')
+        cat = request.args.get('cat', '')
+        necesidades = modelo_donacion.obtener_necesidades_activas(q, cat)
         mis_donaciones = modelo_donacion.obtener_donaciones_por_usuario_filtrado(session["usuario_id"])
 
-        # 3. ¡IMPORTANTE!: Agregamos 'donador=datos_donador' al render_template
         return render_template("home_donador.html", 
                                donador=datos_donador, 
                                necesidades=necesidades, 

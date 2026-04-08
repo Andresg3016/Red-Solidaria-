@@ -60,7 +60,8 @@ class UsuarioModel:
                 host='localhost',
                 user='root',
                 password='',
-                database='donaciones_db'
+                database='donaciones_db',
+                port=3307
             )
             cursor = conn.cursor(dictionary=True)
             sql = "SELECT * FROM usuarios WHERE correo = %s"
@@ -79,12 +80,16 @@ class UsuarioModel:
         print(f"DEBUG: Buscando fundación para usuario_id: {usuario_id}")
         try:
             cursor = conn.cursor(dictionary=True)
-            query = "SELECT * FROM fundaciones WHERE usuario_id = %s"
+            query = '''
+                SELECT f.*, u.estado as estado_usuario, f.estado_validacion, u.foto_perfil
+                FROM fundaciones f
+                JOIN usuarios u ON f.usuario_id = u.id
+                WHERE f.usuario_id = %s
+            '''
             cursor.execute(query, (usuario_id,))
-            resultado = cursor.fetchone() 
-            
+            resultado = cursor.fetchone()
             if resultado:
-                print(f"DEBUG: Fundación encontrada: {resultado['nombre_fundacion']}")
+                print(f"DEBUG: Fundación encontrada: {resultado['nombre']}")
             return resultado
         except Exception as e:
             print(f"ERROR en obtener_fundacion_por_usuario: {e}")
@@ -100,7 +105,7 @@ class UsuarioModel:
         try:
             cursor = conn.cursor(dictionary=True)
             query = """
-                SELECT f.nombre_fundacion, u.correo 
+                SELECT f.nombre, u.correo 
                 FROM fundaciones f 
                 JOIN usuarios u ON f.usuario_id = u.id 
                 WHERE f.id = %s

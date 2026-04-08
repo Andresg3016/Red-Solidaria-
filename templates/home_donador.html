@@ -51,9 +51,9 @@
             <div class="col-lg-3">
                 <div class="perfil perfil-donante-card mb-4 shadow-sm">
                     <div class="profile-img-container text-center mb-3">
-                        <img src="{{ url_for('static', filename='img/' + (donador.foto_perfil if donador.foto_perfil else 'donador-default.jpg')) }}" 
-                             class="rounded-circle shadow-sm" 
-                             style="width: 110px; height: 110px; object-fit: cover; border: 4px solid #007bff;">
+                            <img src="{{ url_for('static', filename='img/' + (donador.foto_perfil if donador.foto_perfil else 'donador-default.jpg')) }}" 
+                                class="rounded-circle shadow-sm" 
+                                style="width: 140px; height: 140px; object-fit: cover; border: 5px solid #007bff;">
                     </div>
                     
                     <h3 class="fw-bold text-center mb-1">{{ donador.nombre }}</h3>
@@ -99,7 +99,7 @@
                 
                 <div class="panel-section mb-5 shadow-sm border-0" style="background: #fffdf0; border-left: 5px solid #ffc107 !important; border-radius: 15px; padding: 25px;">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h3 class="panel-title m-0">🆘 Solicitudes de Ayuda Urgente</h3>
+                        <h3 class="panel-title m-0">🆘 Solicitudes de Ayuda</h3>
                         <span class="badge bg-warning text-dark">Peticiones actuales</span>
                     </div>
 
@@ -109,29 +109,58 @@
                             <div class="card card-necesidad h-100 border-0 shadow-sm">
                                 <div class="card-body p-4">
                                     <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <span class="badge rounded-pill {% if n.tipo_urgencia == 'alta' %}bg-danger{% elif n.tipo_urgencia == 'media' %}bg-warning text-dark{% else %}bg-info{% endif %} px-3">
-                                            {{ n.tipo_urgencia | upper }}
-                                        </span>
                                         <small class="text-muted"><i class="far fa-calendar-alt"></i> Hasta: {{ n.fecha_limite }}</small>
                                     </div>
-                                    
-                                    <h5 class="fw-bold text-dark mb-1">{{ n.nombre_fundacion }}</h5>
+                                    <h5 class="fw-bold text-dark mb-1">{{ n.nombre }}</h5>
                                     <p class="text-primary small fw-bold mb-3">📦 Necesita: {{ n.cantidad }}</p>
                                     <p class="card-text text-muted small" style="line-height: 1.5;">{{ n.descripcion[:150] }}...</p>
                                 </div>
-                                
                                 <div class="card-footer bg-transparent border-0 p-4 pt-0">
-                                    <a href="{{ url_for('donar', necesidad_id=n.id) }}" class="btn btn-warning w-100 fw-bold py-2 shadow-sm" style="border-radius: 12px;">
-                                        🤝 AYUDAR AHORA
-                                    </a>
+                                    <button 
+                                      class="btn btn-warning w-100 fw-bold py-2 shadow-sm"
+                                      style="border-radius: 12px;"
+                                      data-bs-toggle="modal"
+                                      data-bs-target="#modalDetalleAyuda"
+                                      onclick="mostrarDetalleAyuda('
+                                        {{ n.nombre|e }}',
+                                        '{{ n.descripcion|e }}',
+                                        '',
+                                        '{{ n.fecha_limite|e }}',
+                                        '{{ n.solicitante|e if n.solicitante else '' }}',
+                                        '{{ url_for('donar', necesidad_id=n.id) }}'
+                                      )"
+                                    >
+                                      🤝 AYUDAR AHORA
+                                    </button>
                                 </div>
                             </div>
                         </div>
                         {% else %}
                         <div class="col-12 text-center py-4">
-                            <p class="text-muted italic">No hay solicitudes urgentes publicadas hoy.</p>
+                            <p class="text-muted italic">No hay solicitudes de ayuda publicadas hoy.</p>
                         </div>
                         {% endfor %}
+                    <!-- Modal de Detalle de Solicitud de Ayuda -->
+                    <div class="modal fade" id="modalDetalleAyuda" tabindex="-1" aria-labelledby="modalDetalleAyudaLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalDetalleAyudaLabel">Detalle de la Solicitud</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <h5 id="modalFundacion"></h5>
+                                    <p id="modalDescripcion"></p>
+                                    <!-- <p><strong>Urgencia:</strong> <span id="modalUrgencia"></span></p> -->
+                                    <p><strong>Fecha:</strong> <span id="modalFecha"></span></p>
+                                    <p><strong>Solicitante:</strong> <span id="modalSolicitante"></span></p>
+                                </div>
+                                <div class="modal-footer">
+                                    <a id="modalDonarBtn" href="#" class="btn btn-warning w-100 fw-bold py-2 shadow-sm">🤝 Donar a esta Fundación</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     </div>
                 </div>
 
@@ -159,6 +188,7 @@
                                     <option value="">Todos los estados</option>
                                     <option value="pendiente" {% if request.args.get('est') == 'pendiente' %}selected{% endif %}>Pendiente</option>
                                     <option value="recibido" {% if request.args.get('est') == 'recibido' %}selected{% endif %}>Recibido</option>
+                                    <option value="rechazado" {% if request.args.get('est') == 'rechazado' %}selected{% endif %}>Rechazado</option>
                                 </select>
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
@@ -191,7 +221,7 @@
                                     <td>{{ d.cantidad }}</td>
                                     <td>{{ d.fecha }}</td>
                                     <td>
-                                        <span class="badge estado-{{ d.estado }}">{{ d.estado | title }}</span>
+                                        <span class="badge estado-{{ d.estado_donante }}">{{ d.estado_donante | title }}</span>
                                     </td>
                                 </tr>
                                 {% else %}
@@ -234,5 +264,25 @@
                 });
             });
         });
+
+        // Script para llenar el modal de detalle de ayuda
+        window.mostrarDetalleAyuda = function(nombre, descripcion, urgencia, fecha, solicitante, urlDonar) {
+          document.getElementById('modalFundacion').textContent = nombre;
+          document.getElementById('modalDescripcion').textContent = descripcion;
+          document.getElementById('modalUrgencia').textContent = urgencia;
+          document.getElementById('modalFecha').textContent = fecha;
+          document.getElementById('modalSolicitante').textContent = solicitante;
+          document.getElementById('modalDonarBtn').href = urlDonar;
+        }
     </script>
 {% endblock %}
+
+{% if donador.estado == 'aprobado' %}
+                        <span class="badge bg-success d-block text-center mb-3">✅ Donante Activo</span>
+                    {% elif donador.estado == 'pendiente' %}
+                        <span class="badge bg-warning text-dark d-block text-center mb-3">⏳ Validación Pendiente</span>
+                    {% elif donador.estado == 'rechazado' %}
+                        <span class="badge bg-danger d-block text-center mb-3">❌ Donante Rechazado</span>
+                    {% else %}
+                        <span class="badge bg-secondary d-block text-center mb-3">❓ {{ donador.estado | default('Sin Estado') }}</span>
+                    {% endif %}

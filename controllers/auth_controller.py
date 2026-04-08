@@ -35,8 +35,9 @@ class AuthController:
                 
             # --- ASIGNACIÓN DE SESIÓN COMPLETA ---
             session["usuario_id"] = usuario['id']
-            session["rol"] = int(usuario['rol_id']) 
-            session["nombre"] = usuario['nombre']
+            session["rol"] = int(usuario['rol_id'])
+            # Guardar siempre el nombre de la persona, no el de la fundación
+            session["nombre"] = usuario.get('nombre_usuario', usuario['nombre'])
             session["telefono"] = usuario.get('telefono')
             
             # Lógica para la foto de perfil (evita errores en el HTML si es None)

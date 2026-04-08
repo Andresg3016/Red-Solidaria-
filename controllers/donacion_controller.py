@@ -12,7 +12,25 @@ class DonacionController:
 
         if request.method == "POST":
             # 2. Captura de los campos del formulario HTML
-            fundacion_id = session["usuario_id"]
+            usuario_id = session["usuario_id"]
+
+            fundacion = None
+            # Buscar fundación por usuario_id
+            try:
+                from database.db import get_connection
+                conn = get_connection()
+                cursor = conn.cursor(dictionary=True)
+                cursor.execute("SELECT id FROM fundaciones WHERE usuario_id = %s", (usuario_id,))
+                fundacion = cursor.fetchone()
+                conn.close()
+            except Exception as e:
+                fundacion = None
+
+            if not fundacion:
+                flash("❌ No se encontró la fundación asociada a este usuario.", "danger")
+                return render_template("solicitar_ayuda.html")
+
+            fundacion_id = fundacion["id"]
             categoria_id = request.form.get("categoria")
             cantidad = request.form.get("cantidad")
             urgencia = request.form.get("urgencia")
@@ -22,7 +40,6 @@ class DonacionController:
             descripcion = request.form.get("descripcion")
 
             modelo = DonacionModel()
-            
             # 3. Guardar la necesidad en la base de datos
             exito = modelo.crear_necesidad(
                 fundacion_id, 
@@ -58,20 +75,39 @@ class DonacionController:
         if necesidad_id:
             necesidad_prellenada = modelo.obtener_necesidad_por_id(necesidad_id)
 
+        # Obtener fundaciones activas (usuarios con estado aprobado y rol fundación)
+        from database.db import get_connection
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT f.id, f.nombre
+            FROM fundaciones f
+            JOIN usuarios u ON f.usuario_id = u.id
+            WHERE u.estado = 'aprobado' AND u.rol_id = 3
+            ORDER BY f.nombre ASC
+        """)
+        fundaciones_activas = cursor.fetchall()
+        conn.close()
+
         if request.method == "POST":
-            # 3. CAPTURA DE DATOS (CORREGIDO: categoria_id coincide con el HTML)
             donador_id = session["usuario_id"]
-            fundacion_id = request.form.get("fundacion_id")
-            categoria_id = request.form.get("categoria_id") # <-- Corregido de 'categoria' a 'categoria_id'
+            categoria_id = request.form.get("categoria_id")
             cantidad = request.form.get("cantidad")
             descripcion = request.form.get("descripcion")
 
-            # 4. Registro en la base de datos
+
+            if necesidad_prellenada:
+                # Donación a una sola fundación (por necesidad)
+                fundacion_ids = [str(necesidad_prellenada["fundacion_id"])]
+            else:
+                # Donación general: puede ser a varias fundaciones
+                fundacion_ids = request.form.getlist("fundacion_ids")
+
             exito = modelo.registrar_donacion(
-                donador_id, 
-                fundacion_id, 
-                categoria_id, 
-                cantidad, 
+                donador_id,
+                fundacion_ids,
+                categoria_id,
+                cantidad,
                 descripcion
             )
 
@@ -81,8 +117,7 @@ class DonacionController:
             else:
                 flash("❌ Hubo un problema al registrar tu donación.", "danger")
 
-        # 5. Cargar categorías por si es una donación general (sin necesidad_id)
         categorias = modelo.obtener_categorias()
-        return render_template("donar.html", necesidad=necesidad_prellenada, categorias=categorias)
+        return render_template("donar.html", necesidad=necesidad_prellenada, categorias=categorias, fundaciones_activas=fundaciones_activas)
 
 # Fin del Controlador DonacionController

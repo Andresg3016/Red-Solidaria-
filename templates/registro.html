@@ -8,8 +8,8 @@
         <form action="{{ url_for('registro') }}" method="POST" id="form-registro">
             <h2>Registro de Usuario</h2>
 
-            <label>Nombre:</label>
-            <input type="text" name="nombre" placeholder="Ingrese el nombre de usuario" required>
+            <label id="label-nombre">Nombre:</label>
+            <input type="text" name="nombre" id="input-nombre" placeholder="Ingrese el nombre de usuario o responsable" required>
 
             <label>Correo:</label>
             <input type="email" name="correo" placeholder="Ingrese su correo eléctronico" required>
@@ -34,10 +34,12 @@
 
             <div id="campos-fundacion" style="display:none;">
                 <h3>Datos de la Fundación</h3>
+                <label>Nombre de la persona responsable:</label>
+                <input type="text" name="nombre_fundador" id="nombre_fundador" placeholder="Nombre de la persona responsable">
                 <label>NIT:</label>
                 <input type="text" name="nit">
-                <label>Nombre de la organización:</label>
-                <input type="text" name="organizacion">
+                <label>Nombre de la fundación:</label>
+                <input type="text" name="organizacion" id="organizacion" placeholder="Nombre de la fundación">
             </div>
 
             <button type="submit" class="btn-submit">Registrarse</button>
@@ -52,6 +54,23 @@
         let rol = document.querySelector("select[name='rol']").value;
         document.getElementById("campos-donante").style.display = (rol === "2") ? "block" : "none";
         document.getElementById("campos-fundacion").style.display = (rol === "3") ? "block" : "none";
+
+        // Cambiar el label y placeholder del campo nombre según el rol
+        let labelNombre = document.getElementById("label-nombre");
+        let inputNombre = document.getElementById("input-nombre");
+        if (rol === "3") {
+            labelNombre.textContent = "Nombre de usuario (persona responsable):";
+            inputNombre.placeholder = "Nombre de la persona responsable";
+            inputNombre.required = false;
+            document.getElementById("nombre_fundador").required = true;
+            document.getElementById("organizacion").required = true;
+        } else {
+            labelNombre.textContent = "Nombre:";
+            inputNombre.placeholder = "Ingrese el nombre de usuario";
+            inputNombre.required = true;
+            if(document.getElementById("nombre_fundador")) document.getElementById("nombre_fundador").required = false;
+            if(document.getElementById("organizacion")) document.getElementById("organizacion").required = false;
+        }
     }
     window.onload = cambiarFormulario;
 </script>

@@ -246,7 +246,7 @@
                 {% for f in fundaciones %}
                 <tr>
                     <td>#{{ f.id }}</td>
-                    <td>{{ f.nombre_fundacion }}</td>
+                    <td>{{ f.nombre }}</td>
                     <td>{{ f.nit }}</td>
                     <td>{{ f.estado }}</td>
                 </tr>
@@ -285,10 +285,10 @@
                     {% for f in fundaciones %}
                     <tr>
                         <td>{{ f.id }}</td>
-                        <td>{{ f.nombre_fundacion }}</td>
+                        <td>{{ f.nombre }}</td>
                         <td>{{ f.correo }}</td>
                         <td>{{ f.nit }}</td>
-                        <td><span class="badge bg-warning text-dark">{{ f.estado }}</span></td>
+                        <td><span class="badge bg-warning text-dark">{{ f.estado_validacion }}</span></td>
                         <td>
                             <div class="btn-group">
                                 <a href="{{ url_for('aprobar_fundacion_ruta', id=f.id) }}" class="btn btn-sm btn-success">Aprobar</a>
@@ -330,7 +330,7 @@
     {% for f in fundaciones %}
     <tr style="background-color: #f8f9fa;">
         <td>{{ f.id }}</td>
-        <td>{{ f.nombre_fundacion }}</td>
+        <td>{{ f.nombre }}</td>
         <td>{{ f.correo }}</td>
         <td>{{ f.fecha_registro }}</td>
         <td>{{ f.estado }}</td>

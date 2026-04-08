@@ -21,8 +21,42 @@ def serializar_datos(obj):
 
 # ================= CONFIGURACIÓN APP =================
 
+
 app = Flask(__name__)
 app.secret_key = "123456"
+
+# ================= RUTA PARA GESTIONAR DONACIONES (ACEPTAR/RECHAZAR) =================
+@app.route("/gestionar_donacion", methods=["POST"])
+def gestionar_donacion():
+    from models.donacion_model import DonacionModel
+    if "usuario_id" not in session or int(session.get("rol")) != 3:
+        flash("Acceso no autorizado", "danger")
+        return redirect(url_for("home_fundacion"))
+    donacion_id = request.form.get("donacion_id")
+    accion = request.form.get("accion")
+    if not donacion_id or accion not in ["aceptar", "rechazar"]:
+        flash("Solicitud inválida", "danger")
+        return redirect(url_for("home_fundacion"))
+    nuevo_estado = "aceptada" if accion == "aceptar" else "rechazada"
+    # Actualizar estado en la tabla intermedia donaciones_fundaciones
+    conn = None
+    try:
+        conn = __import__('database.db').db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE donaciones_fundaciones SET estado = %s WHERE donacion_id = %s AND fundacion_id = (SELECT id FROM fundaciones WHERE usuario_id = %s)",
+                       (nuevo_estado, donacion_id, session["usuario_id"]))
+        conn.commit()
+        if accion == "aceptar":
+            flash("✅ Donación recibida correctamente.", "success")
+        else:
+            flash("❌ Donación rechazada correctamente.", "danger")
+    except Exception as e:
+        print(f"Error al actualizar estado de donación: {e}")
+        flash("Error al actualizar el estado de la donación.", "danger")
+    finally:
+        if conn:
+            conn.close()
+    return redirect(url_for("home_fundacion"))
 
 # Configuración subida de archivos
 UPLOAD_FOLDER = "static/uploads"
@@ -122,7 +156,7 @@ def aprobar_fundacion_ruta(id):
     modelo_usuario = UsuarioModel()
     datos = modelo_usuario.obtener_datos_aprobacion(id)
     if datos:
-        return aprobar_fundacion_controller(id, datos['correo'], datos['nombre_fundacion'])
+        return aprobar_fundacion_controller(id, datos['correo'], datos['nombre'])
     flash("❌ No se pudieron obtener los datos de la fundación", "danger")
     return redirect(url_for('home_admin_panel'))
 
@@ -133,8 +167,7 @@ def rechazar_fundacion_ruta(id):
     modelo_usuario = UsuarioModel()
     datos = modelo_usuario.obtener_datos_aprobacion(id)
     if datos:
-        return rechazar_fundacion_controller(id, datos['correo'], datos['nombre_fundacion'])
-    return rechazar_fundacion_controller(id, None, None)
+        return rechazar_fundacion_controller(id, datos['correo'], datos['nombre'])
 
 @app.route('/solicitar-ayuda', methods=['GET', 'POST'])
 def solicitar_ayuda():

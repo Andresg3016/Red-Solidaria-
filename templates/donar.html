@@ -42,24 +42,30 @@
         {% if necesidad %}
         <div class="info-urgencia shadow-sm">
             <i class="fas fa-exclamation-triangle me-2"></i>
-            <strong>Donación destinada a:</strong> {{ necesidad.nombre_fundacion }}<br>
+            <strong>Donación destinada a:</strong> {{ necesidad.nombre }}<br>
             <small class="d-block mt-1"><strong>Causa:</strong> {{ necesidad.descripcion[:120] }}...</small>
         </div>
         {% endif %}
 
-        <form method="POST" action="{{ url_for('publicar_donacion', necesidad_id=necesidad.id if necesidad else None) }}" class="needs-validation">
-            
-            {# Campo Oculto: ID de la Fundación (CRUCIAL para que aparezca en el tablero) #}
-            <input type="hidden" name="fundacion_id" value="{{ necesidad.fundacion_id if necesidad else '' }}">
-
-            {# Campo: Fundación Destino (Solo lectura) #}
-            <div class="mb-3">
-                <label class="form-label fw-bold">🏛️ Fundación Destino:</label>
-                <input type="text" 
-                       value="{{ necesidad.nombre_fundacion if necesidad else 'Donación General / Pendiente de Asignar' }}" 
-                       class="form-control readonly-field" 
-                       readonly>
-            </div>
+        <form method="POST" action="{{ url_for('donar', necesidad_id=necesidad.id if necesidad else None) }}" class="needs-validation">
+            {% if necesidad %}
+                {# Si viene de una necesidad, fundación fija #}
+                <input type="hidden" name="fundacion_id" value="{{ necesidad.fundacion_id }}">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">🏛️ Fundación Destino:</label>
+                    <input type="text" value="{{ necesidad.nombre }}" class="form-control readonly-field" readonly>
+                </div>
+            {% else %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">🏛️ Selecciona Fundación(es) Destino:</label>
+                    <select name="fundacion_ids" class="form-select" multiple required size="5">
+                        {% for fund in fundaciones_activas %}
+                            <option value="{{ fund.id }}">{{ fund.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">Puedes seleccionar una o varias fundaciones activas.</div>
+                </div>
+            {% endif %}
 
             {# Campo: Categoría #}
             <div class="mb-3">
@@ -107,6 +113,19 @@
         </div>
     </div>
 </div>
+
+<footer class="bg-dark text-white text-center mt-5" style="border-top: 4px solid #63ff5e; padding: 25px 20px;">
+    <div class="container">
+        <h6 class="fw-bold mb-2">Red Solidaria</h6>
+        <p class="small mb-2">Conectando solidaridad con quienes más lo necesitan</p>
+        <p class="mb-2">
+            <a href="mailto:soporte@redsolidaria.com" style="font-size: 1rem; color: #0000FF; text-decoration: underline; font-weight: 500;">
+                soporte@redsolidaria.com
+            </a>
+        </p>
+        <p class="xsmall mb-0" style="font-size: 0.75rem; opacity: 0.8;">© 2026 Red Solidaria - Uniendo Corazones</p>
+    </div>
+</footer>
 {% endblock %}
 
 {# Fin del archivo donar.html - Red Solidaria #}
