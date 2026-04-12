@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Map;
 
 public class EmailRequest {
+        private String nombreDonador;
+        public String getNombreDonador() { return nombreDonador; }
+        public void setNombreDonador(String nombreDonador) { this.nombreDonador = nombreDonador; }
     private String destinatario;
     private String nombreFundacion;
     private String estado; 
@@ -16,6 +19,7 @@ public class EmailRequest {
     
     // Lista para la tabla del PDF
     private List<Map<String, Object>> donaciones;
+        private int fundacionId;
 
     // Getters y Setters
     public String getDestinatario() { return destinatario; }
@@ -34,4 +38,6 @@ public class EmailRequest {
     public void setEstadoFiltrado(String estadoFiltrado) { this.estadoFiltrado = estadoFiltrado; }
     public List<Map<String, Object>> getDonaciones() { return donaciones; }
     public void setDonaciones(List<Map<String, Object>> donaciones) { this.donaciones = donaciones; }
+        public int getFundacionId() { return fundacionId; }
+        public void setFundacionId(int fundacionId) { this.fundacionId = fundacionId; }
 }

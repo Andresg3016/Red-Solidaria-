@@ -34,22 +34,76 @@ def gestionar_donacion():
         return redirect(url_for("home_fundacion"))
     donacion_id = request.form.get("donacion_id")
     accion = request.form.get("accion")
-    if not donacion_id or accion not in ["aceptar", "rechazar"]:
+    if not donacion_id or accion not in ["aceptar", "rechazar", "eliminar"]:
         flash("Solicitud inválida", "danger")
         return redirect(url_for("home_fundacion"))
-    nuevo_estado = "aceptada" if accion == "aceptar" else "rechazada"
-    # Actualizar estado en la tabla intermedia donaciones_fundaciones
+
+    # Validar que la donación esté pendiente antes de cambiar estado
     conn = None
     try:
         conn = __import__('database.db').db.get_connection()
-        cursor = conn.cursor()
-        cursor.execute("UPDATE donaciones_fundaciones SET estado = %s WHERE donacion_id = %s AND fundacion_id = (SELECT id FROM fundaciones WHERE usuario_id = %s)",
-                       (nuevo_estado, donacion_id, session["usuario_id"]))
-        conn.commit()
-        if accion == "aceptar":
-            flash("✅ Donación recibida correctamente.", "success")
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT df.estado, d.usuario_id FROM donaciones_fundaciones df JOIN donaciones d ON df.donacion_id = d.id WHERE df.donacion_id = %s AND df.fundacion_id = (SELECT id FROM fundaciones WHERE usuario_id = %s)", (donacion_id, session["usuario_id"]))
+        don = cursor.fetchone()
+
+        # Permitir eliminar aunque no esté pendiente, pero solo si la acción es eliminar
+        if accion != "eliminar" and (not don or don["estado"] != "pendiente"):
+            flash("La donación ya fue gestionada o no existe.", "warning")
+            return redirect(url_for("home_fundacion"))
+
+        # Obtener correo y nombre del donante
+        cursor.execute("SELECT u.correo, u.nombre FROM usuarios u WHERE u.id = %s", (don["usuario_id"],))
+        donante = cursor.fetchone()
+        correo_donante = donante["correo"] if donante else None
+        nombre_donante = donante["nombre"] if donante else None
+
+        if accion == "eliminar":
+            # Aseguramos que siempre se actualice a 'eliminada'
+            cursor.execute("UPDATE donaciones_fundaciones SET estado = 'eliminada' WHERE donacion_id = %s AND fundacion_id = (SELECT id FROM fundaciones WHERE usuario_id = %s)", (donacion_id, session["usuario_id"]))
+            conn.commit()
+            # Verificamos si realmente se actualizó
+            cursor.execute("SELECT estado FROM donaciones_fundaciones WHERE donacion_id = %s AND fundacion_id = (SELECT id FROM fundaciones WHERE usuario_id = %s)", (donacion_id, session["usuario_id"]))
+            estado_actual = cursor.fetchone()
+            if estado_actual and estado_actual["estado"] == "eliminada":
+                flash("Donación eliminada correctamente.", "warning")
+            else:
+                flash("Error: No se pudo marcar como eliminada.", "danger")
         else:
-            flash("❌ Donación rechazada correctamente.", "danger")
+            nuevo_estado = "aceptada" if accion == "aceptar" else "rechazada"
+            cursor.execute("UPDATE donaciones_fundaciones SET estado = %s WHERE donacion_id = %s AND fundacion_id = (SELECT id FROM fundaciones WHERE usuario_id = %s)", (nuevo_estado, donacion_id, session["usuario_id"]))
+            conn.commit()
+            if accion == "aceptar":
+                flash("Donación recibida correctamente.", "success")
+            else:
+                flash("Donación rechazada correctamente.", "danger")
+            # Enviar correo al donante con detalles
+            if correo_donante:
+                fundacion_nombre = session.get("nombre", "Fundación")
+                # Obtener detalles de la donación
+                cursor.execute("SELECT d.descripcion, c.nombre as categoria FROM donaciones d LEFT JOIN categorias c ON d.categoria_id = c.id WHERE d.id = %s", (donacion_id,))
+                donacion_detalle = cursor.fetchone()
+                descripcion = donacion_detalle["descripcion"] if donacion_detalle else ""
+                categoria = donacion_detalle["categoria"] if donacion_detalle else ""
+                # Construir payload para Java
+                estado_correo = "RECIBIDO" if accion == "aceptar" else "RECHAZADO_DONACION"
+                datos_correo = {
+                    "destinatario": correo_donante,
+                    "nombreFundacion": fundacion_nombre,
+                    "estado": estado_correo,
+                    "categoriaFiltrada": categoria,
+                    "donaciones": [{"descripcion": descripcion}]
+                }
+                import requests
+                try:
+                    response = requests.post("http://localhost:8080/api/email/enviar", json=datos_correo, timeout=5)
+                    if response.status_code == 200:
+                        print(f"Correo enviado a {correo_donante} sobre donación {accion}")
+                    else:
+                        print(f"ERROR: No se pudo enviar correo a {correo_donante}")
+                        flash("No se pudo notificar al donante por correo.", "warning")
+                except Exception as e:
+                    print(f"Error conectando con Java: {e}")
+                    flash("No se pudo notificar al donante por correo.", "warning")
     except Exception as e:
         print(f"Error al actualizar estado de donación: {e}")
         flash("Error al actualizar el estado de la donación.", "danger")
@@ -172,6 +226,10 @@ def rechazar_fundacion_ruta(id):
 @app.route('/solicitar-ayuda', methods=['GET', 'POST'])
 def solicitar_ayuda():
     return donacion_ctrl.solicitar_ayuda_view(session)
+
+@app.route('/ver_perfil')
+def ver_perfil():
+    return usuario_ctrl.ver_perfil_view()
 
 # ================= RUN =================
 if __name__ == "__main__":

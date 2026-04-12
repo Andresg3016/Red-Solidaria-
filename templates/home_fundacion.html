@@ -156,7 +156,6 @@
                                     <option value="">Todas</option>
                                     <option value="Alimentos" {% if request.args.get('categoria') == 'Alimentos' %}selected{% endif %}>Alimentos</option>
                                     <option value="Ropa" {% if request.args.get('categoria') == 'Ropa' %}selected{% endif %}>Ropa</option>
-                                    <option value="Medicamentos" {% if request.args.get('categoria') == 'Medicamentos' %}selected{% endif %}>Medicamentos</option>
                                     <option value="Otros" {% if request.args.get('categoria') == 'Otros' %}selected{% endif %}>Otros</option>
                                 </select>
                             </div>
@@ -167,6 +166,8 @@
                                     <option value="">Todos</option>
                                     <option value="pendiente" {% if request.args.get('est') == 'pendiente' %}selected{% endif %}>Pendiente</option>
                                     <option value="aceptada" {% if request.args.get('est') == 'aceptada' %}selected{% endif %}>Recibido</option>
+                                    <option value="rechazada" {% if request.args.get('est') == 'rechazada' %}selected{% endif %}>Rechazado</option>
+                                    <option value="eliminada" {% if request.args.get('est') == 'eliminada' %}selected{% endif %}>Eliminado</option>
                                 </select>
                             </div>
 
@@ -190,8 +191,17 @@
                             <div class="donacion-card p-3 border rounded shadow-sm bg-white h-100">
                                 <div class="d-flex justify-content-between mb-2">
                                     <span class="badge bg-info text-dark">{{ d.nombre_categoria }}</span>
-                                    <span class="badge {% if d.estado_fundacion == 'aceptada' %}bg-success{% elif d.estado_fundacion == 'rechazada' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
-                                        {% if d.estado_fundacion == 'aceptada' %}RECIBIDO{% elif d.estado_fundacion == 'rechazada' %}RECHAZADO{% else %}PENDIENTE{% endif %}
+                                    <span class="badge 
+                                        {% if d.estado_fundacion == 'aceptada' %}bg-success
+                                        {% elif d.estado_fundacion == 'rechazada' %}bg-danger
+                                        {% elif d.estado_fundacion == 'eliminada' %}bg-warning text-dark
+                                        {% else %}bg-warning text-dark
+                                        {% endif %}">
+                                        {% if d.estado_fundacion == 'aceptada' %}RECIBIDO
+                                        {% elif d.estado_fundacion == 'rechazada' %}RECHAZADO
+                                        {% elif d.estado_fundacion == 'eliminada' %}ELIMINADO
+                                        {% else %}PENDIENTE
+                                        {% endif %}
                                     </span>
                                 </div>
                                 <div class="mt-2">
@@ -202,12 +212,23 @@
                                         <small class="text-muted"><i class="far fa-calendar-alt"></i> {{ d.fecha }}</small>
                                     </div>
                                 </div>
-                                {% if d.estado == 'pendiente' %}
+                                {% if d.estado_fundacion == 'pendiente' %}
                                 <form method="POST" action="{{ url_for('gestionar_donacion') }}" class="mt-3 d-flex gap-2">
                                     <input type="hidden" name="donacion_id" value="{{ d.id }}">
                                     <button type="submit" name="accion" value="aceptar" class="btn btn-success btn-sm">Aceptar</button>
                                     <button type="submit" name="accion" value="rechazar" class="btn btn-danger btn-sm">Rechazar</button>
+                                    <button type="submit" name="accion" value="eliminar" class="btn btn-warning btn-sm" style="background-color:#ffb84d; color:#333;">Eliminar</button>
                                 </form>
+                                {% else %}
+                                    <div class="mt-3">
+                                        {% if d.estado_fundacion == 'aceptada' %}
+                                            <span class="badge bg-success">RECIBIDO</span>
+                                        {% elif d.estado_fundacion == 'rechazada' %}
+                                            <span class="badge bg-danger">RECHAZADO</span>
+                                        {% elif d.estado_fundacion == 'eliminada' %}
+                                            <span class="badge bg-warning text-dark">ELIMINADO</span>
+                                        {% endif %}
+                                    </div>
                                 {% endif %}
                             </div>
                         </div>

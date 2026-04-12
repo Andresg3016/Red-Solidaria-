@@ -21,13 +21,12 @@ class UsuarioModel:
         try:
             cursor = conn.cursor()
             
-            # Corrección: Aseguramos que el rol sea entero para la lógica de estados
+
             rol_id_int = int(usuario.rol_id)
             estado = 'pendiente' if rol_id_int == 3 else 'aprobado' 
             
             print(f"DEBUG: Intentando registrar usuario {usuario.correo} con estado {estado}")
 
-            # Corrección: Agregamos fecha_registro y NOW() para evitar el valor None
             query = """
                 INSERT INTO usuarios (nombre, correo, password, rol_id, estado, fecha_registro) 
                 VALUES (%s, %s, %s, %s, %s, NOW())

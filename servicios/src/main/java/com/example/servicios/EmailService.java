@@ -24,14 +24,15 @@ public class EmailService {
 
             helper.setTo(request.getDestinatario());
             
+
             String subject = "";
             String mensajeCuerpo = "";
             String botonTexto = "Ir al Panel";
-            
-            String colorInicio = "#1e52ff"; 
-            String colorFin = "#63ff5e";    
-            String colorBoton = "#28a745";  
+            String colorInicio = "#1e52ff";
+            String colorFin = "#63ff5e";
+            String colorBoton = "#28a745";
 
+            // Personalización para donaciones
             switch (request.getEstado().toUpperCase()) {
                 case "PENDIENTE":
                     subject = "Solicitud Recibida - Red Solidaria";
@@ -44,11 +45,36 @@ public class EmailService {
                     break;
                 case "RECHAZADO":
                     subject = "Información sobre tu solicitud";
-                    colorInicio = "#ff0000"; 
+                    colorInicio = "#ff0000";
                     colorFin = "#dc2626";
                     colorBoton = "#b91c1c";
                     mensajeCuerpo = "Lamentamos informarte que tu solicitud no pudo ser aprobada en este momento.";
                     botonTexto = "Contactar Soporte";
+                    break;
+                case "RECIBIDO":
+                    subject = "¡Gracias por tu donación!";
+                    mensajeCuerpo = "Queremos agradecerte sinceramente por tu generosa donación. <br><br>" +
+                        "<b>Detalle de la donación:</b><br>" +
+                        (request.getCategoriaFiltrada() != null ? ("Categoría: <b>" + request.getCategoriaFiltrada() + "</b><br>") : "") +
+                        (request.getEstadoFiltrado() != null ? ("Estado: <b>" + request.getEstadoFiltrado() + "</b><br>") : "") +
+                        (request.getDonaciones() != null && !request.getDonaciones().isEmpty() ? ("Descripción: <b>" + request.getDonaciones().get(0).getOrDefault("descripcion", "") + "</b><br>") : "") +
+                        "<br>¡Tu ayuda marca la diferencia!";
+                    botonTexto = "Ver mi donación";
+                    colorInicio = "#1e52ff";
+                    colorFin = "#63ff5e";
+                    colorBoton = "#28a745";
+                    break;
+                case "RECHAZADO_DONACION":
+                    subject = "Tu donación ha sido rechazada";
+                    mensajeCuerpo = "Lamentamos informarte que tu donación no cumple con los requisitos de la fundación y ha sido rechazada.<br><br>" +
+                        (request.getCategoriaFiltrada() != null ? ("Categoría: <b>" + request.getCategoriaFiltrada() + "</b><br>") : "") +
+                        (request.getEstadoFiltrado() != null ? ("Estado: <b>" + request.getEstadoFiltrado() + "</b><br>") : "") +
+                        (request.getDonaciones() != null && !request.getDonaciones().isEmpty() ? ("Descripción: <b>" + request.getDonaciones().get(0).getOrDefault("descripcion", "") + "</b><br>") : "") +
+                        "<br>Te invitamos a revisar los requisitos y volver a intentarlo.";
+                    botonTexto = "Ver detalles";
+                    colorInicio = "#ff0000";
+                    colorFin = "#dc2626";
+                    colorBoton = "#b91c1c";
                     break;
             }
 
@@ -102,14 +128,20 @@ public class EmailService {
             String colorBoton = "#28a745"; 
 
             // --- CONSTRUCCIÓN DE URL PARA EL BOTÓN DE DESCARGA ---
+            String nombreFundacion = request.getNombreFundacion() != null ? request.getNombreFundacion() : "Donante";
+            String nit = request.getNit() != null ? request.getNit() : "N/A";
             String categoriaParaUrl = (request.getCategoriaFiltrada() != null && !request.getCategoriaFiltrada().isEmpty()) 
                                       ? request.getCategoriaFiltrada() : "Todas";
-            
+
             String urlDescarga = "http://localhost:8080/api/email/descargar-reporte?" +
-                                 "nombre=" + URLEncoder.encode(request.getNombreFundacion(), StandardCharsets.UTF_8) +
-                                 "&nit=" + URLEncoder.encode(request.getNit(), StandardCharsets.UTF_8) +
-                                 "&cantidad=" + request.getCantidadDonaciones() +
+                                 "fundacion_id=" + request.getFundacionId() +
+                                 "&nombre=" + URLEncoder.encode(nombreFundacion, StandardCharsets.UTF_8) +
+                                 "&nit=" + URLEncoder.encode(nit, StandardCharsets.UTF_8) +
                                  "&categoria=" + URLEncoder.encode(categoriaParaUrl, StandardCharsets.UTF_8);
+            // Agregar el filtro de estado si existe
+            if (request.getEstadoFiltrado() != null && !request.getEstadoFiltrado().isEmpty() && !request.getEstadoFiltrado().equalsIgnoreCase("Todos")) {
+                urlDescarga += "&est=" + URLEncoder.encode(request.getEstadoFiltrado(), StandardCharsets.UTF_8);
+            }
 
             String htmlContent = 
                 "<div style='font-family: \"Segoe UI\", Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; padding: 20px;'>" +
@@ -125,6 +157,10 @@ public class EmailService {
                             "<div style='background: #f8f9fa; border-radius: 15px; padding: 25px; margin: 25px 0; text-align: left; border: 1px dashed #ccc;'>" +
                                 "<p style='margin: 5px 0;'><b>Identificación (NIT):</b> " + request.getNit() + "</p>" +
                                 "<p style='margin: 5px 0;'><b>Filtro Categoría:</b> " + categoriaParaUrl + "</p>" +
+                                // Mostrar estado solo si existe y no es vacío
+                                (request.getEstadoFiltrado() != null && !request.getEstadoFiltrado().isEmpty() && !request.getEstadoFiltrado().equalsIgnoreCase("Todos")
+                                    ? ("<p style='margin: 5px 0;'><b>Filtro Estado:</b> " + request.getEstadoFiltrado() + "</p>")
+                                    : "") +
                                 "<div style='margin-top: 15px; padding-top: 15px; border-top: 2px solid " + colorFin + ";'>" +
                                     "<p style='font-size: 20px; margin: 0;'><b>Total Donaciones Encontradas:</b> <span style='color: " + colorInicio + "; font-weight: 800;'>" + request.getCantidadDonaciones() + "</span></p>" +
                                 "</div>" +
@@ -141,15 +177,12 @@ public class EmailService {
                 "</div>";
 
             helper.setText(htmlContent, true);
-
             ClassPathResource image = new ClassPathResource("static/images/logo.jpeg");
             helper.addInline("logoImage", image);
 
-            // SECCIÓN ELIMINADA: Ya no se llama a helper.addAttachment(...)
-
+            // No adjuntar el PDF, solo enviar el enlace de descarga en el cuerpo del correo
             mailSender.send(message);
-            System.out.println("✅ Reporte enviado exitosamente (Sin archivo adjunto físico)");
-
+            System.out.println("✅ Reporte enviado exitosamente (Solo enlace de descarga, sin adjunto)");
         } catch (Exception e) {
             System.out.println("❌ Error enviando reporte: " + e.getMessage());
             e.printStackTrace();

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ver Perfil</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <h1>Perfil del Usuario</h1>
+    <div>
+        <strong>Nombre del usuario:</strong> {{ usuario.nombre }}<br>
+        <strong>Número de contacto:</strong> {{ usuario.telefono }}<br>
+    </div>
+    <a href="{{ url_for('editar_perfil') }}">Editar Perfil Fundación</a>
+    <a href="{{ url_for('home_fundacion') }}">Volver</a>
+</body>
+</html>

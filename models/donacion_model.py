@@ -65,6 +65,8 @@ class DonacionModel:
             """
             params = [fundacion_id]
 
+            print(f"[PY-DEBUG] Valor recibido para estado: '{estado}'")
+
             if q:
                 query += " AND d.descripcion LIKE %s"
                 params.append(f"%{q}%")
@@ -78,9 +80,14 @@ class DonacionModel:
                 query += " AND df.estado = %s"
                 params.append(estado)
 
+            print(f"[PY-DEBUG] Consulta SQL final: {query}")
+            print(f"[PY-DEBUG] Parámetros: {params}")
+
             query += " ORDER BY d.fecha DESC"
             cursor.execute(query, tuple(params))
-            return cursor.fetchall()
+            resultados = cursor.fetchall()
+            print(f"[PY-DEBUG] Resultados encontrados: {len(resultados)}")
+            return resultados
         except Exception as e:
             print(f"Error en filtros fundacion: {e}")
             return []

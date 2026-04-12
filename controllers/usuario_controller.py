@@ -4,6 +4,15 @@ import os
 from werkzeug.utils import secure_filename
 
 class UsuarioController:
+    def ver_perfil_view(self):
+        from flask import session, render_template, redirect, url_for
+        if "usuario_id" not in session:
+            return redirect(url_for("login"))
+        usuario_datos = {
+            "nombre": session.get("nombre"),
+            "telefono": session.get("telefono")
+        }
+        return render_template("ver_perfil.html", usuario=usuario_datos)
     def __init__(self):
         # Movimos el modelo aquí adentro para que 'self.modelo' exista en todos los métodos
         self.modelo = UsuarioModel()
@@ -213,8 +222,8 @@ class UsuarioController:
                 nombre = request.form.get("nombre_fundador") or request.form.get("nombre")
                 organizacion = request.form.get("organizacion")
             else:
-                # Donante: nombre normal
-                nombre = request.form.get("nombre")
+                # Donante: usar nombre_fundador si existe, si no, nombre
+                nombre = request.form.get("nombre_fundador") or request.form.get("nombre")
                 organizacion = None
             correo = request.form.get("correo")
             password = request.form.get("password")
@@ -308,48 +317,45 @@ class UsuarioController:
             else:
                 try:
                     url_java = "http://localhost:8080/api/email/enviar-reporte"
-                    
-                    # --- LÓGICA DE DESGLOSE PROFESIONAL ---
-                    # Agrupamos por descripción para que aparezca "Ropa: 100", "Alimentos: 200"
+                    # --- LÓGICA DE DESGLOSE POR CATEGORÍA REAL ---
+                    print("DEBUG DONACIONES PARA REPORTE:", mis_donaciones)
                     desglose_dict = {}
                     for d in mis_donaciones:
                         desc = d.get('descripcion', 'Otros')
                         cant = int(d.get('cantidad', 0))
-                        est = d.get('estado', 'Verificado')
-                        
-                        if desc in desglose_dict:
-                            desglose_dict[desc]['cantidad'] += cant
+                        est = d.get('estado_fundacion', 'Verificado')
+                        cat = d.get('nombre_categoria', 'Otros')
+                        clave = (desc, est, cat)
+                        if clave in desglose_dict:
+                            desglose_dict[clave]['cantidad'] += cant
                         else:
-                            desglose_dict[desc] = {
+                            desglose_dict[clave] = {
                                 "descripcion": desc,
                                 "cantidad": cant,
-                                "estado": est
+                                "estado": est,
+                                "nombre_categoria": cat
                             }
-                    
                     lista_desglosada = list(desglose_dict.values())
                     total_donaciones = sum(item['cantidad'] for item in lista_desglosada)
-
                     payload = {
                         "destinatario": correo_reporte,
                         "nombreFundacion": fundacion.get('nombre_fundacion', fundacion.get('nombre')),
                         "nit": fundacion.get('nit', 'N/A'),
                         "cantidadDonaciones": total_donaciones,
-                        "donaciones": lista_desglosada # Enviamos la lista con el desglose real
+                        "donaciones": lista_desglosada, # Enviamos la lista con el desglose real
+                        "fundacionId": fundacion_id,
+                        "categoriaFiltrada": categoria,
+                        "estadoFiltrado": estado
                     }
-                    
-                    # --- LA CORRECCIÓN CRÍTICA ---
                     # Limpiamos los datos antes de enviarlos a Java
                     datos_limpios = json.loads(json.dumps(payload, default=serializar_datos))
-                    
                     response = requests.post(url_java, json=datos_limpios, timeout=10)
-                    
                     if response.status_code == 200:
                         flash(f"✅ ¡Reporte enviado con éxito a {correo_reporte}!", "success")
                         print("✅ Éxito: Java procesó el PDF y el correo.")
                     else:
                         print(f"❌ Error en Java: {response.status_code} - {response.text}")
                         flash("Java recibió los datos pero hubo un error al generar el PDF", "danger")
-
                 except Exception as e:
                     print(f"❌ Error de conexión: {e}")
                     flash("No se pudo conectar con el servicio de correos (Java)", "danger")
@@ -402,25 +408,82 @@ class UsuarioController:
         # Si es GET, simplemente mostramos el formulario
         return render_template("solicitar_ayuda.html")
     
+
     def home_donador_view(self):
-        from flask import session, redirect, url_for, render_template, request
+        from flask import session, redirect, url_for, render_template, request, flash
         from models.donacion_model import DonacionModel
+        import requests
+        import json
+        from app import serializar_datos
 
         if "usuario_id" not in session:
             return redirect(url_for("login"))
 
         datos_donador = {
             "nombre": session.get("nombre"),
-            "foto_perfil": session.get("foto_perfil")
+            "foto_perfil": session.get("foto_perfil"),
+            "telefono": session.get("telefono"),
+            "estado": session.get("estado")
         }
 
         modelo_donacion = DonacionModel()
 
-        # Filtros del panel multicriterio
+        # Filtros multicriterio
         q = request.args.get('q', '')
         cat = request.args.get('cat', '')
+        est = request.args.get('est', '')
+        accion = request.args.get('accion')
+        correo_reporte = request.args.get('correo_reporte')
+
         necesidades = modelo_donacion.obtener_necesidades_activas(q, cat)
-        mis_donaciones = modelo_donacion.obtener_donaciones_por_usuario_filtrado(session["usuario_id"])
+        mis_donaciones = modelo_donacion.obtener_donaciones_por_usuario_filtrado(session["usuario_id"], q=q, categoria=cat, estado=est)
+
+        if accion == 'reporte':
+            if not correo_reporte:
+                flash("Por favor, ingresa un correo para el reporte", "warning")
+            else:
+                try:
+                    url_java = "http://localhost:8080/api/email/enviar-reporte-donador"
+                    # Desglose por categoría/estado igual que fundación
+                    desglose_dict = {}
+                    for d in mis_donaciones:
+                        desc = d.get('descripcion', 'Otros')
+                        cant = int(d.get('cantidad', 0))
+                        est_don = d.get('estado_donante', 'Verificado')
+                        cat_don = d.get('categoria_nombre', 'Otros')
+                        fundacion_nombre = d.get('fundacion_nombre', 'N/A')
+                        clave = (desc, est_don, cat_don, fundacion_nombre)
+                        if clave in desglose_dict:
+                            desglose_dict[clave]['cantidad'] += cant
+                        else:
+                            desglose_dict[clave] = {
+                                "descripcion": desc,
+                                "cantidad": cant,
+                                "estado": est_don,
+                                "nombre_categoria": cat_don,
+                                "fundacion_nombre": fundacion_nombre
+                            }
+                    lista_desglosada = list(desglose_dict.values())
+                    total_donaciones = sum(item['cantidad'] for item in lista_desglosada)
+                    payload = {
+                        "destinatario": correo_reporte,
+                        "nombreDonador": datos_donador["nombre"],
+                        "telefono": datos_donador.get("telefono", "N/A"),
+                        "cantidadDonaciones": total_donaciones,
+                        "donaciones": lista_desglosada,
+                        "categoriaFiltrada": cat,
+                        "estadoFiltrado": est
+                    }
+                    datos_limpios = json.loads(json.dumps(payload, default=serializar_datos))
+                    response = requests.post(url_java, json=datos_limpios, timeout=10)
+                    if response.status_code == 200:
+                        flash(f"✅ ¡Reporte enviado con éxito a {correo_reporte}!", "success")
+                    else:
+                        print(f"❌ Error en Java: {response.status_code} - {response.text}")
+                        flash("Java recibió los datos pero hubo un error al generar el PDF", "danger")
+                except Exception as e:
+                    print(f"❌ Error de conexión: {e}")
+                    flash("No se pudo conectar con el servicio de correos (Java)", "danger")
 
         return render_template("home_donador.html", 
                                donador=datos_donador, 

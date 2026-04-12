@@ -61,14 +61,12 @@ def aprobar_fundacion_controller(id_fundacion, correo_fundacion, nombre_fundacio
     return redirect(url_for('home_admin_panel'))
 
 # --- RECHAZAR FUNDACIÓN ---
-# RECHAZAR FUNDACIÓN (ACTUALIZADO)
+
 def rechazar_fundacion_controller(id_fundacion, correo_fundacion=None, nombre_fundacion=None):
-    from models.home_administrador_model import HomeAdminModel
-    
-    # 1. Cambiamos el estado en MySQL (a 'rechazado' o borrar, según tu modelo)
-    if HomeAdminModel.rechazar_fundacion(id_fundacion):
-        
-        # 2. Si tenemos los datos, notificamos a Java
+    from models.home_administrador_model import HomeAdminModel  
+   
+    if HomeAdminModel.rechazar_fundacion(id_fundacion):        
+      
         if correo_fundacion:
             try:
                 url_java = "http://localhost:8080/api/email/enviar"
@@ -89,4 +87,3 @@ def rechazar_fundacion_controller(id_fundacion, correo_fundacion=None, nombre_fu
         flash("Error al procesar el rechazo en la base de datos.", "danger")
 
     return redirect(url_for('home_admin_panel'))
-# Fin del archivo home_administrador_controller.py

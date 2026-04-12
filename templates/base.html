@@ -47,7 +47,7 @@
                                 👤 {{ session['nombre'] }}
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg">
-                                <li><a class="dropdown-item" href="{{ url_for('editar_perfil') }}">👤 Ver Perfil</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="offcanvas" data-bs-target="#perfilSidebar">👤 Ver Perfil</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <a class="dropdown-item text-danger fw-bold" href="{{ url_for('logout') }}">
@@ -66,9 +66,97 @@
         </div>
     </nav>
 
-    <main style="padding-top: 20px; min-height: 70vh;">
-        {% block content %}{% endblock %}
-    </main>
+
+
+        <!-- Sidebar (Offcanvas) de Perfil de Usuario -->
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="perfilSidebar" aria-labelledby="perfilSidebarLabel" style="max-width: 340px;">
+            <div class="d-flex flex-column justify-content-center align-items-center h-100" style="min-height: 320px; max-height: 420px; margin-top: 60px; margin-bottom: 60px;">
+                <div class="offcanvas-header border-bottom w-100" style="border: none !important;">
+                    <div class="d-flex align-items-center gap-2 w-100">
+                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; border: 2px solid #e1e4e8;">
+                            <i class="fa fa-user" style="font-size: 2rem; color: #3b82f6;"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold" style="font-size: 1.15rem;">{{ session['nombre'] }}</div>
+                            <div class="text-muted small">Usuario registrado</div>
+                        </div>
+                        <button type="button" class="btn-close ms-2" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+                    </div>
+                </div>
+                <div class="offcanvas-body px-0 pt-3 pb-0 w-100" style="flex: none;">
+                    <ul class="list-unstyled mb-0">
+                        <li class="px-4 py-2 d-flex align-items-center gap-2">
+                            <i class="fa fa-id-card text-primary"></i>
+                            <span><strong>Nombre:</strong> {{ session['nombre'] }}</span>
+                        </li>
+                        <li class="px-4 py-2 d-flex align-items-center gap-2">
+                            <i class="fa fa-phone text-success"></i>
+                            <span><strong>Contacto:</strong> {{ session['telefono'] if session.get('telefono') else 'No registrado' }}</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="offcanvas-footer p-3 border-top w-100" style="border: none !important;">
+                    <a href="{{ url_for('editar_perfil') }}" class="btn btn-outline-primary w-100 mb-2">Editar Perfil Fundación</a>
+                    <button type="button" class="btn btn-light w-100" data-bs-dismiss="offcanvas">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Panel de Perfil -->
+        <div id="perfilFloatingPanel" class="floating-profile-panel" style="display:none;">
+            <div class="d-flex align-items-center gap-2 mb-3 w-100">
+                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; border: 2px solid #e1e4e8;">
+                    <i class="fa fa-user" style="font-size: 2rem; color: #3b82f6;"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-bold" style="font-size: 1.15rem;">{{ session['nombre'] }}</div>
+                    <div class="text-muted small">Usuario registrado</div>
+                </div>
+                <button type="button" class="btn-close ms-2" id="cerrarPerfilPanel" aria-label="Cerrar"></button>
+            </div>
+            <ul class="list-unstyled mb-3 w-100">
+                <li class="px-2 py-2 d-flex align-items-center gap-2">
+                    <i class="fa fa-id-card text-primary"></i>
+                    <span><strong>Nombre:</strong> {{ session['nombre'] }}</span>
+                </li>
+                <li class="px-2 py-2 d-flex align-items-center gap-2">
+                    <i class="fa fa-phone text-success"></i>
+                    <span><strong>Contacto:</strong> {{ session['telefono'] if session.get('telefono') else 'No registrado' }}</span>
+                </li>
+            </ul>
+            <a href="{{ url_for('editar_perfil') }}" class="btn btn-outline-primary w-100 mb-2">Editar Perfil Fundación</a>
+            <button type="button" class="btn btn-light w-100" id="cerrarPerfilPanel2">Cerrar</button>
+        </div>
+
+        <!-- Modal centrado para Ver Perfil -->
+        <div id="perfilModalCentrado" class="floating-profile-panel" style="display:none; left:50%; right:auto; top:50%; transform:translate(-50%,-50%); max-width:340px; width:96vw;">
+            <div class="d-flex align-items-center gap-2 mb-3 w-100">
+                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; border: 2px solid #e1e4e8;">
+                    <i class="fa fa-user" style="font-size: 2rem; color: #3b82f6;"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-bold" style="font-size: 1.15rem;">{{ session['nombre'] }}</div>
+                    <div class="text-muted small">Usuario registrado</div>
+                </div>
+                <button type="button" class="btn-close ms-2" id="cerrarPerfilModalCentrado" aria-label="Cerrar"></button>
+            </div>
+            <ul class="list-unstyled mb-3 w-100">
+                <li class="px-2 py-2 d-flex align-items-center gap-2">
+                    <i class="fa fa-id-card text-primary"></i>
+                    <span><strong>Nombre:</strong> {{ session['nombre'] }}</span>
+                </li>
+                <li class="px-2 py-2 d-flex align-items-center gap-2">
+                    <i class="fa fa-phone text-success"></i>
+                    <span><strong>Contacto:</strong> {{ session['telefono'] if session.get('telefono') else 'No registrado' }}</span>
+                </li>
+            </ul>
+            <a href="{{ url_for('editar_perfil') }}" class="btn btn-outline-primary w-100 mb-2">Editar Perfil Fundación</a>
+            <button type="button" class="btn btn-light w-100" id="cerrarPerfilModalCentrado2">Cerrar</button>
+        </div>
+
+        <main style="padding-top: 20px; min-height: 70vh;">
+                {% block content %}{% endblock %}
+        </main>
 
     <footer class="bg-dark text-white text-center mt-auto" style="border-top: 4px solid #63ff5e; padding: 25px 20px;">
         <div class="container">
@@ -87,3 +175,75 @@
 
     {% block scripts %}{% endblock %}
 {% endblock %}
+
+    <style>
+      .floating-profile-panel {
+        position: fixed;
+        top: 50%;
+        right: 50px;
+        transform: translateY(-50%);
+        width: 340px;
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+        z-index: 2000;
+        padding: 24px 20px;
+        max-height: 60vh;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border: 1px solid #e1e4e8;
+        animation: fadeInPerfilPanel 0.2s;
+      }
+      @keyframes fadeInPerfilPanel {
+        from { opacity: 0; right: 0; }
+        to { opacity: 1; right: 50px; }
+      }
+      @media (max-width: 600px) {
+        .floating-profile-panel {
+          right: 0;
+          width: 98vw;
+          border-radius: 0;
+        }
+      }
+      /* Fondo oscuro para el modal */
+      #perfilModalBackdrop {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.18);
+        z-index: 1999;
+        display: none;
+      }
+    </style>
+    <div id="perfilModalBackdrop"></div>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        var btn = document.getElementById('btnVerPerfil');
+        var panel = document.getElementById('perfilFloatingPanel');
+        var close1 = document.getElementById('cerrarPerfilPanel');
+        var close2 = document.getElementById('cerrarPerfilPanel2');
+        var backdrop = document.getElementById('perfilModalBackdrop');
+        function showPanel(e) {
+          e.preventDefault();
+          panel.style.display = 'flex';
+        }
+        function hidePanel() {
+          panel.style.display = 'none';
+        }
+        btn && btn.addEventListener('click', showPanel);
+        close1 && close1.addEventListener('click', hidePanel);
+        close2 && close2.addEventListener('click', hidePanel);
+        backdrop && backdrop.addEventListener('click', hidePanel);
+        // Cerrar al hacer click fuera del panel
+        document.addEventListener('mousedown', function(e) {
+          if (panel.style.display === 'flex' && !panel.contains(e.target) && e.target !== btn) {
+            panel.style.display = 'none';
+          }
+        });
+        // Cerrar con ESC
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') hidePanel();
+        });
+      });
+    </script>
