@@ -22,7 +22,8 @@ class DonacionModel:
             # Insertar en donaciones_fundaciones para cada fundación
             query_df = "INSERT INTO donaciones_fundaciones (donacion_id, fundacion_id, estado) VALUES (%s, %s, 'pendiente')"
             for f_id in fundacion_ids:
-                cursor.execute(query_df, (donacion_id, int(f_id)))
+                if f_id and str(f_id).isdigit():
+                    cursor.execute(query_df, (donacion_id, int(f_id)))
             conn.commit()
             return True
         except Exception as e:

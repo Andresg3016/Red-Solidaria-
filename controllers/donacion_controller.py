@@ -99,9 +99,18 @@ class DonacionController:
             if necesidad_prellenada:
                 # Donación a una sola fundación (por necesidad)
                 fundacion_ids = [str(necesidad_prellenada["fundacion_id"])]
+
+
             else:
-                # Donación general: puede ser a varias fundaciones
-                fundacion_ids = request.form.getlist("fundacion_ids")
+                # Donación general: solo una fundación seleccionada
+                fundacion_id = request.form.get("fundacion_id")
+                print("DEBUG fundacion_id crudo:", fundacion_id, type(fundacion_id))
+                fundacion_ids = [fundacion_id] if fundacion_id else []
+                print("DEBUG fundacion_ids lista:", fundacion_ids)
+                if not fundacion_ids or not fundacion_ids[0]:
+                    flash("Debes seleccionar una fundación destino.", "danger")
+                    categorias = modelo.obtener_categorias()
+                    return render_template("donar.html", necesidad=necesidad_prellenada, categorias=categorias, fundaciones_activas=fundaciones_activas)
 
             exito = modelo.registrar_donacion(
                 donador_id,

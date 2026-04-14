@@ -47,18 +47,25 @@
         </div>
         {% endif %}
 
-        <form method="POST" action="{{ url_for('publicar_donacion', necesidad_id=necesidad.id if necesidad else None) }}" class="needs-validation">
+        <form method="POST" action="{{ url_for('donar', necesidad_id=necesidad.id if necesidad else None) }}" class="needs-validation">
             
-            {# Campo Oculto: ID de la Fundación (CRUCIAL para que aparezca en el tablero) #}
-            <input type="hidden" name="fundacion_id" value="{{ necesidad.fundacion_id if necesidad else '' }}">
-
-            {# Campo: Fundación Destino (Solo lectura) #}
+            {# Campo: Fundación Destino #}
             <div class="mb-3">
                 <label class="form-label fw-bold">🏛️ Fundación Destino:</label>
-                <input type="text" 
-                       value="{{ necesidad.nombre_fundacion if necesidad else 'Donación General / Pendiente de Asignar' }}" 
-                       class="form-control readonly-field" 
-                       readonly>
+                {% if necesidad %}
+                    <input type="text" 
+                           value="{{ necesidad.nombre_fundacion }}" 
+                           class="form-control readonly-field"
+                           readonly>
+                    <input type="hidden" name="fundacion_id" value="{{ necesidad.fundacion_id }}">
+                {% else %}
+                    <select name="fundacion_id" class="form-select" required>
+                        <option value="" disabled selected>Selecciona la fundación destino...</option>
+                        {% for fund in fundaciones_activas %}
+                            <option value="{{ fund.id }}">{{ fund.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                {% endif %}
             </div>
 
             {# Campo: Categoría #}
