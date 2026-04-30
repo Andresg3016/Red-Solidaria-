@@ -1,10 +1,11 @@
 from database.db import get_connection
+from models.usuario_model import UsuarioModel
+
 
 class HomeAdminModel:
-
+    
     @classmethod
     def obtener_fundaciones_pendientes(cls):
-        # Incluimos estado_validacion para mostrar el estado real de la fundación
         query = """
             SELECT 
                 f.id, 
@@ -16,6 +17,7 @@ class HomeAdminModel:
                 u.estado
             FROM fundaciones f
             INNER JOIN usuarios u ON f.usuario_id = u.id
+            WHERE f.estado_validacion = 'pendiente'
             ORDER BY u.fecha_registro DESC
         """
         connection = get_connection()
@@ -24,11 +26,54 @@ class HomeAdminModel:
                 cursor.execute(query)
                 return cursor.fetchall()
         except Exception as ex:
-            print(f"Error en obtener: {ex}")
+            print(f"Error en obtener aprobadas: {ex}")
             return []
         finally:
             if connection:
                 connection.close()
+
+    @classmethod
+    def obtener_fundaciones_rechazadas(cls):
+        query = """
+            SELECT f.id, f.nombre, f.nit, f.estado_validacion, u.correo, u.fecha_registro, u.estado
+            FROM fundaciones f
+            INNER JOIN usuarios u ON f.usuario_id = u.id
+            WHERE f.estado_validacion = 'rechazado'
+            ORDER BY u.fecha_registro DESC
+        """
+        connection = get_connection()
+        try:
+            with connection.cursor(dictionary=True) as cursor:
+                cursor.execute(query)
+                return cursor.fetchall()
+        except Exception as ex:
+            print(f"Error en obtener rechazadas: {ex}")
+            return []
+        finally:
+            if connection:
+                connection.close()
+
+    @classmethod
+    def obtener_donantes_activos(cls):
+        query = """
+            SELECT id, nombre, correo, fecha_registro, estado
+            FROM usuarios
+            WHERE rol_id = 2 AND estado = 'aprobado'
+            ORDER BY fecha_registro DESC
+        """
+        connection = get_connection()
+        try:
+            with connection.cursor(dictionary=True) as cursor:
+                cursor.execute(query)
+                return cursor.fetchall()
+        except Exception as ex:
+            print(f"Error en obtener donantes: {ex}")
+            return []
+        finally:
+            if connection:
+                connection.close()
+
+   
     @classmethod
     def aprobar_fundacion(cls, fundacion_id):
         connection = get_connection()
@@ -128,14 +173,16 @@ class HomeAdminModel:
                 cursor.close()
                 connection.close()
 
+    
     @classmethod
     def contar_pendientes(cls):
+        print("Contador de pendientes ejecutado")
         connection = get_connection()
         try:
             with connection.cursor() as cursor:
-                # Contamos usuarios con rol 3 (Fundación) que estén pendientes
-                cursor.execute("SELECT COUNT(*) FROM usuarios WHERE rol_id = 3 AND estado = 'pendiente'")
+                cursor.execute("SELECT COUNT(*) FROM fundaciones WHERE estado_validacion = 'pendiente'")
                 resultado = cursor.fetchone()
+                print("Resultado SQL:", resultado)
                 return resultado[0] if resultado else 0
         except Exception as ex:
             print(f"Error en contador: {ex}")
@@ -143,7 +190,7 @@ class HomeAdminModel:
         finally:
             if connection:
                 connection.close()
-
+                    
     @staticmethod
     def obtener_datos_fundacion(id_usuario):
         import mysql.connector
@@ -161,3 +208,45 @@ class HomeAdminModel:
         cursor.close()
         conn.close()
         return resultado            
+    
+    @classmethod
+    def crear_fundacion(cls, usuario_id, nombre, nit, direccion):
+        query = """
+            INSERT INTO fundaciones (usuario_id, nombre, nit, direccion, estado_validacion)
+            VALUES (%s, %s, %s, %s, %s)
+        """
+        connection = get_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(query, (usuario_id, nombre, nit, direccion, 'pendiente'))
+                connection.commit()
+                print("Fundación registrada correctamente con estado 'pendiente'")
+                return True
+        except Exception as ex:
+            print(f"Error al registrar fundación: {ex}")
+            return False
+        finally:
+            if connection:
+                connection.close()
+                
+    @classmethod
+    def obtener_fundaciones_aprobadas(cls):
+        query = """
+            SELECT f.id, f.nombre, f.nit, f.estado_validacion, u.correo, u.fecha_registro, u.estado
+            FROM fundaciones f
+            INNER JOIN usuarios u ON f.usuario_id = u.id
+            WHERE f.estado_validacion = 'aprobado'
+            ORDER BY u.fecha_registro DESC
+        """
+        connection = get_connection()
+        try:
+            with connection.cursor(dictionary=True) as cursor:
+                cursor.execute(query)
+                return cursor.fetchall()
+        except Exception as ex:
+            print(f"Error en obtener aprobadas: {ex}")
+            return []
+        finally:
+            if connection:
+                connection.close()            
+                    

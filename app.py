@@ -22,8 +22,13 @@ def serializar_datos(obj):
 # ================= CONFIGURACIÓN APP =================
 
 
+
 app = Flask(__name__)
 app.secret_key = "123456"
+
+# Registrar Blueprint de rutas API admin
+from controllers.home_administrador_controller import api_admin
+app.register_blueprint(api_admin)
 
 # ================= RUTA PARA GESTIONAR DONACIONES (ACEPTAR/RECHAZAR) =================
 @app.route("/gestionar_donacion", methods=["POST"])
@@ -180,13 +185,10 @@ def home_fundacion():
     # de llamar a enviar_reporte_pdf_java si detecta 'accion=reporte'
     return usuario_ctrl.home_fundacion_view()
 
-@app.route("/admin")
-def admin_panel():
-    return usuario_ctrl.admin_panel_view()
-
 @app.route("/home_administrador")
-def home_admin_panel():
+def home_administrador():
     return mostrar_home_administrador()
+
 
 # ================= RUTAS DE ACCIONES =================
 

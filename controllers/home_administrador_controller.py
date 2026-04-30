@@ -1,22 +1,86 @@
+from flask import jsonify
+# --- API REST para aprobar fundación ---
+def get_fundacion_info(fundacion_id):
+    # Busca correo y nombre de la fundación
+    from database.db import get_connection
+    connection = get_connection()
+    try:
+        with connection.cursor(dictionary=True) as cursor:
+            cursor.execute("""
+                SELECT f.id, f.nombre, f.nit, f.estado_validacion, u.correo
+                FROM fundaciones f
+                INNER JOIN usuarios u ON f.usuario_id = u.id
+                WHERE f.id = %s
+            """, (fundacion_id,))
+            return cursor.fetchone()
+    except Exception as ex:
+        print(f"Error buscando fundación: {ex}")
+        return None
+    finally:
+        if connection:
+            connection.close()
+
+from flask import Blueprint, request
+api_admin = Blueprint('api_admin', __name__)
+
+@api_admin.route('/aprobar_fundacion/<int:id>', methods=['POST'])
+def api_aprobar_fundacion(id):
+    info = get_fundacion_info(id)
+    exito = HomeAdminModel.aprobar_fundacion(id)
+    correo = info['correo'] if info else None
+    nombre = info['nombre'] if info else None
+    # Enviar correo si hay datos
+    if exito and correo and nombre:
+        try:
+            url_java = "http://localhost:8080/api/email/enviar"
+            payload = {
+                "destinatario": correo,
+                "nombreFundacion": nombre,
+                "estado": "APROBADO"
+            }
+            requests.post(url_java, json=payload, timeout=5)
+        except Exception as e:
+            print(f"Error enviando correo aprobación: {e}")
+    return jsonify(success=exito)
+
+@api_admin.route('/rechazar_fundacion/<int:id>', methods=['POST'])
+def api_rechazar_fundacion(id):
+    info = get_fundacion_info(id)
+    exito = HomeAdminModel.rechazar_fundacion(id)
+    correo = info['correo'] if info else None
+    nombre = info['nombre'] if info else None
+    if exito and correo and nombre:
+        try:
+            url_java = "http://localhost:8080/api/email/enviar"
+            payload = {
+                "destinatario": correo,
+                "nombreFundacion": nombre,
+                "estado": "RECHAZADO",
+                "mensaje": "Agradecemos su interés en nuestra plataforma. Tras revisar su solicitud, le informamos que el registro no pudo ser aprobado debido a inconsistencias en la validación de los datos suministrados.\n\nLe sugerimos realizar un nuevo registro verificando que toda la información legal de la organización coincida con sus documentos oficiales."
+            }
+            requests.post(url_java, json=payload, timeout=5)
+        except Exception as e:
+            print(f"Error enviando correo rechazo: {e}")
+    return jsonify(success=exito)
 from flask import render_template, redirect, url_for, flash, request
 import requests  # Importante para conectar con el microservicio de Java
-
-# --- MOSTRAR PANEL DEL ADMINISTRADOR ---
+from models.usuario_model import UsuarioModel
+from models.home_administrador_model import HomeAdminModel
+# ...existing code...
 def mostrar_home_administrador():
-    """
-    Obtiene la lista de fundaciones pendientes y el conteo para mostrar en el dashboard.
-    """
-    from models.home_administrador_model import HomeAdminModel
-    
-    # Obtenemos los datos desde el modelo
+    modelo = UsuarioModel()
+    donantes = modelo.obtener_donantes()
     fundaciones = HomeAdminModel.obtener_fundaciones_pendientes()
+    fundaciones_aprobadas = HomeAdminModel.obtener_fundaciones_aprobadas()
+    fundaciones_rechazadas = HomeAdminModel.obtener_fundaciones_rechazadas()
     total_pendientes = HomeAdminModel.contar_pendientes()
-    
-    print(f"DEBUG: Mostrando panel admin. Fundaciones pendientes: {len(fundaciones)}") 
-
+    print("TOTAL PENDIENTES QUE ENVÍO AL TEMPLATE:", total_pendientes)  # <-- AQUÍ
     return render_template(
         "home_administrador.html",
+        donantes=donantes,
         fundaciones=fundaciones,
+        fundaciones_aprobadas=fundaciones_aprobadas,
+        fundaciones_rechazadas=fundaciones_rechazadas,
         total_pendientes=total_pendientes
     )
 
@@ -57,7 +121,8 @@ def aprobar_fundacion_controller(id_fundacion, correo_fundacion, nombre_fundacio
     else:
         flash("❌ Error técnico: No se pudo actualizar el estado en la base de datos.", "danger")
 
-    # Redirigimos a la ruta que definiste en app.py para el panel del admin
+    # Redirigimos a la ruta correcta del panel admin
+    return redirect(url_for("home_admin_panel"))
     return redirect(url_for('home_admin_panel'))
 
 # --- RECHAZAR FUNDACIÓN ---

@@ -122,6 +122,44 @@ class UsuarioModel:
             if conn:
                 conn.close()
                 print("DEBUG: Conexión cerrada en obtener_datos_aprobacion")
+                
+    # Al final de tu clase UsuarioModel
+
+    def obtener_donantes(self):
+        conn = get_connection()
+        try:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM usuarios WHERE rol_id=2")
+            return cursor.fetchall()
+        finally:
+            conn.close()
+
+    def obtener_fundaciones_pendientes(self):
+        conn = get_connection()
+        try:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM usuarios WHERE rol_id=3 AND estado='pendiente'")
+            return cursor.fetchall()
+        finally:
+            conn.close()
+
+    def obtener_fundaciones_aprobadas(self):
+        conn = get_connection()
+        try:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM usuarios WHERE rol_id=3 AND estado='aprobado'")
+            return cursor.fetchall()
+        finally:
+            conn.close()
+
+    def obtener_fundaciones_rechazadas(self):
+        conn = get_connection()
+        try:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM usuarios WHERE rol_id=3 AND estado='rechazado'")
+            return cursor.fetchall()
+        finally:
+            conn.close()            
 
     # --- NUEVA FUNCIÓN AGREGADA PARA LA EDICIÓN DE PERFIL ---
     def actualizar_perfil(self, usuario_id, nombre, telefono, foto_perfil=None):
