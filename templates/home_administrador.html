@@ -22,7 +22,6 @@
             margin-bottom: 30px;
         }
 
-        /* Tarjetas de Estadísticas - Inicializadas en Cero */
         .stats-card {
             background: white;
             border-radius: 15px;
@@ -36,11 +35,11 @@
         }
 
         .stats-card:hover { transform: translateY(-10px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .card-donantes { border-left: 5px solid #ff1e56; border-bottom-color: #ff1e56; }
-        .card-fundaciones { border-left: 5px solid #00ff88; border-bottom-color: #00ff88; }
+        .card-donantes   { border-left: 5px solid #ff1e56; border-bottom-color: #ff1e56; }
+        .card-fundaciones{ border-left: 5px solid #00ff88; border-bottom-color: #00ff88; }
         .card-donaciones { border-left: 5px solid #1e52ff; border-bottom-color: #1e52ff; }
         .card-economicas { border-left: 5px solid #ffd700; border-bottom-color: #ffd700; }
-        .card-pagos { border-left: 5px solid #2575fc; border-bottom-color: #2575fc; }
+        .card-pagos      { border-left: 5px solid #2575fc; border-bottom-color: #2575fc; }
         .card-pendientes { border-left: 5px solid #f9ca24; border-bottom-color: #f9ca24; }
 
         .nav-pills .nav-link { color: #444; font-weight: 600; margin: 0 5px; transition: 0.3s; border: 1px solid #eee; }
@@ -61,7 +60,6 @@
         }
 
         .status-line { height: 5px; background: #ffd700; width: 100%; border-radius: 10px 10px 0 0; }
-        
         .table thead { background: #1e52ff; color: white; }
         .empty-state { text-align: center; padding: 50px; color: #aaa; }
         .empty-state i { font-size: 3rem; margin-bottom: 15px; display: block; }
@@ -69,285 +67,459 @@
 {% endblock %}
 
 {% block content %}
-    <div class="container-fluid px-4">
-        <div class="main-admin-wrapper">
-            <div class="dashboard-header text-center shadow-sm">
-                <h1 class="fw-bold">🏛️ Panel de Gestión - Administrador</h1>
-                <p class="mb-0">Red Solidaria - Monitoreo de actividad en tiempo real</p>
-            </div>
+<div class="container-fluid px-4">
+    <div class="main-admin-wrapper">
 
-            <div class="row g-3 justify-content-center mb-5">
-                <div class="col-xl-2 col-md-4 col-6">
-                    <div class="stats-card card-donantes" onclick="activarPanel('Donantes-tab')">
-                        <div style="font-size: 2rem;">👥</div>
-                        <h3 class="fw-bold mb-0">{{ donantes|length }}</h3>
-                        <small class="text-muted fw-bold">DONANTES</small>
-                    </div>
-                </div>
-                <div class="col-xl-2 col-md-4 col-6">
-                    <div class="stats-card card-fundaciones" onclick="activarPanel('Fundaciones-tab')">
-                        <div style="font-size: 2rem;">🏛️</div>
-                        <h3 class="fw-bold mb-0">{{ fundaciones|length }}</h3>
-                        <small class="text-muted fw-bold">FUNDACIONES</small>
-                    </div>
-                </div>
-                <div class="col-xl-2 col-md-4 col-6">
-                    <div class="stats-card card-donaciones" onclick="activarPanel('Donaciones-tab')">
-                        <div style="font-size: 2rem;">📦</div>
-                        <h3 class="fw-bold mb-0">{{ donaciones|length if donaciones is defined else 0 }}</h3>
-                        <small class="text-muted fw-bold">DONACIONES</small>
-                    </div>
-                </div>
-                <div class="col-xl-2 col-md-4 col-6">
-                    <div class="stats-card card-economicas" onclick="activarPanel('Economicas-tab')">
-                        <div style="font-size: 2rem;">💰</div>
-                        <h3 class="fw-bold mb-0">
-                            ${{ donaciones_economicas|sum(attribute='monto') if donaciones_economicas is defined else 0 }}
-                        </h3>
-                        <small class="text-muted fw-bold">ECONÓMICAS</small>
-                    </div>
-                </div>
-                <div class="col-xl-2 col-md-4 col-6">
-                    <div class="stats-card card-pagos" onclick="activarPanel('Pagos-tab')">
-                        <div style="font-size: 2rem;">💳</div>
-                        <h3 class="fw-bold mb-0">{{ pagos|length if pagos is defined else 0 }}</h3>
-                        <small class="text-muted fw-bold">PAGOS</small>
-                    </div>
-                </div>
-                <div class="col-xl-2 col-md-4 col-6">
-                    <div class="stats-card card-pendientes" onclick="activarPanel('Pendientes-tab')">
-                        <div style="font-size: 2rem;">⏳</div>
-                        <h3 class="fw-bold mb-0"> {{ total_pendientes or 0 }}</h3>
-                        <small class="text-muted fw-bold">PENDIENTES</small>
-                    </div>
+        <div class="dashboard-header text-center shadow-sm">
+            <h1 class="fw-bold">🏛️ Panel de Gestión - Administrador</h1>
+            <p class="mb-0">Red Solidaria - Monitoreo de actividad en tiempo real</p>
+        </div>
+
+        {# ── TARJETAS DE CONTEO ── #}
+        <div class="row g-3 justify-content-center mb-5">
+            <div class="col-xl-2 col-md-4 col-6">
+                <div class="stats-card card-donantes" onclick="activarPanel('Donantes-tab')">
+                    <div style="font-size:2rem;">👥</div>
+                    <h3 class="fw-bold mb-0">{{ donantes|length }}</h3>
+                    <small class="text-muted fw-bold">DONANTES</small>
                 </div>
             </div>
-
-            <div class="nav-container bg-white p-2 shadow-sm" style="border-radius: 15px 15px 0 0;">
-                <ul class="nav nav-pills nav-fill" id="adminTabs" role="tablist">
-                    <li class="nav-item"><button class="nav-link active" id="Donantes-tab" data-bs-toggle="tab" data-bs-target="#panel-donantes" type="button">👥 Donantes</button></li>
-                    <li class="nav-item"><button class="nav-link" id="Fundaciones-tab" data-bs-toggle="tab" data-bs-target="#panel-fundaciones" type="button">🏛️ Fundaciones</button></li>
-                    <li class="nav-item"><button class="nav-link" id="Donaciones-tab" data-bs-toggle="tab" data-bs-target="#panel-fisicas" type="button">📦 Donaciones</button></li>
-                    <li class="nav-item"><button class="nav-link" id="Economicas-tab" data-bs-toggle="tab" data-bs-target="#panel-economicas" type="button">💰 Económicas</button></li>
-                    <li class="nav-item"><button class="nav-link" id="Pagos-tab" data-bs-toggle="tab" data-bs-target="#panel-pagos" type="button">💳 Pagos</button></li>
-                    <li class="nav-item"><button class="nav-link" id="Pendientes-tab" data-bs-toggle="tab" data-bs-target="#panel-pendientes" type="button">⏳ Pendientes</button></li>
-                </ul>
+            <div class="col-xl-2 col-md-4 col-6">
+                <div class="stats-card card-fundaciones" onclick="activarPanel('Fundaciones-tab')">
+                    <div style="font-size:2rem;">🏛️</div>
+                    <h3 class="fw-bold mb-0">{{ total_fundaciones }}</h3>
+                    <small class="text-muted fw-bold">FUNDACIONES</small>
+                </div>
             </div>
-            <div class="status-line"></div>
-
-            <div class="tab-content tab-content-container shadow-sm" id="adminTabContent">
-                
-                <div class="tab-pane fade show active" id="panel-donantes" role="tabpanel">
-                    <h3>👥 Gestión de Donantes</h3>
-                    <div class="empty-state">
-                        <i class="fas fa-users-slash"></i>
-                        <p>No hay donantes registrados aún. Los registros aparecerán aquí automáticamente.</p>
-                    </div>
+            <div class="col-xl-2 col-md-4 col-6">
+                <div class="stats-card card-donaciones" onclick="activarPanel('Donaciones-tab')">
+                    <div style="font-size:2rem;">📦</div>
+                    <h3 class="fw-bold mb-0">{{ donaciones|length if donaciones else 0 }}</h3>
+                    <small class="text-muted fw-bold">DONACIONES</small>
                 </div>
-
-                <div class="tab-pane fade" id="panel-fundaciones" role="tabpanel">
-                    <h3>🏛️ Directorio de Fundaciones</h3>
-                    <div class="empty-state">
-                        <i class="fas fa-university"></i>
-                        <p>No hay fundaciones en la base de datos.</p>
-                    </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-6">
+                <div class="stats-card card-economicas" onclick="activarPanel('Economicas-tab')">
+                    <div style="font-size:2rem;">💰</div>
+                    <h3 class="fw-bold mb-0">
+                        ${{ donaciones_economicas|sum(attribute='monto') if donaciones_economicas else 0 }}
+                    </h3>
+                    <small class="text-muted fw-bold">ECONÓMICAS</small>
                 </div>
-
-                <div class="tab-pane fade" id="panel-fisicas" role="tabpanel">
-                    <h3>📥 Historial de Donaciones Físicas</h3>
-                    <div class="empty-state">
-                        <i class="fas fa-box-open"></i>
-                        <p>Esperando el primer registro de donación de ropa o alimentos.</p>
-                    </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-6">
+                <div class="stats-card card-pagos" onclick="activarPanel('Pagos-tab')">
+                    <div style="font-size:2rem;">💳</div>
+                    <h3 class="fw-bold mb-0">{{ pagos|length if pagos else 0 }}</h3>
+                    <small class="text-muted fw-bold">PAGOS</small>
                 </div>
-
-                <div class="tab-pane fade" id="panel-economicas" role="tabpanel">
-                    <h3>💰 Donaciones Monetarias</h3>
-                    <div class="empty-state">
-                        <i class="fas fa-hand-holding-usd"></i>
-                        <p>No se han registrado movimientos económicos en el sistema.</p>
-                    </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-6">
+                <div class="stats-card card-pendientes" onclick="activarPanel('Pendientes-tab')">
+                    <div style="font-size:2rem;">⏳</div>
+                    <h3 class="fw-bold mb-0">{{ total_pendientes or 0 }}</h3>
+                    <small class="text-muted fw-bold">PENDIENTES</small>
                 </div>
-
-                <div class="tab-pane fade" id="panel-pagos" role="tabpanel">
-                    <h3>💳 Registro de Pagos</h3>
-                    <div class="empty-state">
-                        <i class="fas fa-credit-card"></i>
-                        <p>Historial de pasarela de pagos vacío.</p>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="panel-pendientes" role="tabpanel">
-                    <h3>⏳ Tareas y Validaciones Pendientes</h3>
-                    {% if fundaciones and fundaciones|length > 0 %}
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Nombre</th>
-                                    <th>NIT</th>
-                                    <th>Correo</th>
-                                    <th>Fecha Registro</th>
-                                    <th>Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for f in fundaciones %}
-                                <tr>
-                                    <td>{{ f.nombre }}</td>
-                                    <td>
-                                        <a href="https://www.rues.org.co/RM/Consultas/ConsultaNIT?nit={{ f.nit }}" target="_blank">{{ f.nit }}</a>
-                                        <button class="btn btn-link p-0 ms-2" onclick="mostrarModalFundacion({{ loop.index0 }})">🔍</button>
-                                    </td>
-                                    <td>{{ f.correo }}</td>
-                                    <td>{{ f.fecha_registro }}</td>
-                                    <td>
-                                        <span id="estado-{{ loop.index0 }}" class="estado-label badge 
-                                            {% if f.estado_validacion == 'pendiente' %}bg-warning text-dark
-                                            {% elif f.estado_validacion == 'aprobado' %}bg-success
-                                            {% elif f.estado_validacion == 'rechazado' %}bg-danger
-                                            {% endif %}">
-                                            {{ f.estado_validacion|capitalize }}
-                                        </span>
-                                        {% if f.estado_validacion == 'pendiente' %}
-                                            <span id="botones-{{ loop.index0 }}">
-                                                <button class="btn btn-success btn-sm ms-2" onclick="aprobarFundacion('{{ f.id }}', {{ loop.index0 }})">Aprobar</button>
-                                                <button class="btn btn-danger btn-sm ms-1" onclick="rechazarFundacion('{{ f.id }}', {{ loop.index0 }})">Rechazar</button>
-                                            </span>
-                                        {% endif %}
-                                    </td>
-
-                                {% block scripts %}
-                                <script>
-                                function aprobarFundacion(id, idx) {
-                                    if(confirm('¿Seguro que deseas aprobar esta fundación?')) {
-                                        fetch(`/aprobar_fundacion/${id}`, {method: 'POST'})
-                                            .then(r => r.json())
-                                            .then(data => {
-                                                if(data.success) {
-                                                    actualizarEstadoFundacion(idx, 'aprobado');
-                                                    // Oculta los botones tras aprobar
-                                                    const btns = document.getElementById('botones-' + idx);
-                                                    if(btns) btns.style.display = 'none';
-                                                    alert('Fundación aprobada correctamente.');
-                                                } else {
-                                                    alert('Error al aprobar fundación.');
-                                                }
-                                            });
-                                    }
-                                }
-                                function rechazarFundacion(id, idx) {
-                                    if(confirm('¿Seguro que deseas rechazar esta fundación?')) {
-                                        fetch(`/rechazar_fundacion/${id}`, {method: 'POST'})
-                                            .then(r => r.json())
-                                            .then(data => {
-                                                if(data.success) {
-                                                    actualizarEstadoFundacion(idx, 'rechazado');
-                                                    // Oculta los botones tras rechazar
-                                                    const btns = document.getElementById('botones-' + idx);
-                                                    if(btns) btns.style.display = 'none';
-                                                    alert('Fundación rechazada correctamente.');
-                                                } else {
-                                                    alert('Error al rechazar fundación.');
-                                                }
-                                            });
-                                    }
-                                }
-                                // Cambia el color y texto del estado según Bootstrap
-                                function actualizarEstadoFundacion(idx, nuevoEstado) {
-                                    const estadoSpan = document.getElementById('estado-' + idx);
-                                    if (!estadoSpan) return;
-                                    estadoSpan.classList.remove('bg-warning', 'bg-success', 'bg-danger', 'text-dark');
-                                    if (nuevoEstado === 'aprobado') {
-                                        estadoSpan.textContent = 'Aprobado';
-                                        estadoSpan.classList.add('bg-success');
-                                    } else if (nuevoEstado === 'rechazado') {
-                                        estadoSpan.textContent = 'Rechazado';
-                                        estadoSpan.classList.add('bg-danger');
-                                    } else {
-                                        estadoSpan.textContent = 'Pendiente';
-                                        estadoSpan.classList.add('bg-warning', 'text-dark');
-                                    }
-                                }
-                                </script>
-                                {% endblock %}
-                                </tr>
-                                {% endfor %}
-                                    <!-- Modal de detalles de fundación -->
-                                    <div class="modal fade" id="modalFundacion" tabindex="-1" aria-labelledby="modalFundacionLabel" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="modalFundacionLabel">Detalles de Fundación</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <ul class="list-group">
-                                                        <li class="list-group-item"><strong>Nombre:</strong> <span id="modalNombre"></span></li>
-                                                        <li class="list-group-item"><strong>NIT:</strong> <span id="modalNIT"></span></li>
-                                                        <li class="list-group-item"><strong>Correo:</strong> <span id="modalCorreo"></span></li>
-                                                        <li class="list-group-item"><strong>Fecha Registro:</strong> <span id="modalFecha"></span></li>
-                                                        <li class="list-group-item"><strong>Estado Validación:</strong> <span id="modalEstado"></span></li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <script>
-                                        // Datos de fundaciones en JS
-                                        const fundacionesData = [
-                                            {% for f in fundaciones %}
-                                            {
-                                                nombre: `{{ f.nombre|escape }}`,
-                                                nit: `{{ f.nit|escape }}`,
-                                                correo: `{{ f.correo|escape }}`,
-                                                fecha: `{{ f.fecha_registro|escape }}`,
-                                                estado: `{{ f.estado_validacion|escape }}`
-                                            }{% if not loop.last %},{% endif %}
-                                            {% endfor %}
-                                        ];
-
-                                        function mostrarModalFundacion(idx) {
-                                            const f = fundacionesData[idx];
-                                            document.getElementById('modalNombre').textContent = f.nombre;
-                                            document.getElementById('modalNIT').textContent = f.nit;
-                                            document.getElementById('modalCorreo').textContent = f.correo;
-                                            document.getElementById('modalFecha').textContent = f.fecha;
-                                            document.getElementById('modalEstado').textContent = f.estado;
-                                            var modal = new bootstrap.Modal(document.getElementById('modalFundacion'));
-                                            modal.show();
-                                        }
-                                    </script>
-                            </tbody>
-                        </table>
-                    {% else %}
-                        <div class="empty-state">
-                            <i class="fas fa-check-circle" style="color: #00ff88;"></i>
-                            <p>¡Todo al día! No hay tareas pendientes de validación.</p>
-                        </div>
-                    {% endif %}
-                </div>
-
             </div>
         </div>
-    </div>
 
-    <script>
-        // Función para activar el panel desde la tarjeta
-        function activarPanel(idBotonTab) {
-            const el = document.getElementById(idBotonTab);
-            if (el) {
-                const tab = new bootstrap.Tab(el);
-                tab.show();
-                // Scroll suave al menú de pestañas
-                document.getElementById('adminTabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }
+        {# ── NAVEGACIÓN DE TABS ── #}
+        <div class="nav-container bg-white p-2 shadow-sm" style="border-radius:15px 15px 0 0;">
+            <ul class="nav nav-pills nav-fill" id="adminTabs" role="tablist">
+                <li class="nav-item"><button class="nav-link active" id="Donantes-tab"    data-bs-toggle="tab" data-bs-target="#panel-donantes"    type="button">👥 Donantes</button></li>
+                <li class="nav-item"><button class="nav-link"        id="Fundaciones-tab" data-bs-toggle="tab" data-bs-target="#panel-fundaciones" type="button">🏛️ Fundaciones</button></li>
+                <li class="nav-item"><button class="nav-link"        id="Donaciones-tab"  data-bs-toggle="tab" data-bs-target="#panel-fisicas"     type="button">📦 Donaciones</button></li>
+                <li class="nav-item"><button class="nav-link"        id="Economicas-tab"  data-bs-toggle="tab" data-bs-target="#panel-economicas"  type="button">💰 Económicas</button></li>
+                <li class="nav-item"><button class="nav-link"        id="Pagos-tab"       data-bs-toggle="tab" data-bs-target="#panel-pagos"       type="button">💳 Pagos</button></li>
+                <li class="nav-item"><button class="nav-link"        id="Pendientes-tab"  data-bs-toggle="tab" data-bs-target="#panel-pendientes"  type="button">⏳ Pendientes</button></li>
+            </ul>
+        </div>
+        <div class="status-line"></div>
 
-        function cerrarSesion() {
-            if(confirm("¿Está seguro que desea finalizar su sesión actual?")) {
-                window.location.href = "iniciarSesion.html";
-            }
+        <div class="tab-content tab-content-container shadow-sm" id="adminTabContent">
+
+            {# ══════════════════════════════════════ #}
+            {# PANEL 1 — DONANTES                     #}
+            {# ══════════════════════════════════════ #}
+            <div class="tab-pane fade show active" id="panel-donantes" role="tabpanel">
+                <h3>👥 Gestión de Donantes</h3>
+                {% if donantes %}
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Correo</th>
+                            <th>Fecha Registro</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in donantes %}
+                        <tr>
+                            <td>{{ d.nombre }}</td>
+                            <td>{{ d.correo }}</td>
+                            <td>{{ d.fecha_registro }}</td>
+                            <td>
+                                <span class="badge {% if d.estado == 'aprobado' %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {{ d.estado|capitalize }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-users-slash"></i>
+                    <p>No hay donantes registrados aún. Los registros aparecerán aquí automáticamente.</p>
+                </div>
+                {% endif %}
+            </div>
+            {# FIN panel-donantes #}
+
+            {# ══════════════════════════════════════ #}
+            {# PANEL 2 — FUNDACIONES                  #}
+            {# ══════════════════════════════════════ #}
+            <div class="tab-pane fade" id="panel-fundaciones" role="tabpanel">
+                <h3>🏛️ Directorio de Fundaciones</h3>
+                {% if fundaciones_pendientes or fundaciones_aprobadas or fundaciones_rechazadas %}
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>NIT</th>
+                            <th>Correo</th>
+                            <th>Fecha Registro</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in fundaciones_aprobadas %}
+                        <tr>
+                            <td>{{ f.nombre }}</td>
+                            <td>{{ f.nit }}</td>
+                            <td>{{ f.correo }}</td>
+                            <td>{{ f.fecha_registro }}</td>
+                            <td><span class="badge bg-success">Aprobada</span></td>
+                        </tr>
+                        {% endfor %}
+                        {% for f in fundaciones_pendientes %}
+                        <tr>
+                            <td>{{ f.nombre }}</td>
+                            <td>{{ f.nit }}</td>
+                            <td>{{ f.correo }}</td>
+                            <td>{{ f.fecha_registro }}</td>
+                            <td><span class="badge bg-warning text-dark">Pendiente</span></td>
+                        </tr>
+                        {% endfor %}
+                        {% for f in fundaciones_rechazadas %}
+                        <tr>
+                            <td>{{ f.nombre }}</td>
+                            <td>{{ f.nit }}</td>
+                            <td>{{ f.correo }}</td>
+                            <td>{{ f.fecha_registro }}</td>
+                            <td><span class="badge bg-danger">Rechazada</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-university"></i>
+                    <p>No hay fundaciones en la base de datos.</p>
+                </div>
+                {% endif %}
+            </div>
+            {# FIN panel-fundaciones #}
+
+            {# ══════════════════════════════════════ #}
+            {# PANEL 3 — DONACIONES FÍSICAS           #}
+            {# ══════════════════════════════════════ #}
+            <div class="tab-pane fade" id="panel-fisicas" role="tabpanel">
+                <h3>📥 Historial de Donaciones Físicas</h3>
+                {% if donaciones %}
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Donante</th>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in donaciones %}
+                        <tr>
+                            <td>{{ d.donante_nombre }}</td>
+                            <td>{{ d.tipo }}</td>
+                            <td>{{ d.descripcion }}</td>
+                            <td>{{ d.fecha }}</td>
+                            <td>
+                                <span class="badge {% if d.estado == 'entregado' %}bg-success{% elif d.estado == 'pendiente' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                    {{ d.estado|capitalize }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-box-open"></i>
+                    <p>Esperando el primer registro de donación de ropa o alimentos.</p>
+                </div>
+                {% endif %}
+            </div>
+            {# FIN panel-fisicas #}
+
+            {# ══════════════════════════════════════ #}
+            {# PANEL 4 — DONACIONES ECONÓMICAS        #}
+            {# ══════════════════════════════════════ #}
+            <div class="tab-pane fade" id="panel-economicas" role="tabpanel">
+                <h3>💰 Donaciones Monetarias</h3>
+                {% if donaciones_economicas %}
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Donante</th>
+                            <th>Fundación Destino</th>
+                            <th>Monto</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in donaciones_economicas %}
+                        <tr>
+                            <td>{{ d.donante_nombre }}</td>
+                            <td>{{ d.fundacion_nombre }}</td>
+                            <td>${{ d.monto }}</td>
+                            <td>{{ d.fecha }}</td>
+                            <td>
+                                <span class="badge {% if d.estado == 'completado' %}bg-success{% elif d.estado == 'pendiente' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                    {{ d.estado|capitalize }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    <p>No se han registrado movimientos económicos en el sistema.</p>
+                </div>
+                {% endif %}
+            </div>
+            {# FIN panel-economicas #}
+
+            {# ══════════════════════════════════════ #}
+            {# PANEL 5 — PAGOS                        #}
+            {# ══════════════════════════════════════ #}
+            <div class="tab-pane fade" id="panel-pagos" role="tabpanel">
+                <h3>💳 Registro de Pagos</h3>
+                {% if pagos %}
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>ID Pago</th>
+                            <th>Usuario</th>
+                            <th>Monto</th>
+                            <th>Pasarela</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in pagos %}
+                        <tr>
+                            <td>{{ p.id }}</td>
+                            <td>{{ p.usuario_nombre }}</td>
+                            <td>${{ p.monto }}</td>
+                            <td>{{ p.pasarela }}</td>
+                            <td>{{ p.fecha }}</td>
+                            <td>
+                                <span class="badge {% if p.estado == 'aprobado' %}bg-success{% elif p.estado == 'pendiente' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                    {{ p.estado|capitalize }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-credit-card"></i>
+                    <p>Historial de pasarela de pagos vacío.</p>
+                </div>
+                {% endif %}
+            </div>
+            {# FIN panel-pagos #}
+
+            {# ══════════════════════════════════════ #}
+            {# PANEL 6 — PENDIENTES                   #}
+            {# ══════════════════════════════════════ #}
+            <div class="tab-pane fade" id="panel-pendientes" role="tabpanel">
+                <h3>⏳ Tareas y Validaciones Pendientes</h3>
+                {% if fundaciones_pendientes %}
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>NIT</th>
+                            <th>Correo</th>
+                            <th>Fecha Registro</th>
+                            <th>Estado / Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in fundaciones_pendientes %}
+                        <tr>
+                            <td>{{ f.nombre }}</td>
+                            <td>
+                                <a href="https://www.rues.org.co/RM/Consultas/ConsultaNIT?nit={{ f.nit }}" target="_blank">{{ f.nit }}</a>
+                                <button class="btn btn-link p-0 ms-2" onclick="mostrarModalFundacion({{ loop.index0 }})">🔍</button>
+                            </td>
+                            <td>{{ f.correo }}</td>
+                            <td>{{ f.fecha_registro }}</td>
+                            <td>
+                                <span id="estado-{{ loop.index0 }}" class="badge
+                                    {% if f.estado_validacion == 'pendiente' %}bg-warning text-dark
+                                    {% elif f.estado_validacion == 'aprobado' %}bg-success
+                                    {% elif f.estado_validacion == 'rechazado' %}bg-danger
+                                    {% endif %}">
+                                    {{ f.estado_validacion|capitalize }}
+                                </span>
+                                {% if f.estado_validacion == 'pendiente' %}
+                                <span id="botones-{{ loop.index0 }}">
+                                    <button class="btn btn-success btn-sm ms-2" onclick="aprobarFundacion('{{ f.id }}', {{ loop.index0 }})">Aprobar</button>
+                                    <button class="btn btn-danger btn-sm ms-1" onclick="rechazarFundacion('{{ f.id }}', {{ loop.index0 }})">Rechazar</button>
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                {# Modal detalles fundación #}
+                <div class="modal fade" id="modalFundacion" tabindex="-1" aria-labelledby="modalFundacionLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalFundacionLabel">Detalles de Fundación</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body">
+                                <ul class="list-group">
+                                    <li class="list-group-item"><strong>Nombre:</strong> <span id="modalNombre"></span></li>
+                                    <li class="list-group-item"><strong>NIT:</strong> <span id="modalNIT"></span></li>
+                                    <li class="list-group-item"><strong>Correo:</strong> <span id="modalCorreo"></span></li>
+                                    <li class="list-group-item"><strong>Fecha Registro:</strong> <span id="modalFecha"></span></li>
+                                    <li class="list-group-item"><strong>Estado:</strong> <span id="modalEstado"></span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-check-circle" style="color:#00ff88;"></i>
+                    <p>¡Todo al día! No hay tareas pendientes de validación.</p>
+                </div>
+                {% endif %}
+            </div>
+            {# FIN panel-pendientes #}
+
+        </div>{# fin tab-content #}
+    </div>{# fin main-admin-wrapper #}
+</div>{# fin container-fluid #}
+{% endblock %}
+
+{# ══════════════════════════════════════════════════ #}
+{# SCRIPTS — FUERA de cualquier loop o tab-pane       #}
+{# ══════════════════════════════════════════════════ #}
+{% block scripts %}
+<script>
+    // Datos de fundaciones pendientes para el modal
+    const fundacionesData = [
+        {% for f in fundaciones_pendientes %}
+        {
+            nombre: "{{ f.nombre|e }}",
+            nit:    "{{ f.nit|e }}",
+            correo: "{{ f.correo|e }}",
+            fecha:  "{{ f.fecha_registro|e }}",
+            estado: "{{ f.estado_validacion|e }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    function mostrarModalFundacion(idx) {
+        const f = fundacionesData[idx];
+        document.getElementById('modalNombre').textContent = f.nombre;
+        document.getElementById('modalNIT').textContent    = f.nit;
+        document.getElementById('modalCorreo').textContent = f.correo;
+        document.getElementById('modalFecha').textContent  = f.fecha;
+        document.getElementById('modalEstado').textContent = f.estado;
+        new bootstrap.Modal(document.getElementById('modalFundacion')).show();
+    }
+
+    function actualizarEstadoFundacion(idx, nuevoEstado) {
+        const span = document.getElementById('estado-' + idx);
+        if (!span) return;
+        span.classList.remove('bg-warning', 'bg-success', 'bg-danger', 'text-dark');
+        if (nuevoEstado === 'aprobado') {
+            span.textContent = 'Aprobado';
+            span.classList.add('bg-success');
+        } else if (nuevoEstado === 'rechazado') {
+            span.textContent = 'Rechazado';
+            span.classList.add('bg-danger');
+        } else {
+            span.textContent = 'Pendiente';
+            span.classList.add('bg-warning', 'text-dark');
         }
-    </script>
+        const btns = document.getElementById('botones-' + idx);
+        if (btns) btns.style.display = 'none';
+    }
+
+    function aprobarFundacion(id, idx) {
+        if (!confirm('¿Seguro que deseas aprobar esta fundación?')) return;
+        fetch(`/aprobar_fundacion/${id}`, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    actualizarEstadoFundacion(idx, 'aprobado');
+                    alert('Fundación aprobada correctamente.');
+                } else {
+                    alert('Error al aprobar fundación.');
+                }
+            })
+            .catch(() => alert('Error de conexión al aprobar.'));
+    }
+
+    function rechazarFundacion(id, idx) {
+        if (!confirm('¿Seguro que deseas rechazar esta fundación?')) return;
+        fetch(`/rechazar_fundacion/${id}`, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    actualizarEstadoFundacion(idx, 'rechazado');
+                    alert('Fundación rechazada correctamente.');
+                } else {
+                    alert('Error al rechazar fundación.');
+                }
+            })
+            .catch(() => alert('Error de conexión al rechazar.'));
+    }
+
+    function activarPanel(idBotonTab) {
+        const el = document.getElementById(idBotonTab);
+        if (el) {
+            new bootstrap.Tab(el).show();
+            document.getElementById('adminTabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+</script>
 {% endblock %}

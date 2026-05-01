@@ -4,6 +4,7 @@ import requests
 from datetime import date, datetime # AGREGADO
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.utils import secure_filename
+from flask import session, redirect, url_for
 
 # Controllers
 from controllers.auth_controller import AuthController
@@ -175,19 +176,31 @@ def logout():
 
 # ================= RUTAS DE USUARIO / ROLES =================
 
-@app.route("/home_donador")
+
+# Panel donador
+@app.route('/home_donador')
 def home_donador():
+    if 'usuario_id' not in session:
+        return redirect(url_for('login'))
     return usuario_ctrl.home_donador_view()
 
-@app.route("/home_fundacion")
+
+# Panel fundación
+@app.route('/home_fundacion')
 def home_fundacion():
-    # El controlador 'home_fundacion_view' ya debe manejar la lógica 
-    # de llamar a enviar_reporte_pdf_java si detecta 'accion=reporte'
+    if 'usuario_id' not in session:
+        return redirect(url_for('login'))
     return usuario_ctrl.home_fundacion_view()
 
-@app.route("/home_administrador")
+
+# Panel administrador
+@app.route('/home_administrador')
 def home_administrador():
+    if 'usuario_id' not in session:
+        return redirect(url_for('login'))
     return mostrar_home_administrador()
+
+
 
 
 # ================= RUTAS DE ACCIONES =================

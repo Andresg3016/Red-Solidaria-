@@ -11,9 +11,9 @@ class HomeAdminModel:
                 f.id, 
                 f.nombre, 
                 f.nit, 
-                f.estado_validacion,
                 u.correo, 
                 u.fecha_registro, 
+                f.estado_validacion,
                 u.estado
             FROM fundaciones f
             INNER JOIN usuarios u ON f.usuario_id = u.id
@@ -26,16 +26,51 @@ class HomeAdminModel:
                 cursor.execute(query)
                 return cursor.fetchall()
         except Exception as ex:
+            print(f"Error en obtener pendientes: {ex}")
+            return []
+        finally:
+                if connection:
+                    connection.close()
+                    
+    @classmethod
+    def obtener_fundaciones_aprobadas(cls):
+        query = """
+            SELECT 
+                f.id, 
+                f.nombre, 
+                f.nit, 
+                u.correo, 
+                u.fecha_registro, 
+                f.estado_validacion,
+                u.estado
+            FROM fundaciones f
+            INNER JOIN usuarios u ON f.usuario_id = u.id
+            WHERE f.estado_validacion = 'aprobado'
+            ORDER BY u.fecha_registro DESC
+        """
+        connection = get_connection()
+        try:
+            with connection.cursor(dictionary=True) as cursor:
+                cursor.execute(query)
+                return cursor.fetchall()
+        except Exception as ex:
             print(f"Error en obtener aprobadas: {ex}")
             return []
         finally:
             if connection:
-                connection.close()
+                connection.close()                
 
     @classmethod
     def obtener_fundaciones_rechazadas(cls):
         query = """
-            SELECT f.id, f.nombre, f.nit, f.estado_validacion, u.correo, u.fecha_registro, u.estado
+            SELECT 
+                f.id, 
+                f.nombre, 
+                f.nit, 
+                u.correo, 
+                u.fecha_registro, 
+                f.estado_validacion,
+                u.estado
             FROM fundaciones f
             INNER JOIN usuarios u ON f.usuario_id = u.id
             WHERE f.estado_validacion = 'rechazado'
@@ -47,11 +82,11 @@ class HomeAdminModel:
                 cursor.execute(query)
                 return cursor.fetchall()
         except Exception as ex:
-            print(f"Error en obtener rechazadas: {ex}")
-            return []
+                print(f"Error en obtener rechazadas: {ex}")
+                return []
         finally:
-            if connection:
-                connection.close()
+                if connection:
+                    connection.close()
 
     @classmethod
     def obtener_donantes_activos(cls):
@@ -229,24 +264,4 @@ class HomeAdminModel:
             if connection:
                 connection.close()
                 
-    @classmethod
-    def obtener_fundaciones_aprobadas(cls):
-        query = """
-            SELECT f.id, f.nombre, f.nit, f.estado_validacion, u.correo, u.fecha_registro, u.estado
-            FROM fundaciones f
-            INNER JOIN usuarios u ON f.usuario_id = u.id
-            WHERE f.estado_validacion = 'aprobado'
-            ORDER BY u.fecha_registro DESC
-        """
-        connection = get_connection()
-        try:
-            with connection.cursor(dictionary=True) as cursor:
-                cursor.execute(query)
-                return cursor.fetchall()
-        except Exception as ex:
-            print(f"Error en obtener aprobadas: {ex}")
-            return []
-        finally:
-            if connection:
-                connection.close()            
-                    
+   
