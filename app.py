@@ -1,7 +1,7 @@
 import os
-import json  # AGREGADO
+import json
 import requests
-from datetime import date, datetime # AGREGADO
+from datetime import date, datetime
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.utils import secure_filename
 from flask import session, redirect, url_for
@@ -12,7 +12,7 @@ from controllers.usuario_controller import UsuarioController
 from controllers.donacion_controller import DonacionController
 from controllers.home_administrador_controller import mostrar_home_administrador
 
-# ================= FUNCIONES DE UTILIDAD (COLOCAR AQUÍ) =================
+# ================= FUNCIONES DE UTILIDAD =================
 
 def serializar_datos(obj):
     """Convierte fechas de MySQL a texto para que Java las entienda."""
@@ -22,8 +22,6 @@ def serializar_datos(obj):
 
 # ================= CONFIGURACIÓN APP =================
 
-
-
 app = Flask(__name__)
 app.secret_key = "123456"
 
@@ -31,7 +29,7 @@ app.secret_key = "123456"
 from controllers.home_administrador_controller import api_admin
 app.register_blueprint(api_admin)
 
-# ================= RUTA PARA GESTIONAR DONACIONES (ACEPTAR/RECHAZAR) =================
+# ================= RUTA PARA GESTIONAR DONACIONES =================
 @app.route("/gestionar_donacion", methods=["POST"])
 def gestionar_donacion():
     from models.donacion_model import DonacionModel
@@ -44,31 +42,44 @@ def gestionar_donacion():
         flash("Solicitud inválida", "danger")
         return redirect(url_for("home_fundacion"))
 
-    # Validar que la donación esté pendiente antes de cambiar estado
     conn = None
     try:
         conn = __import__('database.db').db.get_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT df.estado, d.usuario_id FROM donaciones_fundaciones df JOIN donaciones d ON df.donacion_id = d.id WHERE df.donacion_id = %s AND df.fundacion_id = (SELECT id FROM fundaciones WHERE usuario_id = %s)", (donacion_id, session["usuario_id"]))
+        cursor.execute(
+            "SELECT df.estado, d.usuario_id FROM donaciones_fundaciones df "
+            "JOIN donaciones d ON df.donacion_id = d.id "
+            "WHERE df.donacion_id = %s AND df.fundacion_id = "
+            "(SELECT id FROM fundaciones WHERE usuario_id = %s)",
+            (donacion_id, session["usuario_id"])
+        )
         don = cursor.fetchone()
 
-        # Permitir eliminar aunque no esté pendiente, pero solo si la acción es eliminar
         if accion != "eliminar" and (not don or don["estado"] != "pendiente"):
             flash("La donación ya fue gestionada o no existe.", "warning")
             return redirect(url_for("home_fundacion"))
 
-        # Obtener correo y nombre del donante
-        cursor.execute("SELECT u.correo, u.nombre FROM usuarios u WHERE u.id = %s", (don["usuario_id"],))
+        cursor.execute(
+            "SELECT u.correo, u.nombre FROM usuarios u WHERE u.id = %s",
+            (don["usuario_id"],)
+        )
         donante = cursor.fetchone()
         correo_donante = donante["correo"] if donante else None
-        nombre_donante = donante["nombre"] if donante else None
+        nombre_donante  = donante["nombre"] if donante else None
 
         if accion == "eliminar":
-            # Aseguramos que siempre se actualice a 'eliminada'
-            cursor.execute("UPDATE donaciones_fundaciones SET estado = 'eliminada' WHERE donacion_id = %s AND fundacion_id = (SELECT id FROM fundaciones WHERE usuario_id = %s)", (donacion_id, session["usuario_id"]))
+            cursor.execute(
+                "UPDATE donaciones_fundaciones SET estado = 'eliminada' "
+                "WHERE donacion_id = %s AND fundacion_id = "
+                "(SELECT id FROM fundaciones WHERE usuario_id = %s)",
+                (donacion_id, session["usuario_id"])
+            )
             conn.commit()
-            # Verificamos si realmente se actualizó
-            cursor.execute("SELECT estado FROM donaciones_fundaciones WHERE donacion_id = %s AND fundacion_id = (SELECT id FROM fundaciones WHERE usuario_id = %s)", (donacion_id, session["usuario_id"]))
+            cursor.execute(
+                "SELECT estado FROM donaciones_fundaciones WHERE donacion_id = %s "
+                "AND fundacion_id = (SELECT id FROM fundaciones WHERE usuario_id = %s)",
+                (donacion_id, session["usuario_id"])
+            )
             estado_actual = cursor.fetchone()
             if estado_actual and estado_actual["estado"] == "eliminada":
                 flash("Donación eliminada correctamente.", "warning")
@@ -76,36 +87,42 @@ def gestionar_donacion():
                 flash("Error: No se pudo marcar como eliminada.", "danger")
         else:
             nuevo_estado = "aceptada" if accion == "aceptar" else "rechazada"
-            cursor.execute("UPDATE donaciones_fundaciones SET estado = %s WHERE donacion_id = %s AND fundacion_id = (SELECT id FROM fundaciones WHERE usuario_id = %s)", (nuevo_estado, donacion_id, session["usuario_id"]))
+            cursor.execute(
+                "UPDATE donaciones_fundaciones SET estado = %s "
+                "WHERE donacion_id = %s AND fundacion_id = "
+                "(SELECT id FROM fundaciones WHERE usuario_id = %s)",
+                (nuevo_estado, donacion_id, session["usuario_id"])
+            )
             conn.commit()
             if accion == "aceptar":
                 flash("Donación recibida correctamente.", "success")
             else:
                 flash("Donación rechazada correctamente.", "danger")
-            # Enviar correo al donante con detalles
+
             if correo_donante:
                 fundacion_nombre = session.get("nombre", "Fundación")
-                # Obtener detalles de la donación
-                cursor.execute("SELECT d.descripcion, c.nombre as categoria FROM donaciones d LEFT JOIN categorias c ON d.categoria_id = c.id WHERE d.id = %s", (donacion_id,))
+                cursor.execute(
+                    "SELECT d.descripcion, c.nombre as categoria FROM donaciones d "
+                    "LEFT JOIN categorias c ON d.categoria_id = c.id WHERE d.id = %s",
+                    (donacion_id,)
+                )
                 donacion_detalle = cursor.fetchone()
                 descripcion = donacion_detalle["descripcion"] if donacion_detalle else ""
-                categoria = donacion_detalle["categoria"] if donacion_detalle else ""
-                # Construir payload para Java
+                categoria   = donacion_detalle["categoria"]   if donacion_detalle else ""
                 estado_correo = "RECIBIDO" if accion == "aceptar" else "RECHAZADO_DONACION"
                 datos_correo = {
-                    "destinatario": correo_donante,
+                    "destinatario":    correo_donante,
                     "nombreFundacion": fundacion_nombre,
-                    "estado": estado_correo,
+                    "estado":          estado_correo,
                     "categoriaFiltrada": categoria,
                     "donaciones": [{"descripcion": descripcion}]
                 }
-                import requests
                 try:
-                    response = requests.post("http://localhost:8080/api/email/enviar", json=datos_correo, timeout=5)
-                    if response.status_code == 200:
-                        print(f"Correo enviado a {correo_donante} sobre donación {accion}")
-                    else:
-                        print(f"ERROR: No se pudo enviar correo a {correo_donante}")
+                    response = requests.post(
+                        "http://localhost:8080/api/email/enviar",
+                        json=datos_correo, timeout=5
+                    )
+                    if response.status_code != 200:
                         flash("No se pudo notificar al donante por correo.", "warning")
                 except Exception as e:
                     print(f"Error conectando con Java: {e}")
@@ -123,7 +140,7 @@ UPLOAD_FOLDER = "static/uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # Instancias de controllers
-auth = AuthController()
+auth         = AuthController()
 usuario_ctrl = UsuarioController()
 donacion_ctrl = DonacionController()
 
@@ -131,11 +148,7 @@ donacion_ctrl = DonacionController()
 
 def enviar_al_correo_java(email, nombre, estado):
     url_java = "http://localhost:8080/api/email/enviar"
-    datos = {
-        "destinatario": email,
-        "nombreFundacion": nombre,
-        "estado": estado 
-    }
+    datos = {"destinatario": email, "nombreFundacion": nombre, "estado": estado}
     try:
         response = requests.post(url_java, json=datos, timeout=5)
         return response.status_code == 200
@@ -143,11 +156,9 @@ def enviar_al_correo_java(email, nombre, estado):
         print(f"Error conectando con Java: {e}")
         return False
 
-# NUEVA FUNCIÓN PARA EL PDF (REPORTES)
 def enviar_reporte_pdf_java(payload):
     url_java = "http://localhost:8080/api/email/enviar-reporte"
     try:
-        # Aquí usamos la función serializar_datos para limpiar las fechas
         datos_limpios = json.loads(json.dumps(payload, default=serializar_datos))
         response = requests.post(url_java, json=datos_limpios, timeout=10)
         return response.status_code == 200
@@ -176,32 +187,30 @@ def logout():
 
 # ================= RUTAS DE USUARIO / ROLES =================
 
-
-# Panel donador
 @app.route('/home_donador')
 def home_donador():
     if 'usuario_id' not in session:
         return redirect(url_for('login'))
     return usuario_ctrl.home_donador_view()
 
-
-# Panel fundación
 @app.route('/home_fundacion')
 def home_fundacion():
     if 'usuario_id' not in session:
         return redirect(url_for('login'))
     return usuario_ctrl.home_fundacion_view()
 
-
-# Panel administrador
 @app.route('/home_administrador')
 def home_administrador():
     if 'usuario_id' not in session:
         return redirect(url_for('login'))
     return mostrar_home_administrador()
 
-
-
+# ── REPORTE ADMIN: GET renderiza la página, POST/GET con JSON van al blueprint ──
+@app.route('/reporte_admin', methods=['GET'])
+def reporte_admin():
+    if 'usuario_id' not in session:
+        return redirect(url_for('login'))
+    return render_template('reporte_admin.html')
 
 # ================= RUTAS DE ACCIONES =================
 

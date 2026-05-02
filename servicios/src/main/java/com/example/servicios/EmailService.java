@@ -133,13 +133,10 @@ public class EmailService {
             String categoriaParaUrl = (request.getCategoriaFiltrada() != null && !request.getCategoriaFiltrada().isEmpty()) 
                                       ? request.getCategoriaFiltrada() : "Todas";
 
-            String urlDescarga = "http://localhost:8080/api/email/descargar-reporte?" +
-                                 "fundacion_id=" + request.getFundacionId() +
-                                 "&nombre=" + URLEncoder.encode(nombreFundacion, StandardCharsets.UTF_8) +
-                                 "&nit=" + URLEncoder.encode(nit, StandardCharsets.UTF_8) +
-                                 "&categoria=" + URLEncoder.encode(categoriaParaUrl, StandardCharsets.UTF_8);
-            // Agregar el filtro de estado si existe
-            if (request.getEstadoFiltrado() != null && !request.getEstadoFiltrado().isEmpty() && !request.getEstadoFiltrado().equalsIgnoreCase("Todos")) {
+            String urlDescarga = "http://localhost:8080/api/email/descargar-reporte-admin?" +
+                "&nombre=" + URLEncoder.encode(nombreFundacion, StandardCharsets.UTF_8) +
+                "&categoria=" + URLEncoder.encode(categoriaParaUrl, StandardCharsets.UTF_8);
+            if (request.getEstadoFiltrado() != null && !request.getEstadoFiltrado().isEmpty()) {
                 urlDescarga += "&est=" + URLEncoder.encode(request.getEstadoFiltrado(), StandardCharsets.UTF_8);
             }
 
@@ -155,15 +152,20 @@ public class EmailService {
                             "<h2 style='color: #333;'>¡Hola, " + request.getNombreFundacion() + "!</h2>" +
                             "<p style='color: #555; font-size: 16px;'>Hemos generado el reporte detallado que solicitaste con el logo de <b>Red Solidaria</b>.</p>" +
                             "<div style='background: #f8f9fa; border-radius: 15px; padding: 25px; margin: 25px 0; text-align: left; border: 1px dashed #ccc;'>" +
-                                "<p style='margin: 5px 0;'><b>Identificación (NIT):</b> " + request.getNit() + "</p>" +
+                                "<p style='margin: 5px 0;'><b>Identificación :</b> " + request.getNit() + "</p>" +
                                 "<p style='margin: 5px 0;'><b>Filtro Categoría:</b> " + categoriaParaUrl + "</p>" +
                                 // Mostrar estado solo si existe y no es vacío
                                 (request.getEstadoFiltrado() != null && !request.getEstadoFiltrado().isEmpty() && !request.getEstadoFiltrado().equalsIgnoreCase("Todos")
                                     ? ("<p style='margin: 5px 0;'><b>Filtro Estado:</b> " + request.getEstadoFiltrado() + "</p>")
                                     : "") +
                                 "<div style='margin-top: 15px; padding-top: 15px; border-top: 2px solid " + colorFin + ";'>" +
-                                    "<p style='font-size: 20px; margin: 0;'><b>Total Donaciones Encontradas:</b> <span style='color: " + colorInicio + "; font-weight: 800;'>" + request.getCantidadDonaciones() + "</span></p>" +
-                                "</div>" +
+                                (request.getCantidadDonaciones() > 0 ?
+                                    "<p style='font-size: 16px; margin: 3px 0;'><b>📦 Total Donaciones:</b> <span style='color:" + colorInicio + ";font-weight:800;'>" + request.getCantidadDonaciones() + "</span></p>" : "") +
+                                (request.getFundaciones() != null && !request.getFundaciones().isEmpty() ?
+                                    "<p style='font-size: 16px; margin: 3px 0;'><b>🏛️ Total Fundaciones:</b> <span style='color:" + colorInicio + ";font-weight:800;'>" + request.getFundaciones().size() + "</span></p>" : "") +
+                                (request.getDonantes() != null && !request.getDonantes().isEmpty() ?
+                                    "<p style='font-size: 16px; margin: 3px 0;'><b>👥 Total Donantes:</b> <span style='color:" + colorInicio + ";font-weight:800;'>" + request.getDonantes().size() + "</span></p>" : "") +
+                            "</div>" +
                             "</div>" +
                             "<p style='color: #777; font-size: 14px;'>Puedes descargar el reporte PDF directamente usando el botón de abajo.</p>" +
                             "<br>" +
@@ -180,9 +182,10 @@ public class EmailService {
             ClassPathResource image = new ClassPathResource("static/images/logo.jpeg");
             helper.addInline("logoImage", image);
 
-            // No adjuntar el PDF, solo enviar el enlace de descarga en el cuerpo del correo
+           // Adjuntar el PDF directamente con los datos ya filtrados
+            
             mailSender.send(message);
-            System.out.println("✅ Reporte enviado exitosamente (Solo enlace de descarga, sin adjunto)");
+            System.out.println("✅ Reporte enviado exitosamente (Con adjunto PDF)");
         } catch (Exception e) {
             System.out.println("❌ Error enviando reporte: " + e.getMessage());
             e.printStackTrace();

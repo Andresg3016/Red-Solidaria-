@@ -1,0 +1,533 @@
+{% extends "base.html" %}
+
+{% block title %}Reporte Administrativo - Red Solidaria{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* ══════════════════════════════════════════
+           ESTILOS COMPLETOS REPORTE ADMIN
+        ══════════════════════════════════════════ */
+        body { background-color: #fdfdf5; }
+
+        .reporte-wrapper {
+            background: #fffef5;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-top: 20px;
+            margin-bottom: 40px;
+            border: 2px solid #ffd700;
+        }
+
+        /* ── HEADER ── */
+        .reporte-header {
+            border-radius: 15px;
+            padding: 35px 30px;
+            background: linear-gradient(90deg, #6a11cb 0%, #2575fc 50%, #00ff88 100%);
+            color: #fff;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .reporte-header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
+        .reporte-header p  { opacity: 0.85; font-size: 1rem; margin: 0; }
+
+        /* ── SECCIÓN CORREO ── */
+        .correo-container {
+            background: #fff8e1;
+            border: 1px solid #ffc107;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(255,193,7,0.15);
+        }
+        .correo-container h6 { color: #856404; font-size: 1rem; }
+
+        /* ── FILTROS ── */
+        .filtro-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 22px 25px;
+            border: 1px solid #dee2e6;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .filtro-container h6 { font-size: 1rem; color: #333; margin-bottom: 15px; }
+        .filtro-container label { font-size: 0.82rem; color: #555; font-weight: 600; margin-bottom: 3px; }
+
+        /* ── SPINNER ── */
+        .spinner-reporte {
+            display: none;
+            text-align: center;
+            padding: 50px 20px;
+        }
+        .spinner-reporte p { color: #666; font-weight: 600; margin-top: 12px; }
+
+        /* ── TOTALES ── */
+        .totales-bar {
+            background: linear-gradient(135deg, rgba(30,82,255,0.07), rgba(0,255,136,0.07));
+            border: 1px solid rgba(30,82,255,0.2);
+            border-radius: 14px;
+            padding: 20px 30px;
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+            align-items: center;
+        }
+        .total-item { text-align: center; min-width: 80px; }
+        .total-item .numero {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: #1e52ff;
+            line-height: 1;
+            display: block;
+        }
+        .total-item .etiqueta {
+            font-size: 0.72rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-top: 4px;
+            display: block;
+        }
+
+        /* ── SECCIONES DE RESULTADO ── */
+        .reporte-seccion {
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 22px;
+            overflow: hidden;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+        }
+        .reporte-seccion-header {
+            background: linear-gradient(90deg, #1e52ff, #2575fc);
+            color: white;
+            padding: 12px 20px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .reporte-seccion-header .badge {
+            background: rgba(255,255,255,0.25) !important;
+            color: white !important;
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        .reporte-seccion-body { padding: 0; }
+
+        /* ── TABLA ── */
+        .reporte-table {
+            width: 100%;
+            font-size: 0.85rem;
+            border-collapse: collapse;
+            margin: 0;
+        }
+        .reporte-table thead tr { background: #f0f4ff; }
+        .reporte-table th {
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 700;
+            color: #333;
+            border-bottom: 2px solid #dbe4ff;
+            white-space: nowrap;
+        }
+        .reporte-table td {
+            padding: 9px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+            color: #444;
+        }
+        .reporte-table tr:last-child td { border-bottom: none; }
+        .reporte-table tbody tr:hover td { background: #f8f9ff; }
+
+        /* ── BADGES ESTADO ── */
+        .badge-estado {
+            padding: 4px 11px;
+            border-radius: 20px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: .03em;
+            display: inline-block;
+        }
+
+        /* ── VOLVER ── */
+        .btn-volver {
+            color: #666;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .btn-volver:hover { color: #1e52ff; text-decoration: none; }
+
+        /* ── EMPTY STATE ── */
+        .empty-tabla {
+            text-align: center;
+            padding: 30px;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        /* ── RESULTADOS WRAPPER ── */
+        .resultados-wrapper { display: none; }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="reporte-wrapper">
+
+        {# ── HEADER ── #}
+        <div class="reporte-header shadow-sm">
+            <h1>📊 Reporte Administrativo</h1>
+            <p>Red Solidaria — Búsqueda y generación de reportes multicriterio</p>
+        </div>
+
+        {# ── CORREO ── #}
+        <div class="correo-container">
+            <h6 class="fw-bold mb-3">📧 Enviar Reporte PDF por Correo</h6>
+            <div class="row g-2 align-items-end">
+                <div class="col-md-9">
+                    <label class="small fw-bold text-muted">Correo destinatario</label>
+                    <input type="email" id="correoReporteAdmin" class="form-control"
+                           placeholder="ejemplo@correo.com">
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-danger w-100 fw-bold" id="btnEnviarReporte"
+                            onclick="enviarReporteAdmin()">
+                        <i class="fas fa-paper-plane me-1"></i> Enviar Reporte
+                    </button>
+                </div>
+            </div>
+            <div id="flashReporte" class="mt-3" style="display:none;"></div>
+        </div>
+
+        {# ── FILTROS ── #}
+        <div class="filtro-container">
+            <h6 class="fw-bold">🔍 Filtros de Búsqueda</h6>
+            <div class="row g-3">
+
+                <div class="col-md-4">
+                    <label>👤 Donante</label>
+                    <input type="text" id="f_donante" class="form-control form-control-sm"
+                           placeholder="Nombre del donante...">
+                </div>
+                <div class="col-md-4">
+                    <label>🏛️ Fundación Destino</label>
+                    <input type="text" id="f_fundacion" class="form-control form-control-sm"
+                           placeholder="Nombre de la fundación...">
+                </div>
+                <div class="col-md-4">
+                    <label>📂 Categoría</label>
+                    <select id="f_categoria" class="form-select form-select-sm">
+                        <option value="">Todas</option>
+                        <option value="Alimentos">Alimentos</option>
+                        <option value="Ropa">Ropa</option>
+                        <option value="Otros">Otros</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label>📋 Estado</label>
+                    <select id="f_estado" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="aceptada">Aceptada (donación)</option>
+                        <option value="rechazada">Rechazada (donación)</option>
+                        <option value="eliminada">Eliminada (donación)</option>
+                        <option value="aprobado">Aprobado (fundación)</option>
+                        <option value="rechazado">Rechazado (fundación)</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label>📅 Fecha Desde</label>
+                    <input type="date" id="f_fecha_desde" class="form-control form-control-sm">
+                </div>
+                <div class="col-md-2">
+                    <label>📅 Fecha Hasta</label>
+                    <input type="date" id="f_fecha_hasta" class="form-control form-control-sm">
+                </div>
+                <div class="col-md-2">
+                    <label>💰 Monto Mínimo</label>
+                    <input type="number" id="f_monto_min" class="form-control form-control-sm"
+                           placeholder="0" min="0">
+                </div>
+                <div class="col-md-3">
+                    <label>💳 Pasarela de Pago</label>
+                    <select id="f_pasarela" class="form-select form-select-sm">
+                        <option value="">Todas</option>
+                        <option value="PSE">PSE</option>
+                        <option value="Tarjeta">Tarjeta Crédito/Débito</option>
+                        <option value="Nequi">Nequi</option>
+                        <option value="Daviplata">Daviplata</option>
+                        <option value="Efectivo">Efectivo</option>
+                    </select>
+                </div>
+
+                <div class="col-12 d-flex justify-content-end gap-2 mt-1">
+                    <button class="btn btn-outline-secondary" onclick="limpiarFiltros()">
+                        <i class="fas fa-redo me-1"></i> Limpiar
+                    </button>
+                    <button class="btn btn-primary fw-bold px-5" onclick="buscarReporteAdmin()">
+                        <i class="fas fa-search me-1"></i> BUSCAR
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {# ── SPINNER ── #}
+        <div class="spinner-reporte" id="spinnerReporte">
+            <div class="spinner-border text-primary" style="width:3.5rem;height:3.5rem;" role="status"></div>
+            <p>Consultando base de datos...</p>
+        </div>
+
+        {# ── RESULTADOS ── #}
+        <div class="resultados-wrapper" id="reporteResultados">
+
+            {# Totales #}
+            <div class="totales-bar">
+                <div class="total-item">
+                    <span class="numero" id="tot_donaciones">0</span>
+                    <span class="etiqueta">📦 Donaciones</span>
+                </div>
+                <div class="total-item">
+                    <span class="numero" id="tot_fundaciones">0</span>
+                    <span class="etiqueta">🏛️ Fundaciones</span>
+                </div>
+                <div class="total-item">
+                    <span class="numero" id="tot_donantes">0</span>
+                    <span class="etiqueta">👥 Donantes</span>
+                </div>
+            </div>
+
+            {# TABLA DONACIONES #}
+            <div class="reporte-seccion">
+                <div class="reporte-seccion-header">
+                    <span>📦 Donaciones Físicas</span>
+                    <span class="badge" id="contDonaciones">0</span>
+                </div>
+                <div class="reporte-seccion-body">
+                    <div class="table-responsive">
+                        <table class="reporte-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Donador</th>
+                                    <th>Fundación Destino</th>
+                                    <th>Categoría</th>
+                                    <th>Descripción</th>
+                                    <th>Cantidad</th>
+                                    <th>Fecha</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bodyDonaciones">
+                                <tr><td colspan="8" class="empty-tabla">Ejecuta una búsqueda para ver resultados</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {# TABLA FUNDACIONES #}
+            <div class="reporte-seccion">
+                <div class="reporte-seccion-header">
+                    <span>🏛️ Fundaciones</span>
+                    <span class="badge" id="contFundaciones">0</span>
+                </div>
+                <div class="reporte-seccion-body">
+                    <div class="table-responsive">
+                        <table class="reporte-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th><th>Nombre</th><th>NIT</th>
+                                    <th>Correo</th><th>Fecha Registro</th><th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bodyFundaciones">
+                                <tr><td colspan="6" class="empty-tabla">Ejecuta una búsqueda para ver resultados</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {# TABLA DONANTES #}
+            <div class="reporte-seccion">
+                <div class="reporte-seccion-header">
+                    <span>👥 Donantes</span>
+                    <span class="badge" id="contDonantes">0</span>
+                </div>
+                <div class="reporte-seccion-body">
+                    <div class="table-responsive">
+                        <table class="reporte-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th><th>Nombre</th><th>Correo</th>
+                                    <th>Fecha Registro</th><th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bodyDonantes">
+                                <tr><td colspan="5" class="empty-tabla">Ejecuta una búsqueda para ver resultados</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>{# fin resultados #}
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('home_administrador') }}" class="btn-volver">
+                <i class="fas fa-arrow-left me-1"></i> Volver al Panel de Administración
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function obtenerFiltros() {
+        return {
+            donante:     document.getElementById('f_donante').value.trim(),
+            fundacion:   document.getElementById('f_fundacion').value.trim(),
+            categoria:   document.getElementById('f_categoria').value,
+            estado:      document.getElementById('f_estado').value,
+            fecha_desde: document.getElementById('f_fecha_desde').value,
+            fecha_hasta: document.getElementById('f_fecha_hasta').value,
+            monto_min:   document.getElementById('f_monto_min').value,
+            pasarela:    document.getElementById('f_pasarela').value,
+        };
+    }
+
+    function limpiarFiltros() {
+        ['f_donante','f_fundacion','f_fecha_desde','f_fecha_hasta','f_monto_min']
+            .forEach(id => document.getElementById(id).value = '');
+        ['f_categoria','f_estado','f_pasarela']
+            .forEach(id => document.getElementById(id).value = '');
+        document.getElementById('reporteResultados').style.display = 'none';
+    }
+
+    function badgeEstado(estado) {
+        if (!estado) return '<span class="badge-estado" style="background:#ffc107;color:#000;">Pendiente</span>';
+        const map = {
+            pendiente:  'background:#ffc107;color:#000;',
+            aceptada:   'background:#198754;color:#fff;',
+            recibido:   'background:#198754;color:#fff;',
+            rechazada:  'background:#dc3545;color:#fff;',
+            rechazado:  'background:#dc3545;color:#fff;',
+            aprobado:   'background:#198754;color:#fff;',
+            eliminada:  'background:#6c757d;color:#fff;',
+        };
+        const style = map[estado.toLowerCase()] || 'background:#6c757d;color:#fff;';
+        return `<span class="badge-estado" style="${style}">${estado}</span>`;
+    }
+
+    function buscarReporteAdmin() {
+        const filtros = obtenerFiltros();
+        const qs = new URLSearchParams(filtros).toString();
+
+        document.getElementById('spinnerReporte').style.display = 'block';
+        document.getElementById('reporteResultados').style.display = 'none';
+
+        // ── Apunta al blueprint (JSON) ──
+        fetch(`/api/reporte_admin?${qs}`)
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('spinnerReporte').style.display = 'none';
+                document.getElementById('reporteResultados').style.display = 'block';
+
+                const td = data.totales || {};
+                document.getElementById('tot_donaciones').textContent  = td.total_donaciones  || 0;
+                document.getElementById('tot_fundaciones').textContent = td.total_fundaciones || 0;
+                document.getElementById('tot_donantes').textContent    = td.total_donantes    || 0;
+                document.getElementById('contDonaciones').textContent  = td.total_donaciones  || 0;
+                document.getElementById('contFundaciones').textContent = td.total_fundaciones || 0;
+                document.getElementById('contDonantes').textContent    = td.total_donantes    || 0;
+
+                // Donaciones
+                const bd = document.getElementById('bodyDonaciones');
+                bd.innerHTML = !data.donaciones || data.donaciones.length === 0
+                    ? '<tr><td colspan="8" class="empty-tabla">Sin resultados con estos filtros</td></tr>'
+                    : data.donaciones.map((d, i) => `
+                        <tr>
+                            <td class="text-muted">${i+1}</td>
+                            <td><strong>${d.donador_nombre || '—'}</strong></td>
+                            <td>${d.fundacion_nombre || '—'}</td>
+                            <td>${d.categoria_nombre || '—'}</td>
+                            <td title="${d.descripcion || ''}">${(d.descripcion||'').substring(0,38)}${(d.descripcion||'').length>38?'...':''}</td>
+                            <td>${d.cantidad}</td>
+                            <td>${d.fecha}</td>
+                            <td>${badgeEstado(d.estado)}</td>
+                        </tr>`).join('');
+
+                // Fundaciones
+                const bf = document.getElementById('bodyFundaciones');
+                bf.innerHTML = !data.fundaciones || data.fundaciones.length === 0
+                    ? '<tr><td colspan="6" class="empty-tabla">Sin resultados con estos filtros</td></tr>'
+                    : data.fundaciones.map((f, i) => `
+                        <tr>
+                            <td class="text-muted">${i+1}</td>
+                            <td>${f.nombre}</td><td>${f.nit}</td><td>${f.correo}</td>
+                            <td>${f.fecha_registro}</td><td>${badgeEstado(f.estado_validacion)}</td>
+                        </tr>`).join('');
+
+                // Donantes
+                const bdon = document.getElementById('bodyDonantes');
+                bdon.innerHTML = !data.donantes || data.donantes.length === 0
+                    ? '<tr><td colspan="5" class="empty-tabla">Sin resultados con estos filtros</td></tr>'
+                    : data.donantes.map((d, i) => `
+                        <tr>
+                            <td class="text-muted">${i+1}</td>
+                            <td>${d.nombre}</td><td>${d.correo}</td>
+                            <td>${d.fecha_registro}</td><td>${badgeEstado(d.estado)}</td>
+                        </tr>`).join('');
+            })
+            .catch(err => {
+                document.getElementById('spinnerReporte').style.display = 'none';
+                alert('Error al consultar. Verifica que el servidor esté activo.');
+                console.error(err);
+            });
+    }
+
+    function enviarReporteAdmin() {
+        const correo = document.getElementById('correoReporteAdmin').value.trim();
+        if (!correo) { alert('Ingresa un correo destinatario.'); return; }
+
+        const filtros = obtenerFiltros();
+        const btn = document.getElementById('btnEnviarReporte');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Enviando...';
+        btn.disabled = true;
+
+        const body = new URLSearchParams({ correo_reporte: correo, ...filtros });
+
+        // ── Apunta al blueprint (POST JSON) ──
+        fetch('/api/reporte_admin', {
+            method: 'POST',
+            body,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Enviar Reporte';
+            btn.disabled = false;
+            const flash = document.getElementById('flashReporte');
+            flash.style.display = 'block';
+            flash.innerHTML = data.success
+                ? `<div class="alert alert-success alert-dismissible fade show">✅ ${data.mensaje} <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`
+                : `<div class="alert alert-danger alert-dismissible fade show">❌ ${data.error || 'Error desconocido'} <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`;
+            setTimeout(() => { flash.style.display = 'none'; flash.innerHTML = ''; }, 7000);
+        })
+        .catch(() => {
+            btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Enviar Reporte';
+            btn.disabled = false;
+            alert('Error de conexión al enviar el reporte.');
+        });
+    }
+</script>
+{% endblock %}
