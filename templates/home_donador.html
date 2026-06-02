@@ -239,19 +239,22 @@
             <span class="stats-num num-otros">{{ otros }}</span>
         </div>
 
-     {# ── Transacciones ── #}
-<div class="stats-lateral-header" style="background:linear-gradient(135deg,#f7971e,#ffd200);">
-    💳 Transacciones
-</div>
-<div class="stats-item">
-    <span class="label">💰 Económicas</span>
-    {# Usamos 'total_pagos | default(0)' para evitar errores si la variable es nula #}
-    <span class="stats-num">{{ total_pagos | default(0) }}</span>
-</div>
-<div class="stats-item">
-    <span class="label">💳 Pagos</span>
-    <span class="stats-num">{{ total_pagos | default(0) }}</span>
-</div>
+                {# ── Transacciones ── #}
+            <div class="stats-lateral-header" style="background:linear-gradient(135deg,#f7971e,#ffd200);">
+                💳 Transacciones
+            </div>
+            <div class="stats-item"> 
+                <span class="label">💰 Económicas:</span>
+                <span class="stats-num" style="color: black !important; font-weight: bold !important;">
+                    {{ contadores['monetarias'] }}
+                </span>
+            </div>
+            <div class="stats-item">
+                <span class="label">💳 Pagos:</span>
+                <span class="stats-num" style="color: black !important; font-weight: bold !important;">
+                    {{ contadores['monetarias'] }}
+                </span>
+            </div>
          </div>
           </div>
 

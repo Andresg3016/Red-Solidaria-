@@ -406,27 +406,18 @@ class UsuarioController:
         from models.donacion_model import DonacionModel
         import requests
         import json
-        from app import serializar_datos, mysql # Asegúrate de importar mysql aquí
+        from app import serializar_datos
 
         if "usuario_id" not in session:
             return redirect(url_for("login"))
 
         usuario_id = session.get("usuario_id")
+        modelo_donacion = DonacionModel()
 
-        # --- INICIO DE LÓGICA DE CONTADORES ---
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT estado_donante, COUNT(*) FROM donaciones WHERE usuario_id = %s GROUP BY estado_donante", (usuario_id,))
-        resultados = cur.fetchall()
-        cur.close()
-
-        # Convertimos los resultados en un diccionario para fácil acceso
-        stats = {row[0]: row[1] for row in resultados}
-        contadores = {
-            'pendientes': stats.get('pendiente', 0),
-            'recibidas': stats.get('recibido', 0),
-            'rechazadas': stats.get('rechazado', 0)
-        }
-        # --- FIN DE LÓGICA DE CONTADORES ---
+        # --- LÓGICA DE CONTADORES CENTRALIZADA ---
+        # Ahora usamos el método centralizado del modelo
+        contadores = modelo_donacion.obtener_datos_completos_donador(usuario_id)
+        # ----------------------------------------
 
         datos_donador = {
             "nombre":      session.get("nombre"),
@@ -435,7 +426,6 @@ class UsuarioController:
             "estado":      session.get("estado") if session.get("estado") else "Activo"
         }
 
-        modelo_donacion = DonacionModel()
         q              = request.args.get('q', '')
         cat            = request.args.get('cat', '')
         est            = request.args.get('est', '')
@@ -443,19 +433,13 @@ class UsuarioController:
         accion         = request.args.get('accion')
         correo_reporte = request.args.get('correo_reporte')
 
-        # 1. Obtención de necesidades
         necesidades = modelo_donacion.obtener_necesidades_activas(q=q, cat=cat, usuario_id=usuario_id) or []
         
-        # 2. Obtención del historial
         mis_donaciones = modelo_donacion.obtener_donaciones_por_usuario_filtrado(
-            usuario_id, 
-            q=q, 
-            categoria=cat, 
-            estado=est, 
-            fundacion=fundacion_busq
+            usuario_id, q=q, categoria=cat, estado=est, fundacion=fundacion_busq
         ) or []
 
-        # 3. Lógica de reporte a Java
+        # Lógica de reporte a Java (MANTENIDA EXACTAMENTE IGUAL)
         if accion == 'reporte':
             if not correo_reporte:
                 flash("Por favor, ingresa un correo para el reporte", "warning")
@@ -463,43 +447,31 @@ class UsuarioController:
                 try:
                     url_java = "http://localhost:8080/api/email/enviar-reporte-donador"
                     desglose_dict = {}
-                    
                     for d in mis_donaciones:
-                        desc             = d.get('descripcion', 'Otros')
-                        cant             = int(d.get('cantidad', 0))
-                        est_don          = d.get('estado_donante', 'Verificado')
-                        cat_don          = d.get('categoria_nombre', 'Otros')
+                        desc = d.get('descripcion', 'Otros')
+                        cant = int(d.get('cantidad', 0))
+                        est_don = d.get('estado_donante', 'Verificado')
+                        cat_don = d.get('categoria_nombre', 'Otros')
                         fundacion_nombre = d.get('fundacion_nombre', 'N/A')
-                        
                         clave = (desc, est_don, cat_don, fundacion_nombre)
-                        
                         if clave in desglose_dict:
                             desglose_dict[clave]['cantidad'] += cant
                         else:
-                            desglose_dict[clave] = {
-                                "descripcion": desc, 
-                                "cantidad": cant,
-                                "estado": est_don, 
-                                "nombre_categoria": cat_don,
-                                "fundacion_nombre": fundacion_nombre
-                            }
-                            
+                            desglose_dict[clave] = {"descripcion": desc, "cantidad": cant, "estado": est_don, "nombre_categoria": cat_don, "fundacion_nombre": fundacion_nombre}
+                    
                     lista_desglosada = list(desglose_dict.values())
                     total_donaciones = sum(item['cantidad'] for item in lista_desglosada)
-                    
                     payload = {
-                        "destinatario":       correo_reporte,
-                        "nombreDonador":      datos_donador["nombre"],
-                        "telefono":           datos_donador.get("telefono", "N/A"),
-                        "amountDonaciones":   total_donaciones,
-                        "donaciones":         lista_desglosada,
-                        "categoriaFiltrada":  cat,
-                        "estadoFiltrado":     est
+                        "destinatario": correo_reporte,
+                        "nombreDonador": datos_donador["nombre"],
+                        "telefono": datos_donador.get("telefono", "N/A"),
+                        "amountDonaciones": total_donaciones,
+                        "donaciones": lista_desglosada,
+                        "categoriaFiltrada": cat,
+                        "estadoFiltrado": est
                     }
-                    
                     datos_limpios = json.loads(json.dumps(payload, default=serializar_datos))
                     response = requests.post(url_java, json=datos_limpios, timeout=10)
-                    
                     if response.status_code == 200:
                         flash(f"✅ ¡Reporte enviado con éxito a {correo_reporte}!", "success")
                     else:
@@ -507,16 +479,13 @@ class UsuarioController:
                 except Exception as e:
                     print(f"❌ Error de conexión con Java: {e}")
                     flash("No se pudo conectar con el servicio de correos (Java)", "danger")
-                    
-                    historial_monetario = self.modelo.get_historial_monetario(usuario_id) \
-                    if hasattr(self.modelo, 'get_historial_monetario') else []
 
         return render_template(
             "home_donador.html",
             donador=datos_donador,
             necesidades=necesidades,
             donaciones=mis_donaciones,
-            contadores=contadores # <-- AQUÍ SE ENVÍAN LOS DATOS
+            contadores=contadores 
         )
         
     def admin_panel_view(self):

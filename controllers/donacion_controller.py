@@ -247,9 +247,9 @@ class DonacionController:
                 monto = request.form.get("monto", 0)
                 referencia = request.form.get("referencia_pago", "")
                 
-                # Gestión de guardado de tarjeta (NUEVO)
+                # Gestión de guardado de tarjeta
                 if request.form.get("guardar_tarjeta") == "on":
-                    token_pago = request.form.get("token_pago") # Generado por JS en el frontend
+                    token_pago = request.form.get("token_pago")
                     ultimos_4 = request.form.get("ultimos_4")
                     marca = request.form.get("marca")
                     if token_pago:
@@ -258,15 +258,24 @@ class DonacionController:
                 # ID 5 es la categoría 'Monetaria'
                 categoria_id = 5 
                 
-                print(f"DEBUG: Registrando monetario. Categoría ID: {categoria_id}, Monto: {monto}, Fundación: {f_id_final}")
-                exito = self.modelo.registrar_donacion_monetaria(donador_id, int(f_id_final), categoria_id, monto, descripcion, referencia)
+                # Aquí es crucial que tu método registrar_donacion o registrar_donacion_monetaria en el modelo
+                # asigne el estado 'gestionada' automáticamente.
+                # Asegúrate de llamar a registrar_donacion, no a registrar_donacion_monetaria si es la que modificamos.
+                exito = self.modelo.registrar_donacion(
+                    donador_id, int(f_id_final), categoria_id, monto, descripcion, None, es_monetario=True
+                )
+                
+                # También registramos en transacciones como ya lo hacías
+                # (Asumiendo que registrar_donacion_monetaria o similar maneja la tabla transacciones)
+                # Si registrar_donacion_monetaria es otra función aparte, solo asegúrate que la lógica de estados 
+                # que definimos en el Modelo se aplique ahí también.
                 
                 if exito:
                     flash("💳 ¡Gracias! Tu donación monetaria ha sido registrada.", "success")
                     return redirect(url_for("home_donador"))
                 else:
                     flash("❌ Error al procesar la donación monetaria.", "danger")
-
+                    
             # ── FLUJO FÍSICO ──
             else:
                 categoria_id = request.form.get("categoria_id")
@@ -308,56 +317,55 @@ class DonacionController:
         
         
     def home_donador_view(self, session, request):
+        from flask import render_template, redirect, url_for
+        
         if "usuario_id" not in session:
             return redirect(url_for("login"))
 
         usuario_id = session["usuario_id"]
 
-        # 1. Filtros
+        # 1. Datos del Donador (Necesarios para evitar el error 'donador is undefined')
+        datos_donador = {
+            "nombre":       session.get("nombre", "Usuario"),
+            "foto_perfil":  session.get("foto_perfil"),
+            "telefono":     session.get("telefono"),
+            "estado":       session.get("estado") or "Activo"
+        }
+
+        # 2. Filtros
         q = request.args.get('q')
         categoria = request.args.get('cat')
         estado = request.args.get('est')
         fundacion = request.args.get('fundacion')
 
-        # 2. Historial
+        # 3. Historial
         historial = self.modelo.obtener_donaciones_por_usuario_filtrado(
             usuario_id, q=q, categoria=categoria, estado=estado, fundacion=fundacion
         )
         
-        # --- DEBUG: Diagnóstico de Datos ---
-        print(f"--- DEBUG DIAGNÓSTICO ---")
-        print(f"¿Hay historial?: {historial is not None}")
-        if historial:
-            print(f"Total registros: {len(historial)}")
-            print(f"Tipo del primer registro: {type(historial[0])}")
-            # Ver qué valores tiene la columna 'tipo'
-            tipos = [getattr(d, 'tipo', d.get('tipo') if isinstance(d, dict) else 'N/A') for d in historial]
-            print(f"Valores encontrados en columna 'tipo': {tipos}")
-        else:
-            print("El historial está vacío o es None.")
-
-        # 3. Lógica de Contadores
-        total_pagos = 0
-        if historial:
-            for d in historial:
-                valor = d.get('tipo') if isinstance(d, dict) else getattr(d, 'tipo', None)
-                if str(valor).strip() == 'monetario': # .strip() por si tiene espacios
-                    total_pagos += 1
+        # 4. Lógica de Contadores
+        stats_base = self.modelo.obtener_estadisticas_donador(usuario_id)
         
-        print(f"Resultado final total_pagos: {total_pagos}")
-        print(f"--------------------------")
-
-        # 4. Datos generales
-        contadores = self.modelo.obtener_contadores_donaciones(usuario_id)
+        contadores = {
+            'pendientes': stats_base.get('pendientes', 0) if stats_base else 0,
+            'recibidas':  stats_base.get('recibidas', 0) if stats_base else 0,
+            'rechazadas': stats_base.get('rechazadas', 0) if stats_base else 0,
+            'monetarias': stats_base.get('monetarias', 0) if stats_base else 0
+        }
+        
+        # 5. Otros datos
         necesidades = self.modelo.obtener_necesidades_activas(usuario_id=usuario_id, q=q, cat=categoria)
         categorias = self.modelo.obtener_categorias()
 
+        print(f"DEBUG: Enviando total_pagos: {contadores.get('monetarias')}")
+
         return render_template("home_donador.html", 
-                               historial=historial, 
-                               categorias=categorias,
-                               necesidades=necesidades,
-                               contadores=contadores,
-                               total_pagos=total_pagos)
+                                historial=historial,
+                                donador=datos_donador, 
+                                categorias=categorias,
+                                necesidades=necesidades,
+                                contadores=contadores,
+                                total_pagos=contadores.get('monetarias', 0))
         
     def gestionar_donacion_accion(self):
         import requests

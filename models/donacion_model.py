@@ -10,22 +10,24 @@ class DonacionModel:
     # MÉTODOS DE DONACIONES (HISTORIAL Y REGISTRO)
     # =========================================================================
 
-    def registrar_donacion(self, donador_id, fundacion_id, categoria_id, cantidad, descripcion, fotos_str=None):
+    def registrar_donacion(self, donador_id, fundacion_id, categoria_id, cantidad, descripcion, fotos_str=None, es_monetario=False):
+        """Registra la donación determinando el estado inicial según el tipo."""
         conn = get_connection()
         try:
             cursor = conn.cursor()
             c_id = int(categoria_id) if categoria_id else 0
+            f_id = int(fundacion_id[0]) if isinstance(fundacion_id, list) else int(fundacion_id or 0)
             
-            # Aseguramos que si fundacion_id viene como lista o string desde el controlador, se extraiga el valor correcto
-            f_id = fundacion_id[0] if isinstance(fundacion_id, list) else fundacion_id
-            f_id = int(f_id) if f_id else 0
+            # Lógica Senior: Si es monetario, el estado inicial es 'gestionada', si no, 'pendiente'
+            estado_inicial = 'gestionada' if es_monetario else 'pendiente'
+            tipo_donacion = 'monetario' if es_monetario else 'fisico'
 
             query = """
-                    INSERT INTO donaciones 
-                    (usuario_id, fundacion_id, categoria_id, cantidad, descripcion, estado_donante, fecha, fotos)
-                    VALUES (%s, %s, %s, %s, %s, 'pendiente', NOW(), %s)
-                """
-            cursor.execute(query, (donador_id, f_id, c_id, cantidad, descripcion, fotos_str))
+                INSERT INTO donaciones 
+                (usuario_id, fundacion_id, categoria_id, cantidad, descripcion, tipo, estado_donante, fecha, fotos)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), %s)
+            """
+            cursor.execute(query, (donador_id, f_id, c_id, cantidad, descripcion, tipo_donacion, estado_inicial, fotos_str))
             
             conn.commit()
             return True
@@ -34,25 +36,21 @@ class DonacionModel:
             return False
         finally:
             conn.close()
-            
-            
+
     def registrar_donacion_con_necesidad(self, donador_id, fundacion_id, categoria_id, cantidad, descripcion, necesidad_id, fotos_str=None):
-        """NUEVO: Registra la donación asociando explícitamente el necesidad_id del carrusel."""
+        """Registra asociando necesidad_id. Asumimos que son físicas (alimentos/ropa)."""
         conn = get_connection()
         try:
             cursor = conn.cursor()
             c_id = int(categoria_id) if categoria_id else 0
             n_id = int(necesidad_id) if necesidad_id else None
-            
-            # Aseguramos que si fundacion_id viene como lista o string desde el controlador, se extraiga el valor correcto
-            f_id = fundacion_id[0] if isinstance(fundacion_id, list) else fundacion_id
-            f_id = int(f_id) if f_id else 0
+            f_id = int(fundacion_id[0]) if isinstance(fundacion_id, list) else int(fundacion_id or 0)
             
             query = """
-                    INSERT INTO donaciones 
-                    (usuario_id, fundacion_id, categoria_id, cantidad, descripcion, estado_donante, fecha, necesidad_id, fotos)
-                    VALUES (%s, %s, %s, %s, %s, 'pendiente', NOW(), %s, %s)
-                """
+                INSERT INTO donaciones 
+                (usuario_id, fundacion_id, categoria_id, cantidad, descripcion, tipo, estado_donante, fecha, necesidad_id, fotos)
+                VALUES (%s, %s, %s, %s, %s, 'fisico', 'pendiente', NOW(), %s, %s)
+            """
             cursor.execute(query, (donador_id, f_id, c_id, cantidad, descripcion, n_id, fotos_str))
             
             conn.commit()
@@ -213,15 +211,16 @@ class DonacionModel:
         conn = get_connection()
         try:
             cursor = conn.cursor(dictionary=True)
+            # Seleccionamos explícitamente todo de donaciones
             query = """
-                SELECT d.*, c.nombre AS categoria_nombre, fun.nombre AS fundacion_nombre,
-                d.tipo, d.estado_donante, d.fecha, d.descripcion
+                SELECT d.*, c.nombre AS categoria_nombre, fun.nombre AS fundacion_nombre
                 FROM donaciones d
                 LEFT JOIN categorias c ON d.categoria_id = c.id
                 LEFT JOIN fundaciones fun ON d.fundacion_id = fun.id
                 WHERE d.usuario_id = %s
             """
             params = [usuario_id]
+            
             if q:
                 query += " AND d.descripcion LIKE %s"; params.append(f"%{q}%")
             if categoria:
@@ -234,25 +233,30 @@ class DonacionModel:
             donaciones = cursor.fetchall()
 
             for d in donaciones:
-                e_fund = d.get('estado_fundacion')
-                e_don = d.get('estado_donante') # No le pongas 'pendiente' aquí todavía
+                # Obtenemos los estados actuales
+                e_don = d.get('estado_donante')
                 
-                # Solo sobrescribimos si el estado de la fundación lo indica
-                if e_fund == 'aceptada':
-                    d['estado_donante'] = 'recibido'
-                elif e_fund == 'rechazada':
-                    d['estado_donante'] = 'rechazado'
-                elif e_don == 'gestionada':
-                    d['estado_donante'] = 'gestionada' # Mantenemos el estado correcto
+                # NOTA: En tu tabla no existe 'estado_fundacion'. 
+                # Si ese valor viene de otra tabla, deberías unirla en el JOIN arriba.
+                # Por ahora, mantenemos la lógica de 'gestionada' y 'pendiente'.
+                
+                if d.get('tipo') == 'monetario':
+                    d['estado_donante'] = 'gestionada'
+                elif not e_don or e_don == '':
+                    d['estado_donante'] = 'pendiente'
                 else:
-                    d['estado_donante'] = e_don if e_don else 'pendiente'
+                    d['estado_donante'] = e_don
             
-            return [d for d in donaciones if not estado or d['estado_donante'] == estado]
+            # Filtro final por estado en memoria (como ya tenías)
+            if estado:
+                return [d for d in donaciones if d['estado_donante'] == estado]
+            return donaciones
+
         except Exception as e:
-            print(f"❌ ERROR: {e}"); return []
+            print(f"❌ ERROR en obtener_donaciones_por_usuario_filtrado: {e}")
+            return []
         finally:
             if conn: conn.close()
-
     # =========================================================================
     # MÉTODOS DE NECESIDADES
     # =========================================================================
@@ -433,19 +437,40 @@ class DonacionModel:
    # Ejemplo para contar monetarias de un donador
     def obtener_estadisticas_donador(self, usuario_id):
         conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("""
-            SELECT 
-                COUNT(CASE WHEN estado_donante = 'pendiente' THEN 1 END) as pendientes,
-                COUNT(CASE WHEN estado_donante = 'recibido' THEN 1 END) as recibidas,
-                COUNT(CASE WHEN estado_donante = 'rechazado' THEN 1 END) as rechazadas,
-                COUNT(CASE WHEN estado_donante = 'gestionada' THEN 1 END) as monetarias
-            FROM donaciones 
-            WHERE usuario_id = %s
-        """, (usuario_id,))
-        res = cursor.fetchone()
-        conn.close()
-        return res
+        try:
+            cursor = conn.cursor(dictionary=True)
+            u_id = int(usuario_id)
+            query = """
+                SELECT 
+                    SUM(CASE WHEN tipo = 'fisico' AND estado_donante = 'pendiente' THEN 1 ELSE 0 END) as pendientes,
+                    SUM(CASE WHEN tipo = 'fisico' AND estado_donante = 'recibido' THEN 1 ELSE 0 END) as recibidas,
+                    SUM(CASE WHEN tipo = 'fisico' AND estado_donante = 'rechazado' THEN 1 ELSE 0 END) as rechazadas,
+                    SUM(CASE WHEN tipo = 'monetario' THEN 1 ELSE 0 END) as monetarias
+                FROM donaciones 
+                WHERE usuario_id = %s
+            """
+            cursor.execute(query, (u_id,))
+            resultado = cursor.fetchone()
+            
+            # --- CORRECCIÓN AQUÍ: Convertimos todo a int para evitar problemas de formato ---
+            if resultado:
+                stats_limpias = {
+                    'pendientes': int(resultado.get('pendientes') or 0),
+                    'recibidas':  int(resultado.get('recibidas') or 0),
+                    'rechazadas': int(resultado.get('rechazadas') or 0),
+                    'monetarias': int(resultado.get('monetarias') or 0)
+                }
+            else:
+                stats_limpias = {'pendientes': 0, 'recibidas': 0, 'rechazadas': 0, 'monetarias': 0}
+            
+            print(f"DEBUG: Resultado limpio del modelo: {stats_limpias}")
+            return stats_limpias
+
+        except Exception as e:
+            print(f"Error en estadísticas: {e}")
+            return {'pendientes': 0, 'recibidas': 0, 'rechazadas': 0, 'monetarias': 0}
+        finally:
+            conn.close()
             
     def obtener_estadisticas_fundacion(self, fundacion_id):
         conn = get_connection()
@@ -646,4 +671,16 @@ class DonacionModel:
             return cursor.fetchall()
         finally:
             conn.close()
+            
+    def obtener_datos_completos_donador(self, usuario_id):
+        """
+        Centraliza la obtención de estadísticas.
+        """
+        stats = self.obtener_estadisticas_donador(usuario_id) or {}
+        return {
+            'pendientes': stats.get('pendientes', 0) or 0,
+            'recibidas':  stats.get('recibidas', 0) or 0,
+            'rechazadas': stats.get('rechazadas', 0) or 0,
+            'monetarias': stats.get('monetarias', 0) or 0
+        }        
              
