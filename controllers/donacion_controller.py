@@ -217,6 +217,8 @@ class DonacionController:
 
         # Obtenemos métodos de pago guardados del usuario (NUEVO)
         metodos_guardados = self.modelo.obtener_metodos_usuario(usuario_id)
+        print(f"DEBUG: Buscando métodos para usuario_id: {usuario_id}")
+        print(f"DEBUG: Resultados encontrados: {metodos_guardados}")
 
         # 3. Procesamiento del POST
         if request.method == "POST":
@@ -232,6 +234,7 @@ class DonacionController:
             if not f_id_final or f_id_final == "" or f_id_final == "0":
                 print("DEBUG: ¡ERROR! Intento de donación sin fundación válida.")
                 flash("❌ Debes seleccionar una fundación destino válida para continuar.", "danger")
+                print(f"DEBUG: Métodos guardados: {metodos_guardados}")
                 return render_template("donar.html", necesidad=necesidad_prellenada, 
                                        categorias=self.modelo.obtener_categorias(), 
                                        fundaciones_activas=fundaciones_activas,
@@ -310,32 +313,51 @@ class DonacionController:
 
         usuario_id = session["usuario_id"]
 
-        # 1. Capturamos los filtros del formulario
+        # 1. Filtros
         q = request.args.get('q')
         categoria = request.args.get('cat')
         estado = request.args.get('est')
         fundacion = request.args.get('fundacion')
 
-        # 2. Obtenemos el historial FILTRADO
+        # 2. Historial
         historial = self.modelo.obtener_donaciones_por_usuario_filtrado(
             usuario_id, q=q, categoria=categoria, estado=estado, fundacion=fundacion
         )
+        
+        # --- DEBUG: Diagnóstico de Datos ---
+        print(f"--- DEBUG DIAGNÓSTICO ---")
+        print(f"¿Hay historial?: {historial is not None}")
+        if historial:
+            print(f"Total registros: {len(historial)}")
+            print(f"Tipo del primer registro: {type(historial[0])}")
+            # Ver qué valores tiene la columna 'tipo'
+            tipos = [getattr(d, 'tipo', d.get('tipo') if isinstance(d, dict) else 'N/A') for d in historial]
+            print(f"Valores encontrados en columna 'tipo': {tipos}")
+        else:
+            print("El historial está vacío o es None.")
 
-        # 3. Obtenemos los contadores (asegúrate de que en el modelo este método use SQL COUNT)
+        # 3. Lógica de Contadores
+        total_pagos = 0
+        if historial:
+            for d in historial:
+                valor = d.get('tipo') if isinstance(d, dict) else getattr(d, 'tipo', None)
+                if str(valor).strip() == 'monetario': # .strip() por si tiene espacios
+                    total_pagos += 1
+        
+        print(f"Resultado final total_pagos: {total_pagos}")
+        print(f"--------------------------")
+
+        # 4. Datos generales
         contadores = self.modelo.obtener_contadores_donaciones(usuario_id)
-
-        # 4. Obtenemos el carrusel (Pasando usuario_id y los filtros opcionales q y cat)
         necesidades = self.modelo.obtener_necesidades_activas(usuario_id=usuario_id, q=q, cat=categoria)
-
-        # 5. Categorías para el filtro
         categorias = self.modelo.obtener_categorias()
 
         return render_template("home_donador.html", 
                                historial=historial, 
                                categorias=categorias,
                                necesidades=necesidades,
-                               contadores=contadores)
-        
+                               contadores=contadores,
+                               total_pagos=total_pagos)
         
     def gestionar_donacion_accion(self):
         import requests

@@ -261,6 +261,27 @@
         position: relative;
     }
 
+        /* Esto soluciona que las opciones se vean blancas sobre fondo blanco */
+    select option {
+        background-color: #ffffff; /* Fondo blanco */
+        color: #333333;           /* Texto oscuro */
+    }
+
+        /* Forzar visibilidad del selector y sus opciones */
+    .pago-input {
+        background-color: #ffffff !important;
+        color: #333333 !important;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        width: 100%;
+    }
+
+    .pago-input option {
+        background-color: #ffffff !important;
+        color: #333333 !important;
+    }
+
     .toast-donacion.success { border-left-color: #28a745; }
     .toast-donacion.danger { border-left-color: #dc3545; }
 
@@ -464,128 +485,99 @@
         </div>
 
         {# ══════════════════════════════════════════════════
-           4. SECCIÓN MONETARIA — PASARELA
-        ══════════════════════════════════════════════════ #}
-        <div id="seccionMonetaria" class="hidden-section">
-            <div class="pasarela-wrapper">
+   4. SECCIÓN MONETARIA — PASARELA
+   ══════════════════════════════════════════════════ #}
+<div id="seccionMonetaria" class="hidden-section">
+    <div class="pasarela-wrapper">
 
-                {# Header #}
-                <div class="pasarela-header">
-                    <div class="pasarela-brand">
-                        <div class="pasarela-brand-icon">🔐</div>
-                        <div>
-                            <div class="pasarela-brand-name">Red Solidaria Pay</div>
-                            <div class="pasarela-brand-sub">Pasarela de Donaciones</div>
-                        </div>
-                    </div>
-                    <div class="pasarela-secure">
-                        <i class="fas fa-lock"></i> SSL 256-bit
-                    </div>
+        {# Header #}
+        <div class="pasarela-header">
+            <div class="pasarela-brand">
+                <div class="pasarela-brand-icon">🔐</div>
+                <div>
+                    <div class="pasarela-brand-name">Red Solidaria Pay</div>
+                    <div class="pasarela-brand-sub">Pasarela de Donaciones</div>
                 </div>
+            </div>
+            <div class="pasarela-secure">
+                <i class="fas fa-lock"></i> SSL 256-bit
+            </div>
+        </div>
 
-                {# Métodos #}
-                <div class="metodo-tabs">
-                    <div class="metodo-tab activo" id="tabCredito" onclick="seleccionarMetodo('credito')">
-                        <i class="fas fa-credit-card"></i> Crédito
-                    </div>
-                    <div class="metodo-tab" id="tabDebito" onclick="seleccionarMetodo('debito')">
-                        <i class="fas fa-university"></i> Débito
-                    </div>
-                    <div class="metodo-tab" id="tabPSE" onclick="seleccionarMetodo('PSE')">
-                        <i class="fas fa-building"></i> PSE
-                    </div>
-                    <div class="metodo-tab" id="tabNequi" onclick="seleccionarMetodo('Nequi')">
-                        <i class="fas fa-mobile-alt"></i> Nequi
-                    </div>
-                </div>
-                <input type="hidden" name="metodo_pago" id="metodo_pago_val" value="credito">
+        {# Métodos #}
+        <div class="metodo-tabs">
+            <div class="metodo-tab activo" id="tabCredito" onclick="seleccionarMetodo('credito')"><i class="fas fa-credit-card"></i> Crédito</div>
+            <div class="metodo-tab" id="tabDebito" onclick="seleccionarMetodo('debito')"><i class="fas fa-university"></i> Débito</div>
+            <div class="metodo-tab" id="tabPSE" onclick="seleccionarMetodo('PSE')"><i class="fas fa-building"></i> PSE</div>
+            <div class="metodo-tab" id="tabNequi" onclick="seleccionarMetodo('Nequi')"><i class="fas fa-mobile-alt"></i> Nequi</div>
+        </div>
+        <input type="hidden" name="metodo_pago" id="metodo_pago_val" value="credito">
 
-                {# Monto #}
-                <div class="monto-box">
-                    <span class="monto-currency">$</span>
-                    <input type="number" name="monto" id="inputMonto"
-                           class="monto-input-big campo-pago"
-                           placeholder="0" min="1000" step="1000">
-                    <span style="color:rgba(255,255,255,0.3);font-size:0.85rem;">COP</span>
-                </div>
+        {# Monto #}
+        <div class="monto-box">
+            <span class="monto-currency">$</span>
+            <input type="number" name="monto" id="inputMonto" class="monto-input-big campo-pago" placeholder="0" min="1000" step="1000">
+            <span style="color:rgba(255,255,255,0.3);font-size:0.85rem;">COP</span>
+        </div>
 
-                {% if metodos %}
-                <div class="mb-3">
-                    <label class="pago-label">O usa una tarjeta guardada:</label>
-                    <select class="pago-input" onchange="usarTarjetaGuardada(this)">
-                        <option value="">-- Selecciona una tarjeta --</option>
-                        {% for m in metodos %}
-                        <option value="{{ m.token_pasarela }}" data-marca="{{ m.marca }}" data-ultimos4="{{ m.ultimos_4 }}">
-                            {{ m.marca }} terminada en {{ m.ultimos_4 }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                {% endif %}
-                <input type="hidden" name="token_pago" id="token_pago_input">
-                <input type="hidden" name="ultimos_4" id="ultimos_4_input">
-                <input type="hidden" name="marca" id="marca_input">
+        {# Tarjeta Guardada Select #}
+        {% if metodos %}
+        <div class="mb-3">
+            <label class="pago-label">O usa una tarjeta guardada:</label>
+            <select class="pago-input" onchange="usarTarjetaGuardada(this)">
+                <option value="">-- Selecciona una tarjeta --</option>
+                {% for m in metodos %}
+                <option value="{{ m.token_pasarela }}" data-marca="{{ m.marca }}" data-ultimos4="{{ m.ultimos_4 }}">
+                    {{ m.marca }} terminada en {{ m.ultimos_4 }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
 
-                <div class="mb-2">
-                    <label style="color:white; cursor:pointer;">
-                        <input type="checkbox" name="guardar_tarjeta"> Guardar esta tarjeta para futuros pagos
-                    </label>
-                </div>
+        {# Inputs ocultos para el formulario #}
+        <input type="hidden" name="token_pago" id="token_pago_input">
+        <input type="hidden" name="ultimos_4" id="ultimos_4_input">
+        <input type="hidden" name="marca" id="marca_input">
 
-                {# Tarjeta visual #}
-                <div class="card-visual" id="cardVisual">
-                    <div class="card-chip"></div>
-                    <div class="card-number-display" id="cardNumberDisplay">
-                        •••• &nbsp;•••• &nbsp;•••• &nbsp;••••
-                    </div>
-                    <div class="card-bottom">
-                        <div>
-                            <div class="card-label">Titular</div>
-                            <div class="card-value" id="cardTitularDisplay">NOMBRE APELLIDO</div>
-                        </div>
-                        <div>
-                            <div class="card-label">Vence</div>
-                            <div class="card-value" id="cardExpDisplay">MM/AA</div>
-                        </div>
-                        <div class="card-brand-logo">
-                            <span></span><span></span>
-                        </div>
-                    </div>
-                </div>
+        {# Checkbox Guardar #}
+        <div class="mb-2" id="contenedorGuardar">
+            <label style="color:white; cursor:pointer;">
+                <input type="checkbox" name="guardar_tarjeta"> Guardar esta tarjeta para futuros pagos
+            </label>
+        </div>
 
-                {# Campos tarjeta crédito/débito #}
-                <div id="camposTarjeta">
-                    <div class="row g-3 mb-3">
-                        <div class="col-12">
-                            <label class="pago-label">Número de tarjeta</label>
-                            <input type="text" name="num_tarjeta" id="inputNumTarjeta"
-                                   class="pago-input campo-pago"
-                                   placeholder="0000 0000 0000 0000"
-                                   maxlength="19" autocomplete="cc-number">
-                        </div>
-                        <div class="col-12">
-                            <label class="pago-label">Titular de la tarjeta</label>
-                            <input type="text" name="titular" id="inputTitular"
-                                   class="pago-input campo-pago"
-                                   placeholder="Como aparece en la tarjeta"
-                                   autocomplete="cc-name">
-                        </div>
-                        <div class="col-6">
-                            <label class="pago-label">Fecha de expiración</label>
-                            <input type="text" name="expiracion" id="inputExpiracion"
-                                   class="pago-input campo-pago"
-                                   placeholder="MM/AA" maxlength="5"
-                                   autocomplete="cc-exp">
-                        </div>
-                        <div class="col-6">
-                            <label class="pago-label">CVV</label>
-                            <input type="password" name="cvv" id="inputCvv"
-                                   class="pago-input campo-pago"
-                                   placeholder="•••" maxlength="3"
-                                   autocomplete="cc-csc">
-                        </div>
-                    </div>
+        {# Tarjeta visual (Siempre visible) #}
+        <div class="card-visual" id="cardVisual">
+            <div class="card-chip"></div>
+            <div class="card-number-display" id="cardNumberDisplay">•••• &nbsp;•••• &nbsp;•••• &nbsp;••••</div>
+            <div class="card-bottom">
+                <div><div class="card-label">Titular</div><div class="card-value" id="cardTitularDisplay">NOMBRE APELLIDO</div></div>
+                <div><div class="card-label">Vence</div><div class="card-value" id="cardExpDisplay">MM/AA</div></div>
+            </div>
+        </div>
+
+        {# --- CONTENEDOR DE CAMPOS MANUALES --- #}
+        <div id="contenedorCamposManuales">
+            <div class="row g-3 mb-3">
+                <div class="col-12">
+                    <label class="pago-label">Número de tarjeta</label>
+                    <input type="text" name="num_tarjeta" id="inputNumTarjeta" class="pago-input campo-pago" placeholder="0000 0000 0000 0000" maxlength="19">
                 </div>
+                <div class="col-12">
+                    <label class="pago-label">Titular de la tarjeta</label>
+                    <input type="text" name="titular" id="inputTitular" class="pago-input campo-pago" placeholder="Como aparece en la tarjeta">
+                </div>
+                <div class="col-6">
+                    <label class="pago-label">Expiración</label>
+                    <input type="text" name="expiracion" id="inputExpiracion" class="pago-input campo-pago" placeholder="MM/AA" maxlength="5">
+                </div>
+                <div class="col-6">
+                    <label class="pago-label">CVV</label>
+                    <input type="password" name="cvv" id="inputCvv" class="pago-input campo-pago" placeholder="•••" maxlength="3">
+                </div>
+            </div>
+        </div>
 
                 {# Campos PSE #}
                 <div id="camposPSE" style="display:none;">
@@ -700,93 +692,132 @@
 
     // --- CORRECCIÓN CRÍTICA: Validación de Fundación al enviar ---
     const form = document.getElementById('formDonacionCompleto');
-    
-        // ── CORRECCIÓN 3: listener submit — proteger selectCategoria ──
-    form.addEventListener('submit', function(event) {
-        const selectFundacion = document.querySelector('select[name="fundacion_id"]');
-        if (selectFundacion && selectFundacion.value === '') {
-            event.preventDefault();
-            event.stopPropagation();
-            selectFundacion.style.border = '2px solid #dc3545';
-            selectFundacion.focus();
-            return false;
-        }
-    });
 
-        // ── CORRECCIÓN 2: validarYEnviar — selectCategoria puede no existir ──
-    function validarYEnviar() {
+            // En tu función de validación JS
+                function validarYEnviar() {
+        const form = document.getElementById('formDonacionCompleto');
         const fundacionSelect = document.querySelector('select[name="fundacion_id"]');
         const monto = document.getElementById('inputMonto').value;
+        const tokenInput = document.getElementById('token_pago_input'); 
+        
+        // Identificar el método seleccionado
+        const metodoActual = document.getElementById('metodo_pago_val').value; // 'credito', 'debito', 'PSE', 'Nequi'
 
-        if (fundacionSelect && fundacionSelect.value === '') {
-            fundacionSelect.style.border = '2px solid #dc3545';
-            fundacionSelect.focus();
+        // 1. Validaciones básicas (se mantienen igual)
+        if (fundacionSelect && fundacionSelect.value === "") {
+            fundacionSelect.style.border = "2px solid #dc3545";
+            alert("¡Atención! Debes seleccionar una fundación.");
             return;
         }
 
         if (!monto || parseInt(monto) < 1000) {
-            document.getElementById('inputMonto').style.border = '2px solid #dc3545';
-            document.getElementById('inputMonto').focus();
+            document.getElementById('inputMonto').style.border = "2px solid #dc3545";
+            alert("Ingresa un monto válido (mínimo 1000).");
             return;
         }
 
-        // Limpiar bordes de error antes de enviar
-        if (fundacionSelect) fundacionSelect.style.border = '';
-        document.getElementById('inputMonto').style.border = '';
+        // 2. Lógica de Envío Diferenciada
+        // Si el método es Nequi o PSE, enviamos directamente sin validar tarjetas
+        if (metodoActual === 'Nequi' || metodoActual === 'PSE') {
+            console.log("Enviando pago digital:", metodoActual);
+            form.submit();
+            return;
+        }
 
-        document.getElementById('formDonacionCompleto').submit();
+        // Si llega aquí, es porque es tarjeta (crédito/débito)
+        // Mantenemos intacta tu lógica de tarjetas guardadas y tarjetas nuevas:
+        if (tokenInput && tokenInput.value !== "") {
+            console.log("Enviando con tarjeta guardada...");
+            form.submit();
+        } else {
+            // Caso tarjeta nueva: obligamos a validar
+            const num = document.getElementById('inputNumTarjeta').value;
+            if (num.replace(/\s/g, '').length < 15) {
+                alert("Completa los datos de la tarjeta.");
+                return;
+            }
+            
+            // Desbloquear para enviar
+            document.getElementById('inputNumTarjeta').readOnly = false;
+            console.log("Enviando con tarjeta nueva...");
+            form.submit();
+        }
     }
 
+
+    
+    document.getElementById('cardFisica').addEventListener('click', () => {
+        radioFisica.checked = true; gestionarCampos();
+    });
+    document.getElementById('cardMonetaria').addEventListener('click', () => {
+        radioMonetaria.checked = true; gestionarCampos();
+    });
+    radioFisica.addEventListener('change', gestionarCampos);
+    radioMonetaria.addEventListener('change', gestionarCampos);
+    gestionarCampos();
+
     /* ── Métodos de pago ── */
-    function seleccionarMetodo(metodo) {
+        function seleccionarMetodo(metodo) {
+        // 1. Manejo de pestañas visuales
         document.querySelectorAll('.metodo-tab').forEach(t => t.classList.remove('activo'));
         const tabId = 'tab' + metodo.charAt(0).toUpperCase() + metodo.slice(1);
         const tab = document.getElementById(tabId);
         if (tab) tab.classList.add('activo');
+        
+        // 2. Asignar valor al input oculto
         document.getElementById('metodo_pago_val').value = metodo;
 
-        document.getElementById('camposTarjeta').style.display =
-            (metodo === 'credito' || metodo === 'debito') ? 'block' : 'none';
-        document.getElementById('camposPSE').style.display   = metodo === 'PSE'   ? 'block' : 'none';
-        document.getElementById('camposNequi').style.display = metodo === 'Nequi' ? 'block' : 'none';
-        document.getElementById('cardVisual').style.display  =
-            (metodo === 'credito' || metodo === 'debito') ? 'block' : 'none';
+        // 3. Mostrar/Ocultar secciones (USANDO LOS IDs CORRECTOS DE TU HTML)
+        const mostrarManual = (metodo === 'credito' || metodo === 'debito');
+        
+        document.getElementById('contenedorCamposManuales').style.display = mostrarManual ? 'block' : 'none';
+        document.getElementById('camposPSE').style.display = (metodo === 'PSE') ? 'block' : 'none';
+        document.getElementById('camposNequi').style.display = (metodo === 'Nequi') ? 'block' : 'none';
+        
+        // Ocultar/Mostrar la tarjeta visual
+        document.getElementById('cardVisual').style.display = mostrarManual ? 'block' : 'none';
 
+        // 4. Actualizar referencia
         document.getElementById('referenciaPago').value = metodo + '_' + Date.now();
     }
 
 // ── CORRECCIÓN 1: usarTarjetaGuardada ──
-    function usarTarjetaGuardada(select) {
-        const token    = select.value;
+        function usarTarjetaGuardada(select) {
+        const token = select.value;
+        const camposManuales = document.getElementById('contenedorCamposManuales');
+        
+        // Obtener inputs
         const tokenInput = document.getElementById('token_pago_input');
-        const ult4Input  = document.getElementById('ultimos_4_input');
+        const ult4Input = document.getElementById('ultimos_4_input');
         const marcaInput = document.getElementById('marca_input');
-        const numInput   = document.getElementById('inputNumTarjeta');
+        const numInput = document.getElementById('inputNumTarjeta');
 
         if (token) {
             const option = select.options[select.selectedIndex];
+            
+            // Asignar datos
             tokenInput.value = token;
-            ult4Input.value  = option.getAttribute('data-ultimos4');
+            ult4Input.value = option.getAttribute('data-ultimos4');
             marcaInput.value = option.getAttribute('data-marca');
-            // Usamos readonly en vez de disabled — se envía con el form
-            numInput.readOnly = true;
-            numInput.value    = "•••• •••• •••• " + option.getAttribute('data-ultimos4');
-            // Rellenar visualmente la tarjeta
+            
+            // OCULTAR campos manuales
+            if (camposManuales) camposManuales.style.display = 'none';
+
+            // Actualizar visual de la tarjeta
             document.getElementById('cardTitularDisplay').textContent = 'TARJETA GUARDADA';
-            document.getElementById('cardExpDisplay').textContent     = '••/••';
-            document.getElementById('cardNumberDisplay').innerHTML    =
-                '•••• &nbsp;•••• &nbsp;•••• &nbsp;' + option.getAttribute('data-ultimos4');
+            document.getElementById('cardNumberDisplay').innerHTML = '•••• &nbsp;•••• &nbsp;•••• &nbsp;' + option.getAttribute('data-ultimos4');
+            
         } else {
-            tokenInput.value  = '';
-            ult4Input.value   = '';
-            marcaInput.value  = '';
-            numInput.readOnly = false;
-            numInput.value    = '';
+            // MOSTRAR campos manuales si elige la opción por defecto
+            if (camposManuales) camposManuales.style.display = 'block';
+            
+            tokenInput.value = '';
+            numInput.value = '';
             document.getElementById('cardTitularDisplay').textContent = 'NOMBRE APELLIDO';
-            document.getElementById('cardExpDisplay').textContent     = 'MM/AA';
-            document.getElementById('cardNumberDisplay').innerHTML    = '•••• &nbsp;•••• &nbsp;•••• &nbsp;••••';
+            document.getElementById('cardNumberDisplay').innerHTML = '•••• &nbsp;•••• &nbsp;•••• &nbsp;••••';
         }
     }
+
 
     /* ── Resto de tus funciones visuales (tarjeta, preview, etc) sin cambios ── */
     document.getElementById('inputNumTarjeta').addEventListener('input', function() {

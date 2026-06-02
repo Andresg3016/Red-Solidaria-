@@ -235,8 +235,17 @@ class DonacionModel:
 
             for d in donaciones:
                 e_fund = d.get('estado_fundacion')
-                e_don = d.get('estado_donante', 'pendiente')
-                d['estado_donante'] = 'recibido' if e_fund == 'aceptada' else ('rechazado' if e_fund == 'rechazada' else e_don)
+                e_don = d.get('estado_donante') # No le pongas 'pendiente' aquí todavía
+                
+                # Solo sobrescribimos si el estado de la fundación lo indica
+                if e_fund == 'aceptada':
+                    d['estado_donante'] = 'recibido'
+                elif e_fund == 'rechazada':
+                    d['estado_donante'] = 'rechazado'
+                elif e_don == 'gestionada':
+                    d['estado_donante'] = 'gestionada' # Mantenemos el estado correcto
+                else:
+                    d['estado_donante'] = e_don if e_don else 'pendiente'
             
             return [d for d in donaciones if not estado or d['estado_donante'] == estado]
         except Exception as e:
@@ -421,21 +430,22 @@ class DonacionModel:
         finally:
             conn.close()
             
+   # Ejemplo para contar monetarias de un donador
     def obtener_estadisticas_donador(self, usuario_id):
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
-        # Ajusta 'estado_donante' según el nombre real de tu columna en la tabla 'donaciones'
         cursor.execute("""
             SELECT 
                 COUNT(CASE WHEN estado_donante = 'pendiente' THEN 1 END) as pendientes,
                 COUNT(CASE WHEN estado_donante = 'recibido' THEN 1 END) as recibidas,
-                COUNT(CASE WHEN estado_donante = 'rechazado' THEN 1 END) as rechazadas
+                COUNT(CASE WHEN estado_donante = 'rechazado' THEN 1 END) as rechazadas,
+                COUNT(CASE WHEN estado_donante = 'gestionada' THEN 1 END) as monetarias
             FROM donaciones 
             WHERE usuario_id = %s
         """, (usuario_id,))
         res = cursor.fetchone()
         conn.close()
-        return res        
+        return res
             
     def obtener_estadisticas_fundacion(self, fundacion_id):
         conn = get_connection()
