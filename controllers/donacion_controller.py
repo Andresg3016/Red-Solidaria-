@@ -57,7 +57,7 @@ class DonacionController:
         fundacion_id = fundacion['id']
 
         if request.method == 'POST':
-            categoria_texto = request.form.get('categoria') # "Alimentos", "Ropa", etc.
+            categoria_texto = request.form.get('categoria') # "Alimentos", "Ropa", etc. (Viene None si es monetario)
             cantidad = request.form.get('cantidad')
             urgencia = request.form.get('urgencia')
             telefono = request.form.get('telefono')
@@ -65,19 +65,25 @@ class DonacionController:
             fecha_vencimiento = request.form.get('fecha_vencimiento')
             tipo_recurso_especial = request.form.get('tipo_recurso_especial')
 
-            # ── DETECTOR DINÁMICO DE CATEGORÍAS REALES ──
-            # Traemos las categorías que tienes registradas en tu DB
+            # ── [NUEVO] DETECTOR DE PESTAÑA SELECCIONADA DESDE LA UI ──
+            tipo_ayuda = request.form.get('tipo_ayuda', 'fisico')
+
+            # ── DETECTOR DINÁMICO DE CATEGORÍAS REALES CON BLINDAJE PARA EVITAR NONE-STRIP ──
             lista_categorias = self.modelo.obtener_categorias()
             categoria_id = None
 
-            # Buscamos el ID cuyo nombre coincida con lo que viene del HTML
-            for cat in lista_categorias:
-                # Comparamos ignorando mayúsculas y espacios
-                if cat['nombre'].strip().lower() in categoria_texto.strip().lower() or categoria_texto.strip().lower() in cat['nombre'].strip().lower():
-                    categoria_id = cat['id']
-                    break
+            if tipo_ayuda == 'monetario':
+                # Si la pestaña es monetaria, forzamos directamente el ID 5 de la DB sin evaluar cadenas
+                categoria_id = 5
+            else:
+                # Si es físico, buscamos de forma segura el ID cuyo nombre coincida con lo que viene de la UI
+                if categoria_texto:
+                    for cat in lista_categorias:
+                        if cat['nombre'] and (cat['nombre'].strip().lower() in categoria_texto.strip().lower() or categoria_texto.strip().lower() in cat['nombre'].strip().lower()):
+                            categoria_id = cat['id']
+                            break
 
-            # Si por alguna razón sigue sin encontrar coincidencia, agarramos el primer ID que exista en tu DB
+            # Si por alguna razón sigue sin encontrar coincidencia en físico, agarramos el primer ID que exista en tu DB
             if not categoria_id and lista_categorias:
                 categoria_id = lista_categorias[0]['id']
 
@@ -86,20 +92,21 @@ class DonacionController:
                 
             correo_usuario = session.get('correo') # Capturas el correo de quien crea la solicitud    
 
-            # Insertamos en la DB con el ID real verificado
+            # ── INSERCIÓN EN MODELO LIMPIO (Sincronizado con tus columnas reales de la DB) ──
+            # ── INSERCIÓN EN MODELO (Sincronizado pasando None a los parámetros que pide tu modelo) ──
             exito = self.modelo.crear_necesidad(
                 fundacion_id=fundacion_id, 
                 categoria_id=categoria_id,
-                cantidad=cantidad,
+                cantidad=cantidad if tipo_ayuda == 'fisico' else 0, # Si es dinero, la cantidad física se inicializa en 0
                 urgencia=urgencia,
-                fecha_limite=None,
-                ubicacion=None,
+                fecha_limite=None,          # <-- Se reincorpora porque tu modelo lo pide en la cabecera
+                ubicacion=None,             # <-- Se reincorpora porque tu modelo lo pide en la cabecera
                 telefono=telefono,
                 descripcion=descripcion,
-                contacto_correo=correo_usuario, # Guardamos el correo de contacto en la DB
+                contacto_correo=correo_usuario, 
                 fecha_vencimiento=fecha_vencimiento,
                 tipo_recurso_especial=tipo_recurso_especial,
-                punto_entrega=None
+                tipo=tipo_ayuda 
             )
 
             if exito:
@@ -111,6 +118,7 @@ class DonacionController:
 
         categorias = self.modelo.obtener_categorias()
         return render_template('solicitar_ayuda.html', categories=categorias, fundacion=fundacion)
+    
     
     def editar_necesidad_view(self, necesidad_id, session):
         """Renderiza y procesa el formulario de edición de una necesidad"""
@@ -132,20 +140,20 @@ class DonacionController:
             telefono = request.form.get('telefono')
             descripcion = request.form.get('descripcion')
             fecha_vencimiento = request.form.get('fecha_vencimiento')
-            
-            # NUEVOS CAMPOS CAPTURADOS DESDE TU FORMULARIO INTERFAZ
             tipo_recurso_especial = request.form.get('tipo_recurso_especial')
             punto_entrega = request.form.get('punto_entrega')
-
-            categoria_id = mapeo_categories.get(categoria_texto, 6)
+            
+            # ── [NUEVO] CAPTURA DEL TIPO EN LA EDICIÓN ──
+            tipo_ayuda = request.form.get('tipo_ayuda', 'fisico')
+            categoria_id = 5 if tipo_ayuda == 'monetario' else mapeo_categories.get(categoria_texto, 6)
 
             if not fecha_vencimiento: fecha_vencimiento = None
 
-            # Actualización enviando los nuevos campos a la Base de Datos
+            # Actualización enviando el tipo correspondiente
             exito = self.modelo.actualizar_necesidad(
                 necesidad_id=necesidad_id,
                 categoria_id=categoria_id,
-                cantidad=cantidad,
+                cantidad=cantidad if tipo_ayuda == 'fisico' else 0,
                 urgencia=urgencia,
                 fecha_limite=None,
                 ubicacion=None,
@@ -153,7 +161,7 @@ class DonacionController:
                 descripcion=descripcion,
                 fecha_vencimiento=fecha_vencimiento,
                 tipo_recurso_especial=tipo_recurso_especial,
-                punto_entrega=punto_entrega
+                tipo=tipo_ayuda # <-- NUEVO PARÁMETRO ENVIADO AL MODELO CORREGIDO
             )
 
             if exito:
@@ -165,7 +173,6 @@ class DonacionController:
                 return render_template('solicitar_ayuda.html', necesidad=necesidad, categories=categorias)
 
         categorias = self.modelo.obtener_categorias()
-        # Cambia 'editar_necesidad.html' por 'solicitar_ayuda.html'
         return render_template('solicitar_ayuda.html', necesidad=necesidad, categories=categorias)
     
     
@@ -242,7 +249,7 @@ class DonacionController:
 
             descripcion = request.form.get("descripcion")
 
-            # ── FLUJO MONETARIO ──
+           # ── FLUJO MONETARIO ──
             if tipo_donacion == "monetario":
                 monto = request.form.get("monto", 0)
                 referencia = request.form.get("referencia_pago", "")
@@ -258,23 +265,31 @@ class DonacionController:
                 # ID 5 es la categoría 'Monetaria'
                 categoria_id = 5 
                 
-                # Aquí es crucial que tu método registrar_donacion o registrar_donacion_monetaria en el modelo
-                # asigne el estado 'gestionada' automáticamente.
-                # Asegúrate de llamar a registrar_donacion, no a registrar_donacion_monetaria si es la que modificamos.
                 exito = self.modelo.registrar_donacion(
                     donador_id, int(f_id_final), categoria_id, monto, descripcion, None, es_monetario=True
                 )
                 
-                # También registramos en transacciones como ya lo hacías
-                # (Asumiendo que registrar_donacion_monetaria o similar maneja la tabla transacciones)
-                # Si registrar_donacion_monetaria es otra función aparte, solo asegúrate que la lógica de estados 
-                # que definimos en el Modelo se aplique ahí también.
+                # ── [NUEVO BLINDAJE CON LOGICA DE ESTADOS] ──
+                if exito and necesidad_prellenada:
+                    # 1. Sumamos el dinero en la base de datos
+                    self.modelo.actualizar_monto_recaudado(necesidad_prellenada["id"], monto)
+                    
+                    # 2. Consultamos cómo quedó la necesidad usando tu método actual
+                    necesidad_act = self.modelo.obtener_necesidad_por_id(necesidad_prellenada["id"])
+                    if necesidad_act:
+                        recaudado = float(necesidad_act.get("monto_recaudado") or 0.00)
+                        objetivo = float(necesidad_act.get("monto_objetivo") or 0.00)
+                        
+                        # 3. Si el dinero recaudado alcanzó o superó la meta, cambiamos el estado automáticamente
+                        if recaudado >= objetivo:
+                            self.modelo.cambiar_estado_necesidad(necesidad_prellenada["id"], "gestionada")
                 
                 if exito:
                     flash("💳 ¡Gracias! Tu donación monetaria ha sido registrada.", "success")
                     return redirect(url_for("home_donador"))
                 else:
                     flash("❌ Error al procesar la donación monetaria.", "danger")
+                    
                     
             # ── FLUJO FÍSICO ──
             else:

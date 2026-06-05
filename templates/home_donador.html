@@ -271,17 +271,21 @@
         <span class="badge bg-warning text-dark">Peticiones actuales</span>
     </div>
 
-                {# ── CARRUSEL DESLIZABLE ESTILO NETFLIX ── #}
-            <div class="netflix-container mb-5">
-                <div class="netflix-slider">
-                    {% for n in necesidades %}
-                    <div class="netflix-item" id="tarjeta-necesidad-{{ n.id }}">
-                        <div class="card card-necesidad h-100 border-0 shadow-sm">
-                            <div class="card-body p-4">
+    {# ── CARRUSEL DESLIZABLE ESTILO NETFLIX ── #}
+    <div class="netflix-container mb-5">
+        <div class="netflix-slider" style="display: flex; gap: 20px; overflow-x: auto; padding: 10px 5px; scroll-behavior: smooth;">
+            {% for n in necesidades %}
+                {# CORREGIDO: Validación basada en el estado real 'pendiente' o 'disponible' #}
+                {% if n.estado != 'eliminada' and n.estado != 'eliminado' %}
+                    <div class="netflix-item" id="tarjeta-necesidad-{{ n.id }}" style="flex: 0 0 320px; min-width: 320px;">
+                        <div class="card card-necesidad h-100 border-0 shadow-sm" style="border-radius: 12px;">
+                            <div class="card-body p-4 d-flex flex-column">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
+                                    {# CORREGIDO: Se cambia n.fecha_creacion por n.fecha #}
                                     <small class="text-muted">
-                                        <i class="far fa-calendar-alt"></i> Publicado: {{ n.fecha_creacion }}
+                                        <i class="far fa-calendar-alt"></i> Publicado: {{ n.fecha if n.fecha else 'Reciente' }}
                                     </small>
+                                    <span class="badge bg-warning text-dark" style="font-size: 0.75rem;">Pendiente</span>
                                 </div>
                                 <h5 class="fw-bold text-dark mb-1">🏢 {{ n.nombre_fundacion }}</h5>
                                 
@@ -302,12 +306,12 @@
                                     <span class="badge bg-info text-dark" style="font-size: 0.85em;">🏷️ Categoría: {{ n.nombre_categoria if n.nombre_categoria else 'General' }}</span>
                                 </div>
 
-                                <p class="card-text text-muted small" style="line-height:1.5;">
+                                <p class="card-text text-muted small mb-4" style="line-height:1.5; flex-grow: 1;">
                                     {{ n.descripcion[:150] if n.descripcion else 'Sin descripción disponible' }}...
                                 </p>
                             </div>
                             
-                            <div class="card-footer bg-transparent border-0 p-4 pt-0">
+                            <div class="card-footer bg-transparent border-0 p-4 pt-0 mt-auto">
                                 {% if n.interaccion_estado == 'ayudado' or n.interaccion_estado == 'recibido' %}
                                     <div class="w-100 text-center py-2 bg-light rounded-3 text-success fw-bold" style="font-size: 0.9rem;">
                                         🎉 Ayuda gestionada a la fundación
@@ -328,7 +332,7 @@
                                                         '{{ n.nombre_fundacion|e }}', 
                                                         '{{ n.descripcion|e }}', 
                                                         '', 
-                                                        '{{ n.fecha_creacion|e }}', 
+                                                        '{{ n.fecha|e }}', 
                                                         'Fundación Verificada', 
                                                         this.getAttribute('data-url')
                                                     )">
@@ -347,13 +351,15 @@
                             </div>
                         </div>
                     </div>
-        {% else %}
-            <div class="w-100 text-center py-4">
-                <p class="text-muted">No hay solicitudes de ayuda publicadas hoy.</p>
-            </div>
-        {% endfor %}
+                {% endif %}
+            {% else %}
+                <div class="w-100 text-center py-5">
+                    <p class="text-muted"><i class="fas fa-heart-broken mb-2 d-block fa-2x"></i> No hay solicitudes de ayuda publicadas hoy.</p>
+                </div>
+            {% endfor %}
+        </div>
     </div>
-</div>
+
 
 
             {# ── RASTREAR Y REPORTAR DONACIONES (TU FORMULARIO ORIGINAL INTACTO) ── #}

@@ -1,34 +1,120 @@
-
 {% extends "base.html" %}
 
 {% block title %}{% if necesidad %}Editar Solicitud{% else %}Solicitar Ayuda{% endif %} - Red Solidaria{% endblock %}
 
 {% block content %}
+<style>
+    .main-card-solicitud {
+        border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+        border: 1px solid #dee2e6;
+        background-color: #ffffff;
+    }
+    /* Estilos exactos para los selectores de tipo de donación (Diseño Moderno) */
+    .tab-selector {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 18px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        background-color: #ffffff;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    .tab-selector:hover {
+        border-color: #b6d4fe;
+        background-color: #f8faff;
+    }
+    .tab-selector.active {
+        border-color: #0d6efd;
+        background-color: #f1f6ff;
+    }
+    .tab-selector input[type="radio"] {
+        display: none;
+    }
+    .tab-icon-box {
+        font-size: 1.8rem;
+        margin-bottom: 8px;
+    }
+    .tab-title {
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 4px;
+        font-size: 1rem;
+    }
+    .tab-desc {
+        font-size: 0.82rem;
+        color: #6c757d;
+        line-height: 1.3;
+    }
+    .form-label.fw-bold {
+        color: #495057;
+        font-size: 0.95rem;
+        margin-bottom: 6px;
+    }
+</style>
+
 <div class="admin-container mt-4 mb-5 mx-auto" style="max-width: 800px;"> 
     <div class="dashboard-header mb-4">
-        <h1>{% if necesidad %}✏️ Editar Solicitud de Ayuda{% else %}📤 Nueva Solicitud de Ayuda{% endif %}</h1>
+        <h1 class="fw-bold">{% if necesidad %}✏️ Editar Solicitud de Ayuda{% else %}📤 Nueva Solicitud de Ayuda{% endif %}</h1>
     </div>
 
-    <div class="panel-section shadow-sm p-4 border bg-white" style="border-radius: 12px;">
+    <div class="panel-section main-card-solicitud p-4 p-md-5">
         <form id="formSolicitudAyuda" action="{% if necesidad %}{{ url_for('editar_necesidad_ruta', id=necesidad.id) }}{% else %}{{ url_for('solicitar_ayuda') }}{% endif %}" method="POST">
+            
+            <div class="mb-4">
+                <label class="form-label fw-bold d-block text-center mb-3">💝 ¿Qué tipo de asistencia requiere la fundación?</label>
+                <div class="row g-3">
+                    
+                    <div class="col-md-6">
+                        <label class="tab-selector active" id="labelFisico">
+                            <input type="radio" name="tipo_ayuda_selector" value="fisico" id="radioFisico" checked>
+                            <div class="tab-icon-box text-primary">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+                            <div class="tab-title">📦 Recurso Físico</div>
+                            <div class="tab-desc">Alimentos, prendas de vestir, calzado o suministros materiales directos para la sede.</div>
+                        </label>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="tab-selector" id="labelMonetario">
+                            <input type="radio" name="tipo_ayuda_selector" value="monetario" id="radioMonetario">
+                            <div class="tab-icon-box text-success">
+                                <i class="fas fa-university"></i>
+                            </div>
+                            <div class="tab-title">💳 Campaña Monetaria</div>
+                            <div class="tab-desc">Recaudación de fondos económicos destinados a proyectos, obras o manutención general.</div>
+                        </label>
+                    </div>
+
+                </div>
+            </div>
+
+            <input type="hidden" id="tipoAyuda" name="tipo_ayuda" value="fisico">
+
+            <hr class="text-muted opacity-25 my-4">
+
             <div class="row g-4">
-                {# ── CATEGORÍA Y CANTIDAD ── #}
-                <div class="col-md-6">
+                
+                <div class="col-md-6" id="contenedorCategoria">
                     <label class="form-label fw-bold">📦 Categoría del Recurso</label>
                     <select id="selectCategoria" name="categoria" class="form-select form-control-lg" required>
                         <option value="" selected disabled>Seleccione una categoría...</option>
                         <option value="Alimentos">Alimentos No Perecederos</option>
                         <option value="Ropa">Ropa y Calzado</option>
-                        <option value="Monetaria">🎯 Campaña / Causa Social</option>
                         <option value="Otros">Otros recursos específicos</option>
                     </select>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">🔢 Cantidad Requerida</label>
-                    <input type="text" name="cantidad" class="form-control form-control-lg" placeholder="Ej: 20 unidades, 50 kg..." required>
+                
+                <div class="col-md-6" id="contenedorCantidad">
+                    <label class="form-label fw-bold" id="labelCantidad">🔢 Cantidad Requerida</label>
+                    <input type="text" id="inputCantidad" name="cantidad" class="form-control form-control-lg" placeholder="Ej: 20 unidades, 50 kg..." required>
                 </div>
 
-                {# ════ BLOCK ALIMENTOS ════ #}
                 <div class="col-12 seccion-dinamica" id="seccionAlimentos" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #ffc107;">
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -47,7 +133,6 @@
                     </div>
                 </div>
 
-                {# ════ BLOCK ROPA Y CALZADO ════ #}
                 <div class="col-12 seccion-dinamica" id="seccionRopa" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #0d6efd;">
                     <label class="form-label fw-bold d-block">👕 Tipo de prenda:</label>
                     <div class="d-flex gap-2 mb-3">
@@ -72,21 +157,19 @@
                     </div>
                 </div>
 
-                {# ════ BLOCK MONETARIA ════ #}
                 <div class="col-12 seccion-dinamica" id="seccionMonetaria" style="display: none; background: #e8f5e9; padding: 20px; border-radius: 10px; border-left: 4px solid #28a745;">
-                    <label class="form-label fw-bold">🎯 Nombre de la Campaña</label>
-                    <input type="text" id="nombreCampana" class="form-control mb-3" placeholder="Ej: Dotación Escolar para Niños...">
-                    <label class="form-label fw-bold">📖 Propósito de la recaudación</label>
-                    <textarea id="propositoMonetario" class="form-control" rows="2" placeholder="Explique brevemente el impacto de su causa..."></textarea>
+                    <label class="form-label fw-bold">🎯 Nombre de la Campaña / Causa Social</label>
+                    <input type="text" id="nombreCampana" class="form-control mb-3" placeholder="Ej: Dotación Escolar para Niños de la Comuna...">
+                    
+                    <label class="form-label fw-bold">📖 Propósito de la recaudación económica</label>
+                    <textarea id="propositoMonetario" class="form-control" rows="3" placeholder="Explique de forma transparente cómo se invertirá el dinero recaudado..."></textarea>
                 </div>
 
-                {# ════ BLOCK OTROS ════ #}
                 <div class="col-12 seccion-dinamica" id="seccionOtros" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #17a2b8;">
                     <label class="form-label fw-bold">✏️ Detalle del requerimiento</label>
                     <input type="text" id="detalleOtros" class="form-control" placeholder="Ej: Cuadernos, sillas, material escolar...">
                 </div>
 
-                {# ── CAMPOS FINALES ── #}
                 <div class="col-md-6">
                     <label class="form-label fw-bold">🚨 Nivel de Urgencia</label>
                     <select name="urgencia" class="form-select form-control-lg" required>
@@ -103,15 +186,15 @@
                 <div class="col-12">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="terminos" required>
-                        <label class="form-check-label" for="terminos">Confirmo que la información es verídica.</label>
+                        <label class="form-check-label text-muted small" for="terminos">Confirmo que la información suministrada es verídica y sigue los lineamientos de la fundación.</label>
                     </div>
                 </div>
 
                 <input type="hidden" id="descripcionOculta" name="descripcion" value="">
 
-                <div class="col-12">
-                    <div class="alert alert-info py-2 small">Al publicar, tu solicitud aparecerá en el muro público.</div>
-                    <button type="submit" class="btn btn-warning w-100 py-3 fw-bold">🚀 PUBLICAR SOLICITUD AHORA</button>
+                <div class="col-12 mt-4">
+                    <div class="alert alert-info py-2 small border-0 bg-light text-primary"><i class="fas fa-info-circle me-1"></i> Al publicar, tu solicitud aparecerá inmediatamente en el carrusel y muro global de donantes.</div>
+                    <button type="submit" id="btnPublicarPrincipal" class="btn btn-warning w-100 py-3 fw-bold text-uppercase shadow-sm">🚀 Publicar Solicitud Ahora</button>
                 </div>
             </div>
         </form>
@@ -119,12 +202,74 @@
 </div>
 
 <script>
-document.getElementById('selectCategoria').addEventListener('change', function() {
+// Componentes y controles UI de Pestañas
+const radioFisico = document.getElementById('radioFisico');
+const radioMonetario = document.getElementById('radioMonetario');
+const labelFisico = document.getElementById('labelFisico');
+const labelMonetario = document.getElementById('labelMonetario');
+
+const tipoAyudaHidden = document.getElementById('tipoAyuda');
+const selectCategoria = document.getElementById('selectCategoria');
+const inputCantidad = document.getElementById('inputCantidad');
+
+const contenedorCategoria = document.getElementById('contenedorCategoria');
+const contenedorCantidad = document.getElementById('contenedorCantidad');
+const btnPublicarPrincipal = document.getElementById('btnPublicarPrincipal');
+
+// Alternar entre las pestañas físicas y monetarias de forma limpia
+function procesarCambioPestaña(tipo) {
+    // Limpiar todas las vistas dinámicas antes de procesar cambios
+    document.querySelectorAll('.seccion-dinamica').forEach(el => el.style.display = 'none');
+
+    if (tipo === 'fisico') {
+        labelFisico.classList.add('active');
+        labelMonetario.classList.remove('active');
+        tipoAyudaHidden.value = 'fisico';
+
+        // Mostrar controles de categoría y cantidad física
+        contenedorCategoria.style.display = 'block';
+        contenedorCantidad.style.display = 'block';
+        selectCategoria.setAttribute('required', 'required');
+        inputCantidad.setAttribute('required', 'required');
+        
+        // Resetear select para obligar al usuario a elegir su bloque físico
+        selectCategoria.value = "";
+        
+        // Estilos del botón principal
+        btnPublicarPrincipal.className = "btn btn-warning w-100 py-3 fw-bold text-uppercase shadow-sm";
+        btnPublicarPrincipal.innerHTML = "🚀 Publicar Solicitud Física";
+    } else {
+        labelMonetario.classList.add('active');
+        labelFisico.classList.remove('active');
+        tipoAyudaHidden.value = 'monetario';
+
+        // Ocultar selects físicos irrelevantes para no confundir
+        contenedorCategoria.style.display = 'none';
+        contenedorCantidad.style.display = 'none';
+        selectCategoria.removeAttribute('required');
+        inputCantidad.removeAttribute('required');
+
+        // Mostrar directamente el contenedor monetario sin depender del select
+        document.getElementById('seccionMonetaria').style.display = 'block';
+        
+        // Convertir estilos del botón a verde transaccional
+        btnPublicarPrincipal.className = "btn btn-success w-100 py-3 fw-bold text-uppercase shadow-sm";
+        btnPublicarPrincipal.innerHTML = "💳 Iniciar Campaña Monetaria";
+    }
+}
+
+// Eventos de los selectores de pestañas
+radioFisico.addEventListener('change', () => procesarCambioPestaña('fisico'));
+radioMonetario.addEventListener('change', () => procesarCambioPestaña('monetario'));
+
+// Tu lógica de selects físicos intacta
+selectCategoria.addEventListener('change', function() {
     document.querySelectorAll('.seccion-dinamica').forEach(el => el.style.display = 'none');
     const id = 'seccion' + this.value;
     if(document.getElementById(id)) document.getElementById(id).style.display = 'block';
 });
 
+// Botones de Ropa/Calzado intactos
 document.getElementById('btnTipoRopa').addEventListener('click', function() { 
     this.classList.replace('btn-outline-primary', 'btn-primary');
     document.getElementById('btnTipoCalzado').classList.replace('btn-primary', 'btn-outline-primary');
@@ -139,15 +284,45 @@ document.getElementById('btnTipoCalzado').addEventListener('click', function() {
     document.querySelector('.id-despliegue-ropa').style.display = 'flex';
 });
 
+// Tu procesador del Submit intacto + la nueva lógica Monetaria integrada sin romper nada
 document.getElementById('formSolicitudAyuda').addEventListener('submit', function() {
-    const cat = document.getElementById('selectCategoria').value;
+    const tipoActual = tipoAyudaHidden.value;
     let desc = "";
-    if (cat === 'Alimentos') desc = `Alimentos (${document.getElementById('vencimientoAlimentos').value}): ${document.getElementById('detalleAlimentos').value}`;
-    else if (cat === 'Ropa') desc = `${document.getElementById('ropaSubtipo').value} para ${document.getElementById('publicoRopa').value}: ${document.getElementById('detalleRopa').value}`;
-    else if (cat === 'Monetaria') desc = `Campaña: ${document.getElementById('nombreCampana').value}. Propósito: ${document.getElementById('propositoMonetario').value}`;
-    else desc = document.getElementById('detalleOtros').value;
+
+    if (tipoActual === 'monetario') {
+        // Concatenación para cuando se use la pestaña Monetaria
+        desc = `Campaña: ${document.getElementById('nombreCampana').value}. Propósito: ${document.getElementById('propositoMonetario').value}`;
+    } else {
+        // Tu mapeo de cadenas original para los bloques físicos
+        const cat = selectCategoria.value;
+        if (cat === 'Alimentos') {
+            desc = `Alimentos (${document.getElementById('vencimientoAlimentos').value}): ${document.getElementById('detalleAlimentos').value}`;
+        } else if (cat === 'Ropa') {
+            desc = `${document.getElementById('ropaSubtipo').value} para ${document.getElementById('publicoRopa').value}: ${document.getElementById('detalleRopa').value}`;
+        } else {
+            desc = document.getElementById('detalleOtros').value;
+        }
+    }
+    
+    // Asignación final al input oculto que recibe tu controlador
     document.getElementById('descripcionOculta').value = desc;
+});
+
+// Inicialización de modo por si es edición
+document.addEventListener("DOMContentLoaded", function() {
+    {% if necesidad and necesidad.tipo == 'monetario' %}
+        radioMonetario.checked = true;
+        procesarCambioPestaña('monetario');
+        // Precarga de edición de datos monetarios si aplica
+        const descCompleta = "{{ necesidad.descripcion|safe if necesidad else '' }}";
+        if(descCompleta.includes("Campaña: ") && descCompleta.includes(". Propósito: ")) {
+            const partes = descCompleta.split(". Propósito: ");
+            document.getElementById('nombreCampana').value = partes[0].replace("Campaña: ", "");
+            document.getElementById('propositoMonetario').value = partes[1];
+        }
+    {% else %}
+        procesarCambioPestaña('fisico');
+    {% endif %}
 });
 </script>
 {% endblock %}
-

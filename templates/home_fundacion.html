@@ -224,15 +224,27 @@
     
     <div class="contenedor-solicitudes-carrusel" style="display: flex; gap: 20px; overflow-x: auto; padding: 10px 5px; scroll-behavior: smooth;">
         {% for n in solicitudes_ayuda %}
-            {% if n.estado != 'eliminada' %}
+            {% if n.estado != 'eliminada' and n.estado != 'eliminado' %}
                 {% set es_monetaria = (n.tipo == 'monetario') %}
                 
                 <div class="tarjeta-carrusel-item" style="flex: 0 0 320px; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
                     <div class="card card-necesidad h-100 border-0 shadow-sm" style="{% if es_monetaria %}border-left: 5px solid #28a745 !important;{% endif %} border-radius: 12px;">
                         <div class="card-body p-4 d-flex flex-column">
                             <div class="d-flex justify-content-between mb-3">
-                                <small class="text-muted"><i class="far fa-calendar-alt"></i> {{ n.fecha.strftime('%d/%m/%Y') if n.fecha else 'N/A' }}</small>
-                                <span class="badge {% if n.estado == 'disponible' %}bg-warning{% else %}bg-success{% endif %}">{{ n.estado|capitalize }}</span>
+                                {# FECHA: Imprime de forma directa el valor de tu columna 'fecha' #}
+                                <small class="text-muted">
+                                    <i class="far fa-calendar-alt"></i> 
+                                    {% if n.fecha %}{{ n.fecha }}{% else %}Reciente{% endif %}
+                                </small>
+                                
+                                {# ESTADO: Evalúa de manera estricta el estado 'pendiente' mapeando tu DB #}
+                                {% if n.estado == 'pendiente' or not n.estado or n.estado == '' %}
+                                    <span class="badge bg-warning text-dark">Pendiente</span>
+                                {% elif n.estado == 'completada' or n.estado == 'completado' %}
+                                    <span class="badge bg-success">Completada</span>
+                                {% else %}
+                                    <span class="badge bg-primary">{{ n.estado|capitalize }}</span>
+                                {% endif %}
                             </div>
                             
                             <h6 class="fw-bold mb-2">
@@ -248,7 +260,6 @@
                             <div class="mt-auto border-top pt-3">
                                 <span class="d-block fw-bold small text-primary mb-1">📦 Cantidad: {{ n.cantidad }}</span>
                                 
-                                {# AQUÍ VA EL CAMBIO DE LÓGICA #}
                                 {% if es_monetaria %}
                                     <span class="badge bg-success">Donación Monetaria</span>
                                 {% else %}
