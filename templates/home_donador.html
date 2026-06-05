@@ -323,21 +323,40 @@
                                 {% else %}
                                     <div class="row g-2">
                                         <div class="col-6">
-                                            <button class="btn btn-warning w-100 fw-bold py-2 shadow-sm visual-btn"
-                                                    style="border-radius:12px; font-size: 0.85rem;"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#modalDetalleAyuda"
-                                                    data-url="{{ url_for('donar', necesidad_id=n.id) }}"
-                                                    onclick="mostrarDetalleAyuda(
-                                                        '{{ n.nombre_fundacion|e }}', 
-                                                        '{{ n.descripcion|e }}', 
-                                                        '', 
-                                                        '{{ n.fecha|e }}', 
-                                                        'Fundación Verificada', 
-                                                        this.getAttribute('data-url')
-                                                    )">
-                                                🤝 AYUDAR
-                                            </button>
+                                            {# ── SE IMPLEMENTA LA DETECCIÓN DINÁMICA DE LA RUTA SEGÚN EL TIPO SENIOR ── #}
+                                            {% if n.tipo == 'monetario' %}
+                                                <button class="btn btn-warning w-100 fw-bold py-2 shadow-sm visual-btn"
+                                                        style="border-radius:12px; font-size: 0.85rem;"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#modalDetalleAyuda"
+                                                        data-url="{{ url_for('donar', necesidad_id=n.id) }}"
+                                                        onclick="mostrarDetalleAyuda(
+                                                            '{{ n.nombre_fundacion|e }}', 
+                                                            '{{ n.descripcion|e }}', 
+                                                            '', 
+                                                            '{{ n.fecha|e }}', 
+                                                            'Fundación Verificada', 
+                                                            this.getAttribute('data-url')
+                                                        )">
+                                                    🤝 AYUDAR
+                                                </button>
+                                            {% else %}
+                                                <button class="btn btn-warning w-100 fw-bold py-2 shadow-sm visual-btn"
+                                                        style="border-radius:12px; font-size: 0.85rem;"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#modalDetalleAyuda"
+                                                        data-url="{{ url_for('aceptar_ayuda_fisica', necesidad_id=n.id) }}"
+                                                        onclick="mostrarDetalleAyuda(
+                                                            '{{ n.nombre_fundacion|e }}', 
+                                                            '{{ n.descripcion|e }}', 
+                                                            '', 
+                                                            '{{ n.fecha|e }}', 
+                                                            'Fundación Verificada', 
+                                                            this.getAttribute('data-url')
+                                                        )">
+                                                    🤝 AYUDAR
+                                                </button>
+                                            {% endif %}
                                         </div>
                                         <div class="col-6">
                                             <form action="{{ url_for('rechazar_necesidad', necesidad_id=n.id) }}" method="POST" onsubmit="return confirm('¿Deseas ocultar y rechazar esta solicitud definitivamente?');">
@@ -484,7 +503,7 @@
                 
                 <form id="modalDonarForm" method="POST" action="">
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-warning w-100 fw-bold py-2 shadow-sm" style="border-radius: 12px;">
+                        <button id="btnConfirmarDonacion" type="submit" class="btn btn-warning w-100 fw-bold py-2 shadow-sm" style="border-radius: 12px;">
                             🤝 Confirmar y Registrar Donación
                         </button>
                     </div>

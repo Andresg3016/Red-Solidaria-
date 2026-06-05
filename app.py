@@ -280,6 +280,13 @@ def cambiar_estado_donacion(id, nuevo_estado):
 def eliminar_donacion_ruta(id):
     return donacion_ctrl.eliminar(id)
 
+# Nueva ruta para aceptar de forma directa y automática la ayuda física desde el modal
+@app.route('/aceptar_ayuda_física/<int:necesidad_id>', methods=['POST'])
+def aceptar_ayuda_fisica(necesidad_id):
+    if 'usuario_id' not in session:
+        return redirect(url_for('login'))
+    return donacion_ctrl.aceptar_ayuda_fisica_modal_action(necesidad_id)
+
 # Nueva ruta para rechazar/ocultar una necesidad del carrusel del donante
 @app.route('/rechazar_necesidad/<int:necesidad_id>', methods=['POST'])
 def rechazar_necesidad(necesidad_id):

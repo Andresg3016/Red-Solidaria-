@@ -331,6 +331,57 @@ class DonacionController:
                                metodos=metodos_guardados)
         
         
+    # =========================================================================
+    # NUEVO: ACEPTAR AYUDA FÍSICA DIRECTAMENTE DESDE EL MODAL DEL CARRUSEL
+    # =========================================================================
+    def aceptar_ayuda_fisica_modal_action(self, necesidad_id):
+        """Procesa la aceptación automática de una ayuda física desde el modal del donante."""
+        if "usuario_id" not in session:
+            return redirect(url_for("login"))
+            
+        donador_id = session["usuario_id"]
+        
+        # 1. Traer los datos completos de la necesidad/solicitud
+        necesidad = self.modelo.obtener_necesidad_por_id(necesidad_id)
+        if not necesidad:
+            flash("❌ La solicitud de ayuda ya no está disponible.", "danger")
+            return redirect(url_for("home_donador"))
+            
+        # 2. Extraer la información para el registro de la donación
+        fundacion_id = necesidad.get("fundacion_id")
+        categoria_id = necesidad.get("categoria_id")
+        cantidad = necesidad.get("cantidad", 1)
+        descripcion_solicitud = necesidad.get("descripcion", "")
+        descripcion_fija = f"Compromiso de ayuda física para: '{descripcion_solicitud}'"
+
+        # 3. Registrar la donación vinculándola con la necesidad enviando el estado final directo
+        exito = self.modelo.registrar_donacion_con_necesidad(
+            donador_id=int(donador_id),
+            fundacion_id=int(fundacion_id),
+            categoria_id=int(categoria_id),
+            cantidad=cantidad,
+            descripcion=descripcion_fija,
+            necesidad_id=int(necesidad_id),
+            forzar_estado='gestionada'  # <── LE PASAMOS EL NUEVO PARÁMETRO AQUÍ
+        )
+        
+        if exito:
+            # 4. Cambiar el estado de la necesidad a 'gestionada' usando tu lógica de base de datos
+            try:
+                conn = get_connection()
+                cursor = conn.cursor()
+                cursor.execute("UPDATE necesidades SET estado = 'gestionada' WHERE id = %s", (necesidad_id,))
+                conn.commit()
+                conn.close()
+                flash("🎉 ¡Muchas gracias! Tu compromiso de ayuda física ha sido registrado. La fundación verá tus datos para coordinar la entrega.", "success")
+            except Exception as e:
+                print(f"⚠️ Error al actualizar estado de la necesidad: {e}")
+                flash("⚠️ Donación registrada, pero hubo un desfase en el estado del carrusel.", "warning")
+        else:
+            flash("❌ Error al procesar tu ayuda física.", "danger")
+            
+        return redirect(url_for("home_donador"))
+        
     def home_donador_view(self, session, request):
         from flask import render_template, redirect, url_for
         

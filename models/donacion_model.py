@@ -37,7 +37,7 @@ class DonacionModel:
         finally:
             conn.close()
 
-    def registrar_donacion_con_necesidad(self, donador_id, fundacion_id, categoria_id, cantidad, descripcion, necesidad_id, fotos_str=None, es_monetario=False):
+    def registrar_donacion_con_necesidad(self, donador_id, fundacion_id, categoria_id, cantidad, descripcion, necesidad_id, fotos_str=None, es_monetario=False, forzar_estado=None):
         """Registra asociando necesidad_id manejando tipos físicos y monetarios de forma dinámica."""
         conn = get_connection()
         try:
@@ -47,7 +47,12 @@ class DonacionModel:
             f_id = int(fundacion_id[0]) if isinstance(fundacion_id, list) else int(fundacion_id or 0)
             
             tipo_donacion = 'monetario' if es_monetario else 'fisico'
-            estado_inicial = 'gestionada' if es_monetario else 'pendiente'
+            
+            # ── AQUÍ ESTÁ EL TRUCO SENIOR: Si pasamos un estado forzado, usa ese. Si no, usa el comportamiento por defecto ──
+            if forzar_estado:
+                estado_inicial = forzar_estado
+            else:
+                estado_inicial = 'gestionada' if es_monetario else 'pendiente'
             
             query = """
                 INSERT INTO donaciones 
@@ -191,18 +196,19 @@ class DonacionModel:
         conn = get_connection()
         try:
             cursor = conn.cursor(dictionary=True)
-            # Modificamos el SQL quitando n.punto_entrega e incluyendo n.tipo sin alterar la lógica de estados
+            # LOGICA SENIOR: Cambiamos n.estado != 'eliminado' por n.estado = 'pendiente'
+            # para que al pasar a 'gestionada' desaparezca del carrusel de la fundación automáticamente.
             query = """
                 SELECT 
                     n.id, n.fundacion_id, n.categoria_id, n.cantidad, n.tipo_urgencia,
                     n.fecha_limite, n.ubicacion, n.telefono, n.descripcion, n.fecha_vencimiento,
-                    n.tipo_recurso_especial, n.tipo,
+                    n.tipo_recurso_especial, n.tipo, n.fecha, -- Agregamos n.fecha aquí para asegurar que viaje al HTML
                     c.nombre AS nombre_categoria,
                     COALESCE(d.estado_donante, n.estado) AS estado
                 FROM necesidades n
                 LEFT JOIN categorias c ON n.categoria_id = c.id
                 LEFT JOIN donaciones d ON d.necesidad_id = n.id
-                WHERE n.fundacion_id = %s AND n.estado != 'eliminado'
+                WHERE n.fundacion_id = %s AND n.estado = 'pendiente'
                 ORDER BY n.id DESC
             """
             cursor.execute(query, (int(fundacion_id),))
