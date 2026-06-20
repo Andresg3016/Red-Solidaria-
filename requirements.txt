@@ -5,5 +5,5 @@ Flask-Login==0.6.3
 Flask-Mail==0.10.0
 flask-cors==6.0.5
 mysqlclient==2.2.8
-gunicorn==23.0.0.
+gunicorn==23.0.0
 requests==2.34.2
